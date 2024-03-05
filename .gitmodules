@@ -1,0 +1,3 @@
+[submodule "Moongoose/vendor/spdlog"]
+	path = Moongoose/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
