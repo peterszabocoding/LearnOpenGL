@@ -7,5 +7,10 @@
 		#define MOONGOOSE_API __declspec(dllimport)
 	#endif
 #else
-	#error MoonGoose only support Windows!
+	#error Moongoose only support Windows!
 #endif
+
+#define BIT(x) (1 << x)
+
+#include <string>
+#include <functional>
