@@ -11,6 +11,3 @@
 #endif
 
 #define BIT(x) (1 << x)
-
-#include <string>
-#include <functional>

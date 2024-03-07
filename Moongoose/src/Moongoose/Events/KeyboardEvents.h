@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Moongoose/Events/Event.h"
-#include <sstream>
 
 namespace Moongoose {
 

@@ -1,3 +1,4 @@
+#include "mgpch.h"
 #include "Log.h"
 
 namespace Moongoose {

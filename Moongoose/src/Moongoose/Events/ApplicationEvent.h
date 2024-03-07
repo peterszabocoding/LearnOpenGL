@@ -2,8 +2,6 @@
 
 #include "Moongoose/Events/Event.h"
 
-#include <sstream>
-
 namespace Moongoose {
 
 	class MOONGOOSE_API WindowResizeEvent : public Event

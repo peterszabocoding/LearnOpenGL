@@ -1,6 +1,6 @@
+#include "mgpch.h"
 #include "Application.h"
 #include "Log.h"
-
 #include "Moongoose/Events/ApplicationEvent.h"
 
 namespace Moongoose
