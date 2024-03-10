@@ -15,28 +15,28 @@ namespace Moongoose {
 	enum EventCategory
 	{
 		None = 0,
-		Application = BIT(0),
-		Keyboard = BIT(1),
-		Mouse = BIT(2)
+		EventApplication = BIT(0),
+		EventKeyboard = BIT(1),
+		EventMouse = BIT(2)
 	};
 
-#define EVENT_CLASS_TYPE(type) static EventType get_static_type() { return EventType::##type; }\
-								virtual EventType get_event_type() const override { return get_static_type(); }\
-								virtual const char* get_name() const override { return #type; }
+#define EVENT_CLASS_TYPE(type) static EventType getStaticType() { return EventType::##type; }\
+								virtual EventType getEventType() const override { return getStaticType(); }\
+								virtual const char* getName() const override { return #type; }
 
-#define EVENT_CLASS_CATEGORY(category) virtual int get_category_flags() const override { return category; }
+#define EVENT_CLASS_CATEGORY(category) virtual int getCategoryFlags() const override { return category; }
 
 	class MOONGOOSE_API Event
 	{
 	public:
-		virtual EventType get_event_type() const = 0;
-		virtual const char* get_name() const = 0;
-		virtual int get_category_flags() const = 0;
-		virtual std::string to_string() const { return get_name(); }
+		virtual EventType getEventType() const = 0;
+		virtual const char* getName() const = 0;
+		virtual int getCategoryFlags() const = 0;
+		virtual std::string toString() const { return getName(); }
 
-		inline bool is_in_category(EventCategory category)
+		inline bool isInCategory(EventCategory category)
 		{
-			return get_category_flags() & category;
+			return getCategoryFlags() & category;
 		}
 
 	protected:
@@ -54,7 +54,7 @@ namespace Moongoose {
 		template<typename T>
 		bool Dispatch(EventCallback<T> callback)
 		{
-			if (event.get_event_type() != T::get_static_type()) return false;
+			if (event.getEventType() != T::getStaticType()) return false;
 
 			event.is_handled = callback(*(T*) &event);
 			return true;

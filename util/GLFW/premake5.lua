@@ -4,9 +4,6 @@ project "GLFW"
 	staticruntime "off"
 	warnings "off"
 
-	staticruntime "on"
-	runtime "Release"
-
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 

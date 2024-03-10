@@ -10,10 +10,10 @@ namespace Moongoose {
 		WindowResizeEvent(unsigned int w, unsigned int h)
 			: width(w), height(h) {}
 
-		inline unsigned int get_width() const { return width; }
-		inline unsigned int get_height() const { return height; }
+		inline unsigned int getWidth() const { return width; }
+		inline unsigned int getHeight() const { return height; }
 
-		std::string to_string() const override
+		std::string toString() const override
 		{
 			std::stringstream ss;
 			ss << "WindowResizeEvent: " << width << ", " << height;
@@ -21,7 +21,7 @@ namespace Moongoose {
 		}
 
 		EVENT_CLASS_TYPE(WindowResize)
-		EVENT_CLASS_CATEGORY(EventCategory::Application)
+		EVENT_CLASS_CATEGORY(EventCategory::EventApplication)
 	private:
 		unsigned int width, height;
 	};
@@ -32,7 +32,7 @@ namespace Moongoose {
 		WindowCloseEvent() {}
 
 		EVENT_CLASS_TYPE(WindowClose)
-		EVENT_CLASS_CATEGORY(EventCategory::Application)
+		EVENT_CLASS_CATEGORY(EventCategory::EventApplication)
 	};
 
 }

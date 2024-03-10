@@ -1,13 +1,14 @@
 #include "mgpch.h"
-#include "Application.h"
+
 #include "Log.h"
+#include "Application.h"
 #include "Moongoose/Events/ApplicationEvent.h"
 
 namespace Moongoose
 {
 	Application::Application()
 	{
-		
+		m_Window = std::unique_ptr<Window>(Window::Create());
 	}
 
 	Application::~Application()
@@ -16,13 +17,10 @@ namespace Moongoose
 
 	void Application::Run()
 	{
-		WindowResizeEvent e(1280, 720);
-		if (e.is_in_category(EventCategory::Application))
+		while (m_Running)
 		{
-			LOG_APP_INFO(e.to_string());
+			m_Window->OnUpdate();
 		}
-
-		while (true);
 	}
 }
 

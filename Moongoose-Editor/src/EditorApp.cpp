@@ -10,10 +10,7 @@ public:
 		Moongoose::LOG_APP_ERROR("Error test");
 		Moongoose::LOG_APP_WARN("Premake test");
 	}
-	virtual ~EditorApp()
-	{
-
-	}
+	virtual ~EditorApp() {}
 };
 
 Moongoose::Application* Moongoose::CreateApplication()
