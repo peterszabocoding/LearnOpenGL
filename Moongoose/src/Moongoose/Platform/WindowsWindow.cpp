@@ -1,11 +1,19 @@
 #include "mgpch.h"
 
 #include "Moongoose/Log.h"
+#include "Moongoose/Events/MouseEvents.h"
+#include "Moongoose/Events/KeyboardEvents.h"
+#include "Moongoose/Events/ApplicationEvent.h"
 #include "WindowsWindow.h"
 
 namespace Moongoose {
 
 	static bool s_GLFWInitialized = false;
+
+	static void GLFWErrorCallback(int error, const char* description)
+	{
+		LOG_CORE_ERROR("GLFW Error: {0} | {1}", error, description);
+	}
 
 	Window* Window::Create(const WindowProps& props)
 	{
@@ -52,6 +60,8 @@ namespace Moongoose {
 			int success = glfwInit();
 			MG_CORE_ASSERT(success, "Could not initialize GLFW");
 
+			glfwSetErrorCallback(GLFWErrorCallback);
+
 			s_GLFWInitialized = true;
 		}
 
@@ -59,6 +69,77 @@ namespace Moongoose {
 		glfwMakeContextCurrent(m_Window);
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		setVSync(true);
+
+		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int w, int h)
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.Width = w;
+				data.Height = h;
+
+				data.EventCallback(WindowResizeEvent(w, h));
+			});
+
+		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.EventCallback(WindowCloseEvent());
+			});
+
+		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+			{
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+				switch (action) 
+				{
+				case GLFW_PRESS:
+				{
+					data.EventCallback(KeyPressedEvent(key, 0));
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					data.EventCallback(KeyReleasedEvent(key));
+					break;
+				}
+				case GLFW_REPEAT:
+				{
+					data.EventCallback(KeyPressedEvent(key, 1));
+					break;
+				}
+				}
+			});
+
+		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+
+			switch (action) 
+			{
+			case GLFW_PRESS:
+			{
+				data.EventCallback(MousePressedEvent(button));
+				break;
+			}
+			case GLFW_RELEASE:
+			{
+				data.EventCallback(MouseReleasedEvent(button));
+				break;
+			}
+			}
+
+		});
+
+		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset) 
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			data.EventCallback(MouseScrolledEvent((float) xOffset, (float) yOffset));
+		});
+
+		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			data.EventCallback(MouseMovedEvent((float)xPos, (float)yPos));
+		});
 	}
 
 	void Moongoose::WindowsWindow::shutdown()

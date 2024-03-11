@@ -1,5 +1,6 @@
 #pragma once
 
+#include "mgpch.h"
 #include "Moongoose/Core.h"
 
 namespace Moongoose {
@@ -17,8 +18,11 @@ namespace Moongoose {
 		None = 0,
 		EventApplication = BIT(0),
 		EventKeyboard = BIT(1),
-		EventMouse = BIT(2)
+		EventMouse = BIT(2),
+		EventInput = BIT(3),
 	};
+
+#define BIND_EVENT_FUNC(x) std::bind(&x, this, std::placeholders::_1)
 
 #define EVENT_CLASS_TYPE(type) static EventType getStaticType() { return EventType::##type; }\
 								virtual EventType getEventType() const override { return getStaticType(); }\
@@ -28,7 +32,9 @@ namespace Moongoose {
 
 	class MOONGOOSE_API Event
 	{
+	friend class EventDispatcher;
 	public:
+
 		virtual EventType getEventType() const = 0;
 		virtual const char* getName() const = 0;
 		virtual int getCategoryFlags() const = 0;
@@ -63,5 +69,10 @@ namespace Moongoose {
 	private:
 		Event& event;
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, const Event& e)
+	{
+		return os << e.toString();
+	}
 
 }
