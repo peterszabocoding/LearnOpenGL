@@ -7,3 +7,4 @@
 #include "Moongoose/Application.h"
 #include "Moongoose/Log.h"
 #include "Moongoose/EntryPoint.h"
+#include "Moongoose/Layer.h"

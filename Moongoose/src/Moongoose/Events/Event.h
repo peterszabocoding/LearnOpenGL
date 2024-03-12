@@ -39,6 +39,8 @@ namespace Moongoose {
 		virtual const char* getName() const = 0;
 		virtual int getCategoryFlags() const = 0;
 		virtual std::string toString() const { return getName(); }
+		
+		inline bool isHandled() const { return handled; }
 
 		inline bool isInCategory(EventCategory category)
 		{
@@ -46,7 +48,7 @@ namespace Moongoose {
 		}
 
 	protected:
-		bool is_handled = false;
+		bool handled = false;
 	};
 
 	class EventDispatcher
@@ -62,7 +64,7 @@ namespace Moongoose {
 		{
 			if (event.getEventType() != T::getStaticType()) return false;
 
-			event.is_handled = callback(*(T*) &event);
+			event.handled = callback(*(T*) &event);
 			return true;
 		}
 
