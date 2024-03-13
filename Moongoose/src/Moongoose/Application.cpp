@@ -1,7 +1,8 @@
 #include "mgpch.h"
 
+#include <glad/glad.h>
+
 #include "Log.h"
-#include <GLFW/glfw3.h>
 #include "Application.h"
 
 namespace Moongoose

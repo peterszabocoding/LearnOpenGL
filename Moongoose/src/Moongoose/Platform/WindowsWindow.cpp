@@ -1,5 +1,9 @@
 #include "mgpch.h"
 
+/* Make sure to include glad.h before glfw3!*/
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include "Moongoose/Log.h"
 #include "Moongoose/Events/MouseEvents.h"
 #include "Moongoose/Events/KeyboardEvents.h"
@@ -67,6 +71,10 @@ namespace Moongoose {
 
 		m_Window = glfwCreateWindow((int)m_Data.Width, (int)m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_Window);
+
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		MG_CORE_ASSERT(status, "Failed to initialize GLAD");
+
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		setVSync(true);
 

@@ -1,7 +1,8 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
 #include "Moongoose/Window.h"
+
+struct GLFWwindow;
 
 namespace Moongoose {
 	class WindowsWindow : public Window

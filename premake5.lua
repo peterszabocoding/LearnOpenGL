@@ -12,8 +12,10 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
 IncludeDir["GLFW"] = "Moongoose/vendor/GLFW/include"
+IncludeDir["Glad"] = "Moongoose/vendor/Glad/include"
 
 include "Moongoose/vendor/GLFW"
+include "Moongoose/vendor/Glad"
 
 project "Moongoose"
 	location "Moongoose"
@@ -36,12 +38,14 @@ project "Moongoose"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include",
-		"%{IncludeDir.GLFW}"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}"
 	}
 
 	links 
 	{ 
 		"GLFW",
+		"Glad",
 		"opengl32.lib"
 	}
 
