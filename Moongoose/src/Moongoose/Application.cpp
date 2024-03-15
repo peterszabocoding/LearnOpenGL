@@ -7,8 +7,13 @@
 
 namespace Moongoose
 {
+
+	Application* Application::s_Instance = nullptr;
+
 	Application::Application()
 	{
+		MG_ASSERT(!s_Instance, "Application has been initialized already");
+		s_Instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->setEventCallback(BIND_EVENT_FUNC(Application::OnEvent));
 	}
@@ -47,11 +52,13 @@ namespace Moongoose
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
+		layer->onAttach();
 	}
 
 	void Application::PushOverlay(Layer* overlay)
 	{
 		m_LayerStack.PushOverlay(overlay);
+		overlay->onAttach();
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& event)

@@ -29,6 +29,7 @@ public:
 		LOG_APP_WARN("Premake test");
 
 		PushLayer(new ExampleLayer());
+		PushOverlay(new Moongoose::ImGuiLayer());
 	}
 	virtual ~EditorApp() {}
 };

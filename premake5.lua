@@ -11,11 +11,13 @@ workspace "Moongoose"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["GLFW"] = "Moongoose/vendor/GLFW/include"
-IncludeDir["Glad"] = "Moongoose/vendor/Glad/include"
+IncludeDir["GLFW"]	=	"Moongoose/vendor/GLFW/include"
+IncludeDir["Glad"]	=	"Moongoose/vendor/Glad/include"
+IncludeDir["ImGui"]	=	"Moongoose/vendor/imgui"
 
 include "Moongoose/vendor/GLFW"
 include "Moongoose/vendor/Glad"
+include "Moongoose/vendor/imgui"
 
 project "Moongoose"
 	location "Moongoose"
@@ -39,13 +41,15 @@ project "Moongoose"
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}"
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.ImGui}"
 	}
 
 	links 
 	{ 
 		"GLFW",
 		"Glad",
+		"ImGui",
 		"opengl32.lib"
 	}
 
@@ -57,7 +61,8 @@ project "Moongoose"
 		defines
 		{
 			"MG_PLATFORM_WINDOWS",
-			"MG_BUILD_DLL"
+			"MG_BUILD_DLL",
+			"GLFW_INCLUDE_NONE"
 		}
 
 		postbuildcommands
