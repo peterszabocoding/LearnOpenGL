@@ -7,3 +7,6 @@
 [submodule "Moongoose/vendor/ImGui"]
 	path = Moongoose/vendor/ImGui
 	url = https://github.com/ocornut/imgui.git
+[submodule "Moongoose/vendor/glm"]
+	path = Moongoose/vendor/glm
+	url = https://github.com/g-truc/glm.git
