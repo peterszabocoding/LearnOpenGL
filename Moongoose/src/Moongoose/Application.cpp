@@ -40,7 +40,6 @@ namespace Moongoose
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(Application::OnWindowClosed));
 
 		LOG_CORE_TRACE("{0}", event);
-
 		
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{

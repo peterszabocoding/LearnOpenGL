@@ -40,7 +40,6 @@ namespace Moongoose {
 		int m_RepeatCount;
 	};
 
-
 	class MOONGOOSE_API KeyReleasedEvent : public KeyEvent
 	{
 	public:
@@ -54,6 +53,22 @@ namespace Moongoose {
 		}
 
 		EVENT_CLASS_TYPE(KeyReleased)
+
+	};
+
+	class MOONGOOSE_API KeyTypedEvent : public KeyEvent
+	{
+	public:
+		KeyTypedEvent(int keycode) : KeyEvent(keycode) {}
+
+		std::string toString() const override
+		{
+			std::stringstream ss;
+			ss << "Key typed event: " << m_Keycode;
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(KeyTyped)
 
 	};
 }

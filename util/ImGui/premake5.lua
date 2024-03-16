@@ -25,5 +25,10 @@ project "ImGui"
         cppdialect "C++17"
         staticruntime "On"
 
+        defines
+        {
+            "IMGUI_DISABLE_OBSOLETE_KEYIO"
+        }
+
     filter { "system:windows", "configurations:Release" }
         buildoptions "/MT"
