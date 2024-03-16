@@ -15,81 +15,89 @@ IncludeDir["GLFW"]	=	"Moongoose/vendor/GLFW/include"
 IncludeDir["Glad"]	=	"Moongoose/vendor/Glad/include"
 IncludeDir["ImGui"]	=	"Moongoose/vendor/imgui"
 
-include "Moongoose/vendor/GLFW"
-include "Moongoose/vendor/Glad"
-include "Moongoose/vendor/imgui"
+group "Dependencies"
+	include "Moongoose/vendor/GLFW"
+	include "Moongoose/vendor/Glad"
+	include "Moongoose/vendor/imgui"
 
-project "Moongoose"
-	location "Moongoose"
-	kind "SharedLib"
-	language "C++"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	pchheader "mgpch.h"
-	pchsource "Moongoose/src/mgpch.cpp"
-
-	files
-	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
-	}
-
-	includedirs
-	{
-		"%{prj.name}/src",
-		"%{prj.name}/vendor/spdlog/include",
-		"%{prj.name}/vendor/glm",
-		"%{IncludeDir.GLFW}",
-		"%{IncludeDir.Glad}",
-		"%{IncludeDir.ImGui}"
-	}
-
-	links 
-	{ 
-		"GLFW",
-		"Glad",
-		"ImGui",
-		"opengl32.lib"
-	}
-
-	filter "system:windows"
+group "Engine"
+	project "Moongoose"
+		location "Moongoose"
+		kind "SharedLib"
+		language "C++"
 		cppdialect "C++17"
-		staticruntime "On"
-		systemversion "latest"
 
-		defines
+		targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+		objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+		pchheader "mgpch.h"
+		pchsource "Moongoose/src/mgpch.cpp"
+
+		files
 		{
-			"MG_PLATFORM_WINDOWS",
-			"MG_BUILD_DLL",
-			"GLFW_INCLUDE_NONE"
+			"%{prj.name}/src/**.h",
+			"%{prj.name}/src/**.cpp"
 		}
 
-		postbuildcommands
+		includedirs
 		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Moongoose-Editor")
+			"%{prj.name}/src",
+			"%{prj.name}/vendor/spdlog/include",
+			"%{prj.name}/vendor/glm",
+			"%{IncludeDir.GLFW}",
+			"%{IncludeDir.Glad}",
+			"%{IncludeDir.ImGui}"
 		}
 
-	filter "configurations:Debug"
-		defines "MG_DEBUG"
-		buildoptions "/MDd"
-		symbols "On"
+		links 
+		{ 
+			"GLFW",
+			"Glad",
+			"ImGui",
+			"opengl32.lib"
+		}
 
-	filter "configurations:Release"
-		defines "MG_RELEASE"
-		buildoptions "/MD"
-		optimize "On"
+		filter "system:windows"
+			staticruntime "On"
+			systemversion "latest"
 
-	filter "configurations:Dist"
-		defines "MG_DIST"
-		buildoptions "/MD"
-		optimize "On"
+			defines
+			{
+				"MG_PLATFORM_WINDOWS",
+				"MG_BUILD_DLL",
+				"GLFW_INCLUDE_NONE"
+			}
 
-project "Moongoose-Editor"
+			postbuildcommands
+			{
+				("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Moongoose-Editor")
+			}
+
+		filter "configurations:Debug"
+			buildoptions "/MDd"
+			symbols "On"
+
+			defines
+			{
+				"MG_DEBUG",
+				"MG_ENABLE_ASSERTS"
+			}
+
+		filter "configurations:Release"
+			defines "MG_RELEASE"
+			buildoptions "/MD"
+			optimize "On"
+
+		filter "configurations:Dist"
+			defines "MG_DIST"
+			buildoptions "/MD"
+			optimize "On"
+
+	project "Moongoose-Editor"
 	location "Moongoose-Editor"
 	kind "ConsoleApp"
 	language "C++"
+	cppdialect "C++17"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -112,19 +120,21 @@ project "Moongoose-Editor"
 	}
 
 	filter "system:windows"
-		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
-
 		defines
 		{
 			"MG_PLATFORM_WINDOWS"
 		}
 
 	filter "configurations:Debug"
-		defines "MG_DEBUG"
 		buildoptions "/MDd"
 		symbols "On"
+		defines 
+		{
+			"MG_DEBUG",
+			"MG_ENABLE_ASSERTS"
+		}
 
 	filter "configurations:Release"
 		defines "MG_RELEASE"

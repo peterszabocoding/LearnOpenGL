@@ -29,7 +29,10 @@ namespace Moongoose
 			glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			for (Layer* layer : m_LayerStack) layer->onUpdate();
+			for (Layer* layer : m_LayerStack)
+			{
+				layer->onUpdate();
+			}
 
 			m_Window->OnUpdate();
 		}
@@ -51,13 +54,11 @@ namespace Moongoose
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
-		layer->onAttach();
 	}
 
 	void Application::PushOverlay(Layer* overlay)
 	{
 		m_LayerStack.PushOverlay(overlay);
-		overlay->onAttach();
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& event)

@@ -12,6 +12,7 @@ namespace Moongoose
 	public:
 		Application();
 		virtual ~Application();
+		inline static Application& Get() { return *s_Instance; }
 
 		void Run();
 
@@ -22,15 +23,16 @@ namespace Moongoose
 
 		inline Window& GetWindow() { return *m_Window; }
 
-		inline static Application& Get() { return *s_Instance; }
 	private:
-		static Application* s_Instance;
 
 		bool OnWindowClosed(WindowCloseEvent& event);
 
-		std::unique_ptr<Window> m_Window;
+	private:
+		static Application* s_Instance;
 		bool m_Running = true;
+
 		LayerStack m_LayerStack;
+		std::unique_ptr<Window> m_Window;
 	};
 
 	Application* CreateApplication();
