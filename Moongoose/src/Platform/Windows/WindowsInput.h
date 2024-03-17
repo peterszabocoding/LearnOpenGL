@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Moongoose/Input.h"
+#include "Moongoose/Input/Input.h"
 
 namespace Moongoose {
 

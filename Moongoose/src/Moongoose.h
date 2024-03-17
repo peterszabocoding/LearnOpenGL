@@ -9,3 +9,8 @@
 #include "Moongoose/Ui/ImGuiLayer.h"
 #include "Moongoose/Application.h"
 #include "Moongoose/EntryPoint.h"
+
+#include "Moongoose/Input/Input.h"
+#include "Moongoose/Input/KeyCodes.h"
+#include "Moongoose/Input/MouseButtonCodes.h"
+

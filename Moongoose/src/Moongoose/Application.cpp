@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 
 #include "Log.h"
-#include "Input.h"
 #include "Application.h"
 
 namespace Moongoose
@@ -42,8 +41,6 @@ namespace Moongoose
 	{
 		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNC(Application::OnWindowClosed));
-
-		LOG_CORE_TRACE("{0}", event);
 		
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
