@@ -8,7 +8,7 @@
 #include "Moongoose/Events/MouseEvents.h"
 #include "Moongoose/Events/KeyboardEvents.h"
 #include "Moongoose/Events/ApplicationEvent.h"
-#include "Platform/WindowsWindow.h"
+#include "Platform/Windows/WindowsWindow.h"
 
 namespace Moongoose {
 

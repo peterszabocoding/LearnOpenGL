@@ -36,6 +36,8 @@ namespace Moongoose {
 		virtual void setVSync(bool enabled) = 0;
 		virtual bool isVSyncEnabled() const = 0;
 
+		virtual void* GetNativeWindow() const = 0;
+
 		static Window* Create(const WindowProps& props = WindowProps());
 	};
 

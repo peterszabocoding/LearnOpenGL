@@ -20,6 +20,8 @@ namespace Moongoose {
 		void setVSync(bool enabled) override;
 		bool isVSyncEnabled() const override;
 
+		virtual void* GetNativeWindow() const override { return m_Window; }
+
 	private:
 		virtual void init(const WindowProps& props);
 		virtual void shutdown();

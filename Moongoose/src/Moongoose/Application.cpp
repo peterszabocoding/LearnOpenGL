@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 
 #include "Log.h"
+#include "Input.h"
 #include "Application.h"
 
 namespace Moongoose
