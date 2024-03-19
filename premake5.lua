@@ -115,12 +115,14 @@ group "Engine"
 	{
 		"Moongoose/vendor/spdlog/include",
 		"%{IncludeDir.GLM}",
+		"%{IncludeDir.ImGui}",
 		"Moongoose/src"
 	}
 
 	links
 	{
-		"Moongoose"
+		"Moongoose",
+		"ImGui"
 	}
 
 	filter "system:windows"

@@ -26,9 +26,7 @@ project "ImGui"
         staticruntime "On"
 
         defines
-        {
-            "IMGUI_DISABLE_OBSOLETE_KEYIO"
-        }
+        { }
 
     filter { "system:windows", "configurations:Release" }
         buildoptions "/MT"

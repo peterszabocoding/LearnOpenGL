@@ -4,10 +4,7 @@
 
 namespace Moongoose {
 
-	LayerStack::LayerStack()
-	{
-		m_LayerInsert = m_Layers.begin();
-	}
+	LayerStack::LayerStack() {}
 
 	LayerStack::~LayerStack()
 	{
@@ -19,14 +16,9 @@ namespace Moongoose {
 
 	void LayerStack::PushLayer(Layer* layer)
 	{
-		m_LayerInsert = m_Layers.emplace(m_LayerInsert, layer);
+		m_Layers.emplace(m_Layers.begin() + m_LayerInsertIndex, layer);
+		m_LayerInsertIndex++;
 		layer->onAttach();
-	}
-
-	void LayerStack::PushOverlay(Layer* overlay)
-	{
-		m_Layers.emplace_back(overlay);
-		overlay->onAttach();
 	}
 
 	void LayerStack::PopLayer(Layer* layer)
@@ -35,18 +27,8 @@ namespace Moongoose {
 		if (stackedLayer != m_Layers.end())
 		{
 			m_Layers.erase(stackedLayer);
-			m_LayerInsert--;
+			m_LayerInsertIndex--;
 			(*stackedLayer)->onDetach();
-		}
-	}
-
-	void LayerStack::PopOverlay(Layer* overlay)
-	{
-		auto stackedOverlay = std::find(m_Layers.begin(), m_Layers.end(), overlay);
-		if (stackedOverlay != m_Layers.end())
-		{
-			m_Layers.erase(stackedOverlay);
-			(*stackedOverlay)->onDetach();
 		}
 	}
 

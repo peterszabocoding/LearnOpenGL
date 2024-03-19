@@ -1,5 +1,6 @@
 
 #include <Moongoose.h>
+#include <imgui.h>
 
 class ExampleLayer : public Moongoose::Layer
 {
@@ -18,8 +19,8 @@ class EditorApp : public Moongoose::Application
 public:
 	EditorApp()
 	{
-		PushOverlay(new ExampleLayer());
-		PushOverlay(new Moongoose::ImGuiLayer());
+		PushLayer(new ExampleLayer());
+		PushGuiLayer(new Moongoose::ImGuiLayer());
 	}
 	virtual ~EditorApp() {}
 };

@@ -3,7 +3,9 @@
 #include <glad/glad.h>
 
 #include "Log.h"
+#include "GuiLayer.h"
 #include "Application.h"
+#include "Ui/ImGuiManager.h"
 
 namespace Moongoose
 {
@@ -16,22 +18,35 @@ namespace Moongoose
 		s_Instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->setEventCallback(BIND_EVENT_FUNC(Application::OnEvent));
+
+		m_ImGuiManager->startup();
 	}
 
 	Application::~Application()
 	{
+		m_ImGuiManager->shutdown();
 	}
 
 	void Application::Run()
 	{
+		bool show = true;
 		while (m_Running)
 		{
 			glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
+			//m_ImGuiManager->showDockSpace(&show);
+
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->onUpdate();
+			}
+
+			for (Layer* layer : m_GuiLayerStack)
+			{
+				static_cast<GuiLayer*>(layer)->Begin();
+				static_cast<GuiLayer*>(layer)->onImGuiRender();
+				static_cast<GuiLayer*>(layer)->End();
 			}
 
 			m_Window->OnUpdate();
@@ -54,9 +69,9 @@ namespace Moongoose
 		m_LayerStack.PushLayer(layer);
 	}
 
-	void Application::PushOverlay(Layer* overlay)
+	void Application::PushGuiLayer(Layer* layer)
 	{
-		m_LayerStack.PushOverlay(overlay);
+		m_GuiLayerStack.PushLayer(layer);
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& event)
