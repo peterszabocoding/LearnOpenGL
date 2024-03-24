@@ -1,6 +1,6 @@
 
 #include <Moongoose.h>
-#include <imgui.h>
+#include <imgui/imgui.h>
 
 class ExampleLayer : public Moongoose::Layer
 {
@@ -14,13 +14,27 @@ public:
 
 };
 
+class ExampleGuiLayer : public Moongoose::Layer
+{
+public:
+	ExampleGuiLayer(): Layer("ExampleGuiLayer") {}
+	~ExampleGuiLayer() {}
+
+	virtual void onImGuiRender() override
+	{
+		ImGui::Begin("ExampleGuiLayer");
+		ImGui::Text("ExampleGuiLayer");
+		ImGui::End();
+	}
+};
+
 class EditorApp : public Moongoose::Application
 {
 public:
-	EditorApp()
+	EditorApp(): Application()
 	{
 		PushLayer(new ExampleLayer());
-		PushGuiLayer(new Moongoose::ImGuiLayer());
+		PushLayer(new ExampleGuiLayer());
 	}
 	virtual ~EditorApp() {}
 };

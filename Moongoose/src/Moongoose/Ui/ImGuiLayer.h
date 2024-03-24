@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Moongoose/GuiLayer.h"
+#include "Moongoose/Layer.h"
 
 namespace Moongoose {
 	
-	class MOONGOOSE_API ImGuiLayer: public GuiLayer
+	class MOONGOOSE_API ImGuiLayer: public Layer
 	{
 
 	public:
@@ -13,13 +13,14 @@ namespace Moongoose {
 
 		virtual void onAttach() override;
 		virtual void onDetach() override;
-
 		virtual void onImGuiRender() override;
-		virtual void Begin() override;
-		virtual void End() override;
+
+		void begin();
+		void end();
 
 	private:
 		void setStyle();
+		void showDockSpace(bool* p_open);
 	};
 
 }

@@ -24,9 +24,10 @@ group "Dependencies"
 group "Engine"
 	project "Moongoose"
 		location "Moongoose"
-		kind "SharedLib"
+		kind "StaticLib"
 		language "C++"
 		cppdialect "C++17"
+		staticruntime "on"
 
 		targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 		objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -71,11 +72,6 @@ group "Engine"
 				"GLFW_INCLUDE_NONE"
 			}
 
-			postbuildcommands
-			{
-				("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Moongoose-Editor")
-			}
-
 		filter "configurations:Debug"
 			buildoptions "/MDd"
 			symbols "On"
@@ -97,57 +93,57 @@ group "Engine"
 			optimize "On"
 
 	project "Moongoose-Editor"
-	location "Moongoose-Editor"
-	kind "ConsoleApp"
-	language "C++"
-	cppdialect "C++17"
+		location "Moongoose-Editor"
+		kind "ConsoleApp"
+		language "C++"
+		cppdialect "C++17"
+		staticruntime "on"
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+		targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+		objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-	files
-	{
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
-	}
-
-	includedirs
-	{
-		"Moongoose/vendor/spdlog/include",
-		"%{IncludeDir.GLM}",
-		"%{IncludeDir.ImGui}",
-		"Moongoose/src"
-	}
-
-	links
-	{
-		"Moongoose",
-		"ImGui"
-	}
-
-	filter "system:windows"
-		staticruntime "On"
-		systemversion "latest"
-		defines
+		files
 		{
-			"MG_PLATFORM_WINDOWS"
+			"%{prj.name}/src/**.h",
+			"%{prj.name}/src/**.cpp"
 		}
 
-	filter "configurations:Debug"
-		buildoptions "/MDd"
-		symbols "On"
-		defines 
+		includedirs
 		{
-			"MG_DEBUG",
-			"MG_ENABLE_ASSERTS"
+			"Moongoose/vendor/spdlog/include",
+			"Moongoose/src",
+			"Moongoose/vendor",
+			"%{IncludeDir.GLM}"
 		}
 
-	filter "configurations:Release"
-		defines "MG_RELEASE"
-		buildoptions "/MD"
-		optimize "On"
+		links
+		{
+			"Moongoose"
+		}
 
-	filter "configurations:Dist"
-		defines "MG_DIST"
-		buildoptions "/MD"
-		optimize "On"
+		filter "system:windows"
+			staticruntime "On"
+			systemversion "latest"
+			defines
+			{
+				"MG_PLATFORM_WINDOWS"
+			}
+
+		filter "configurations:Debug"
+			buildoptions "/MDd"
+			symbols "on"
+			defines 
+			{
+				"MG_DEBUG",
+				"MG_ENABLE_ASSERTS"
+			}
+
+		filter "configurations:Release"
+			defines "MG_RELEASE"
+			buildoptions "/MD"
+			optimize "on"
+
+		filter "configurations:Dist"
+			defines "MG_DIST"
+			buildoptions "/MD"
+			optimize "on"

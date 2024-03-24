@@ -3,9 +3,13 @@
 #include <glad/glad.h>
 
 #include "Log.h"
-#include "GuiLayer.h"
 #include "Application.h"
-#include "Ui/ImGuiManager.h"
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <backends/imgui_impl_opengl3.h>
+#include <backends/imgui_impl_glfw.h>
 
 namespace Moongoose
 {
@@ -19,13 +23,11 @@ namespace Moongoose
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->setEventCallback(BIND_EVENT_FUNC(Application::OnEvent));
 
-		m_ImGuiManager->startup();
+		m_ImGuiLayer = new ImGuiLayer();
+		PushLayer(m_ImGuiLayer);
 	}
 
-	Application::~Application()
-	{
-		m_ImGuiManager->shutdown();
-	}
+	Application::~Application() {}
 
 	void Application::Run()
 	{
@@ -35,19 +37,17 @@ namespace Moongoose
 			glClearColor(1, 0, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			//m_ImGuiManager->showDockSpace(&show);
-
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->onUpdate();
 			}
 
-			for (Layer* layer : m_GuiLayerStack)
+			m_ImGuiLayer->begin();
+			for (Layer* layer : m_LayerStack)
 			{
-				static_cast<GuiLayer*>(layer)->Begin();
-				static_cast<GuiLayer*>(layer)->onImGuiRender();
-				static_cast<GuiLayer*>(layer)->End();
+				layer->onImGuiRender();
 			}
+			m_ImGuiLayer->end();
 
 			m_Window->OnUpdate();
 		}
@@ -67,11 +67,6 @@ namespace Moongoose
 	void Application::PushLayer(Layer* layer)
 	{
 		m_LayerStack.PushLayer(layer);
-	}
-
-	void Application::PushGuiLayer(Layer* layer)
-	{
-		m_GuiLayerStack.PushLayer(layer);
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& event)

@@ -3,7 +3,7 @@
 #include "Core.h"
 #include "Window.h"
 #include "LayerStack.h"
-#include "Moongoose/Ui/ImGuiManager.h"
+#include "Moongoose/Ui/ImGuiLayer.h"
 #include "Moongoose/Events/ApplicationEvent.h"
 
 namespace Moongoose
@@ -16,11 +16,8 @@ namespace Moongoose
 		inline static Application& Get() { return *s_Instance; }
 
 		void Run();
-
 		void OnEvent(Event& event);
-
 		void PushLayer(Layer* layer);
-		void PushGuiLayer(Layer* layer);
 
 		inline Window& GetWindow() { return *m_Window; }
 
@@ -32,11 +29,9 @@ namespace Moongoose
 		static Application* s_Instance;
 		bool m_Running = true;
 
-		LayerStack m_GuiLayerStack;
+		ImGuiLayer* m_ImGuiLayer;
 		LayerStack m_LayerStack;
 		std::unique_ptr<Window> m_Window;
-
-		std::unique_ptr<ImGuiManager> m_ImGuiManager;
 	};
 
 	Application* CreateApplication();
