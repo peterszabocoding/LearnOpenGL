@@ -31,7 +31,11 @@ namespace Moongoose
 
 	void Application::Run()
 	{
-		bool show = true;
+
+		float time = glfwGetTime();
+		float deltaTime = time - m_LastFrameTime;
+		m_LastFrameTime = time;
+
 		while (m_Running)
 		{
 			glClearColor(1, 0, 1, 1);
@@ -39,7 +43,7 @@ namespace Moongoose
 
 			for (Layer* layer : m_LayerStack)
 			{
-				layer->onUpdate();
+				layer->onUpdate(deltaTime);
 			}
 
 			m_ImGuiLayer->begin();

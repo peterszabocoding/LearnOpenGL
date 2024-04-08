@@ -1,18 +1,10 @@
 
+
 #include <Moongoose.h>
+#include "Moongoose/EntryPoint.h"
 #include <imgui/imgui.h>
 
-class ExampleLayer : public Moongoose::Layer
-{
-public:
-	ExampleLayer() : Layer("ExampleLayer") {}
-	~ExampleLayer() {}
-
-	virtual void onUpdate() override
-	{
-	}
-
-};
+#include "RenderLayer.h"
 
 class ExampleGuiLayer : public Moongoose::Layer
 {
@@ -33,8 +25,8 @@ class EditorApp : public Moongoose::Application
 public:
 	EditorApp(): Application()
 	{
-		PushLayer(new ExampleLayer());
 		PushLayer(new ExampleGuiLayer());
+		PushLayer(new RenderLayer());
 	}
 	virtual ~EditorApp() {}
 };

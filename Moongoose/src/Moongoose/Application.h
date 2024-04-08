@@ -3,12 +3,12 @@
 #include "Core.h"
 #include "Window.h"
 #include "LayerStack.h"
-#include "Moongoose/Ui/ImGuiLayer.h"
-#include "Moongoose/Events/ApplicationEvent.h"
+#include "Ui/ImGuiLayer.h"
+#include "Events/ApplicationEvent.h"
 
 namespace Moongoose
 {
-	class MOONGOOSE_API Application
+	class Application
 	{
 	public:
 		Application();
@@ -28,6 +28,8 @@ namespace Moongoose
 	private:
 		static Application* s_Instance;
 		bool m_Running = true;
+
+		float m_LastFrameTime = 0.0f;
 
 		ImGuiLayer* m_ImGuiLayer;
 		LayerStack m_LayerStack;

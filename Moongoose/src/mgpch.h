@@ -7,6 +7,10 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <filesystem>
+#include <type_traits>
+#include <algorithm>
+#include <stdint.h>
 #include <unordered_map>
 #include <unordered_set>
 

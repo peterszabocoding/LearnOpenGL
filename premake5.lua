@@ -113,7 +113,8 @@ group "Engine"
 			"Moongoose/vendor/spdlog/include",
 			"Moongoose/src",
 			"Moongoose/vendor",
-			"%{IncludeDir.GLM}"
+			"%{IncludeDir.GLM}",
+			"%{IncludeDir.Glad}"
 		}
 
 		links
