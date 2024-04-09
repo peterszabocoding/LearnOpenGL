@@ -3,6 +3,9 @@
 #include <GLFW/glfw3.h>
 #include "PerspectiveCamera.h"
 #include "Moongoose/Input/Input.h"
+#include "Moongoose/Events/MouseEvents.h"
+#include "Moongoose/Input/MouseButtonCodes.h"
+#include "Moongoose/Input/KeyCodes.h"
 
 namespace Moongoose {
 
@@ -17,12 +20,14 @@ namespace Moongoose {
 		mouseDeltaX = 0.0f;
 		mouseDeltaY = 0.0f;
 
-		for (unsigned int i = 0; i < 1024; i++) {
-			this->keys[i] = false;
+		for (unsigned int i = 0; i < 1024; i++) 
+		{
+			keys[i] = false;
 		}
 
-		for (unsigned int i = 0; i < 2; i++) {
-			this->mouseButtons[i] = false;
+		for (unsigned int i = 0; i < 2; i++)
+		{
+			mouseButtons[i] = false;
 		}
 
 		init();
@@ -41,11 +46,19 @@ namespace Moongoose {
 	{
 		this->deltaTime = deltaTime;
 
-		if (this->mouseButtons[1]) {
+		mouseDeltaX = lastMousePosX - Input::GetMousePosX();
+		mouseDeltaY = lastMousePosY - Input::GetMousePosY();
+
+		lastMousePosX = Input::GetMousePosX();
+		lastMousePosY = Input::GetMousePosY();
+
+		if (Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT)) 
+		{
 			keyControl();
 			mouseControl(mouseDeltaX, mouseDeltaY);
 		}
-		else {
+		else 
+		{
 			moveTransitionEffect = 0.5f;
 			velocity = { 0.0f, 0.0f, 0.0f };
 		}
@@ -55,7 +68,6 @@ namespace Moongoose {
 		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
 		front = glm::normalize(front);
-
 		right = glm::normalize(glm::cross(front, worldUp));
 		up = glm::normalize(glm::cross(right, front));
 	}
@@ -64,6 +76,7 @@ namespace Moongoose {
 	{
 		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(PerspectiveCamera::onResize));
+		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(PerspectiveCamera::onMouseScrolled));
 	}
 
 	bool PerspectiveCamera::onResize(WindowResizeEvent& event)
@@ -71,28 +84,6 @@ namespace Moongoose {
 		renderWidth = event.getWidth();
 		renderHeight = event.getHeight();
 		projection = glm::perspective(fov, (GLfloat)renderWidth / (GLfloat)renderHeight, 0.1f, 1000.0f);
-
-		return false;
-	}
-
-	bool PerspectiveCamera::onMousePressed(MousePressedEvent& event) {
-		// Zero deltas when right mouse button activates
-		/*
-		if (!this->mouseButtons[1] && event->mouseButtons[1]) {
-			this->mouseDeltaX = 0.0f;
-			this->mouseDeltaY = 0.0f;
-		}
-		for (unsigned int i = 0; i < event->mouseButtonCount; i++) {
-			this->mouseButtons[i] = event->mouseButtons[i];
-		}
-		*/
-
-		return false;
-	}
-
-	bool PerspectiveCamera::onMouseMoved(MouseMovedEvent& event) {
-		//this->mouseDeltaX = event->deltaX;
-		//this->mouseDeltaY = event->deltaY;
 
 		return false;
 	}
@@ -112,12 +103,12 @@ namespace Moongoose {
 	void PerspectiveCamera::keyControl()
 	{
 		m_IsCameraMoving = 
-			Input::IsKeyPressed(GLFW_KEY_W) || 
-			Input::IsKeyPressed(GLFW_KEY_S) ||
-			Input::IsKeyPressed(GLFW_KEY_D) ||
-			Input::IsKeyPressed(GLFW_KEY_A) ||
-			Input::IsKeyPressed(GLFW_KEY_SPACE) ||
-			Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL);
+			Input::IsKeyPressed(MG_KEY_W) || 
+			Input::IsKeyPressed(MG_KEY_S) ||
+			Input::IsKeyPressed(MG_KEY_D) ||
+			Input::IsKeyPressed(MG_KEY_A) ||
+			Input::IsKeyPressed(MG_KEY_SPACE) ||
+			Input::IsKeyPressed(MG_KEY_LEFT_CONTROL);
 		
 		float speed;
 		glm::vec3 newVel = { 0.0f, 0.0f, 0.0f };
@@ -131,19 +122,18 @@ namespace Moongoose {
 			moveTransitionEffect = std::min(moveTransitionEffect, 1.0f);
 			speed = moveTransitionEffect * movementSpeed * deltaTime;
 
-			if (Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
+			if (Input::IsKeyPressed(MG_KEY_LEFT_SHIFT)) {
 				speed *= 2.0f;
 			}
 
-			if (Input::IsKeyPressed(GLFW_KEY_W)) newVel += front;
-			if (Input::IsKeyPressed(GLFW_KEY_S)) newVel += -front;
-			if (Input::IsKeyPressed(GLFW_KEY_D)) newVel += right;
-			if (Input::IsKeyPressed(GLFW_KEY_A)) newVel += -right;
-			if (Input::IsKeyPressed(GLFW_KEY_SPACE)) newVel += worldUp;
-			if (Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL))	newVel += -worldUp;
+			if (Input::IsKeyPressed(MG_KEY_W)) newVel += front;
+			if (Input::IsKeyPressed(MG_KEY_S)) newVel += -front;
+			if (Input::IsKeyPressed(MG_KEY_D)) newVel += right;
+			if (Input::IsKeyPressed(MG_KEY_A)) newVel += -right;
+			if (Input::IsKeyPressed(MG_KEY_SPACE)) newVel += worldUp;
+			if (Input::IsKeyPressed(MG_KEY_LEFT_CONTROL))	newVel += -worldUp;
 		}
-		speed = std::min(speed, maxSpeed);
-		speed = std::max(speed, 0.0f);
+		speed = std::clamp(speed, 0.0f, maxSpeed);
 		velocity = cameraDrag * velocity + 1.25f * (newVel * speed);
 		position += velocity;
 	}

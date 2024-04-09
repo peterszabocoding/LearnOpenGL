@@ -15,8 +15,8 @@ namespace Moongoose {
 
 		inline unsigned int getWidth() const override { return m_Data.Width; }
 		inline unsigned int getHeight() const override { return m_Data.Height; }
-
 		inline void setEventCallback(const EventCallback& callback) override { m_Data.EventCallback = callback; }
+		
 		void setVSync(bool enabled) override;
 		bool isVSyncEnabled() const override;
 

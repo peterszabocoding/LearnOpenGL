@@ -5,28 +5,15 @@
 #include <imgui/imgui.h>
 
 #include "RenderLayer.h"
-
-class ExampleGuiLayer : public Moongoose::Layer
-{
-public:
-	ExampleGuiLayer(): Layer("ExampleGuiLayer") {}
-	~ExampleGuiLayer() {}
-
-	virtual void onImGuiRender() override
-	{
-		ImGui::Begin("ExampleGuiLayer");
-		ImGui::Text("ExampleGuiLayer");
-		ImGui::End();
-	}
-};
+#include "PerformanceLayer.h"
 
 class EditorApp : public Moongoose::Application
 {
 public:
 	EditorApp(): Application()
 	{
-		PushLayer(new ExampleGuiLayer());
 		PushLayer(new RenderLayer());
+		PushLayer(new PerformanceLayer());
 	}
 	virtual ~EditorApp() {}
 };

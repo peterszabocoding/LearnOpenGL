@@ -27,9 +27,9 @@ namespace Moongoose {
 	static Mesh Triangle() {
 		// Position - UVs
 		GLfloat vertices[] = {
-			-0.5f,  0.5f, 0.0f,		0.0f, 1.0f,
-			-0.5f, -0.5f, 0.0f,		0.0f, 0.0f,
-			 0.5f,  0.5f, 0.0f,		1.0f, 1.0f,
+			0.5f,  0.0f, 0.0f,		0.0f, 1.0f,
+			0.75f, 0.75f, 0.0f,		0.0f, 0.0f,
+			0.25f,  0.75f, 0.0f,		1.0f, 1.0f,
 		};
 
 		unsigned int indices[] = {

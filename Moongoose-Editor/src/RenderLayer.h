@@ -15,20 +15,9 @@ public:
 	virtual void onEvent(Moongoose::Event& event) override;
 	virtual void onImGuiRender() override;
 
-protected:
-	virtual bool onWindowResized(Moongoose::WindowResizeEvent& event) override { return false; }
-
-	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override { return false; }
-	virtual bool onMouseButtonReleased(Moongoose::MouseReleasedEvent& event) override { return false; }
-
-	virtual bool onMouseMoved(Moongoose::MouseMovedEvent& event) override { return false; }
-	virtual bool onMouseScrolled(Moongoose::MouseScrolledEvent& event) override { return false; }
-
-	virtual bool onKeyPressed(Moongoose::KeyPressedEvent& event) override { return false; }
-	virtual bool onKeyReleased(Moongoose::KeyReleasedEvent& event) override { return false; }
-	virtual bool onKeyTyped(Moongoose::KeyTypedEvent& event) override { return false; }
-
 private:
+
+	bool onResize(Moongoose::WindowResizeEvent& event);
 
 	Moongoose::Framebuffer* m_RenderBuffer;
 	Moongoose::PerspectiveCamera* m_EditorCamera;

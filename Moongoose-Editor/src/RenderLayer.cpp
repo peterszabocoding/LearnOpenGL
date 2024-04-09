@@ -1,6 +1,8 @@
 #include "RenderLayer.h"
 #include <imgui/imgui.h>
 
+#include "Moongoose/Events/Event.h"
+
 RenderLayer::RenderLayer() : Layer("RenderLayer")
 {
 }
@@ -35,7 +37,7 @@ void RenderLayer::onAttach()
 			"Shader/shader.frag" 
 		});
 
-	m_Mesh = Moongoose::Triangle();
+	m_Mesh = *Moongoose::SkyboxCube(15.0f);
 
 }
 
@@ -53,20 +55,30 @@ void RenderLayer::onUpdate(float deltaTime)
 	glm::vec3 cameraPosition = m_EditorCamera->getCameraPosition();
 	glm::mat4 projection = m_EditorCamera->getProjection();
 
+	Moongoose::Transform transform;
+	transform.position += glm::vec3(0.0f, 0.0f, -2.0f);
+
 	m_RenderBuffer->Bind();
 
 	Moongoose::RenderCommand::SetClearColor(glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	Moongoose::RenderCommand::Clear();
 
+	m_BaseShader->Bind();
 	m_BaseShader->SetCamera(cameraPosition, viewMatrix, projection);
+	m_BaseShader->SetModelTransform(transform.getModelMatrix());
 
 	Moongoose::Renderer::RenderMesh(m_Mesh.GetVertexArray());
 
+	m_BaseShader->Unbind();
 	m_RenderBuffer->Unbind();
 }
 
 void RenderLayer::onEvent(Moongoose::Event& event)
 {
+	m_EditorCamera->onEvent(event);
+	
+	Moongoose::EventDispatcher dispatcher(event);
+	dispatcher.Dispatch<Moongoose::WindowResizeEvent>(BIND_EVENT_FUNC(RenderLayer::onResize));
 }
 
 void RenderLayer::onImGuiRender()
@@ -75,4 +87,10 @@ void RenderLayer::onImGuiRender()
 	ImVec2 imageSize = ImVec2(1280, 720);
 	ImGui::Image((void*)m_RenderBuffer->GetColorAttachments()[0], imageSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
+}
+
+bool RenderLayer::onResize(Moongoose::WindowResizeEvent& event)
+{
+	m_RenderBuffer->Resize(event.getWidth(), event.getHeight());
+	return false;
 }

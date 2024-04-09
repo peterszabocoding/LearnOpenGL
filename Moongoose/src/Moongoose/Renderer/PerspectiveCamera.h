@@ -51,10 +51,6 @@ namespace Moongoose {
 	private:
 
 		bool onResize(WindowResizeEvent& event);
-
-		bool onMousePressed(MousePressedEvent& event);
-		bool onMouseReleased(MouseReleasedEvent& event);
-		bool onMouseMoved(MouseMovedEvent& event);
 		bool onMouseScrolled(MouseScrolledEvent& event);
 
 	private:
@@ -84,8 +80,11 @@ namespace Moongoose {
 
 		float deltaTime;
 		float moveTransitionEffect = 0.0f;
-		float maxSpeed = 3.0f;
+		float maxSpeed = 0.1f;
 		float cameraDrag = 0.9f;
+
+		float lastMousePosX = 0.0f;
+		float lastMousePosY = 0.0f;
 
 	};
 
