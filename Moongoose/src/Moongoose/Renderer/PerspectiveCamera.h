@@ -8,83 +8,71 @@
 #include "Moongoose/Events/KeyboardEvents.h"
 #include "Moongoose/Events/MouseEvents.h"
 #include "Moongoose/Core.h"
+#include "Camera.h"
 
 namespace Moongoose {
 
-	class PerspectiveCamera
+	class PerspectiveCamera: public Camera
 	{
 	public:
 
 		struct Params {
-			GLuint renderWidth = 1280;
-			GLuint renderHeight = 720;
-			GLfloat fov = 45.0f;
+			unsigned int renderWidth = 1280;
+			unsigned int renderHeight = 720;
+			float fov = 45.0f;
+			float zNear = 0.1f;
+			float zFar = 1000.0f;
+			float maxSpeed = 4.0f;
 
 			glm::vec3 startPosition = glm::vec3{ 0.0f , 0.0f , 0.0f };
 			glm::vec3 startUp = glm::vec3{ 0.0f , 1.0f , 0.0f };
 
-			GLfloat startYaw = -90.0f;
-			GLfloat startPitch = 0.0f;
-			GLfloat startMoveSpeed = 1.0f;
-			GLfloat startTurnSpeed = 0.3f;
-
-			float maxSpeed = 4.0f;
+			float startYaw = -90.0f;
+			float startPitch = 0.0f;
+			float startMoveSpeed = 1.0f;
+			float startTurnSpeed = 0.3f;
 		};
 
 	public:
-
 		PerspectiveCamera(const PerspectiveCamera::Params& params);
+		~PerspectiveCamera() = default;
 
-		void init();
 		void onUpdate(float deltaTime);
 		void onEvent(Event& e);
 
-		void keyControl();
-		void mouseControl(GLfloat deltaX, GLfloat deltaY);
+		void moveCamera(float deltaTime);
+		void rotateCamera(float deltaTime);
 
-		glm::mat4& getProjection();
 		glm::vec3 getCameraPosition() const;
-		glm::mat4 calculateViewMatrix() const;
+		glm::mat4 getViewMatrix() const;
 
-		~PerspectiveCamera();
 
 	private:
-
 		bool onResize(WindowResizeEvent& event);
 		bool onMouseScrolled(MouseScrolledEvent& event);
 
 	private:
-
-		bool keys[1024];
-		bool mouseButtons[2];
 		bool m_IsCameraMoving = false;
-		float mouseDeltaX, mouseDeltaY;
+		glm::vec2 mouseDelta = { 0.0f, 0.0f };
+		glm::vec2 lastMousePos = { 0.0f, 0.0f };
 
-		glm::vec3 position;
-		glm::vec3 front;
-		glm::vec3 up;
-		glm::vec3 right;
-		glm::vec3 worldUp;
-		glm::vec3 velocity;
+		glm::vec3 m_Velocity;
+		glm::vec3 m_Position;
+		glm::vec3 m_Rotation = {0.0f, -90.0f, 0.0f}; // Pitch - Yaw - Roll
 
-		GLuint renderWidth = 1280;
-		GLuint renderHeight = 720;
-		GLfloat fov = 45.0f;
-		glm::mat4 projection;
+		glm::vec3 m_Front;
+		glm::vec3 m_Up;
+		glm::vec3 m_Right;
+		glm::vec3 m_WorldUp;
 
-		GLfloat yaw;
-		GLfloat pitch;
+		PerspectiveCamera::Params m_Params;
 
-		GLfloat movementSpeed;
-		GLfloat turnSpeed;
+		float movementSpeed;
+		float turnSpeed;
 
-		float deltaTime;
 		float moveTransitionEffect = 0.0f;
 		float maxSpeed = 0.1f;
 		float cameraDrag = 0.9f;
-
-		float lastMousePosX = 0.0f;
-		float lastMousePosY = 0.0f;
 
 	};
 

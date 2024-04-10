@@ -9,67 +9,56 @@
 
 namespace Moongoose {
 
-	PerspectiveCamera::PerspectiveCamera(const PerspectiveCamera::Params& params) :
-		renderWidth(params.renderWidth), renderHeight(params.renderHeight), fov(params.fov),
-		position(params.startPosition), worldUp(params.startUp),
-		yaw(params.startYaw), pitch(params.startPitch),
-		movementSpeed(params.startMoveSpeed), turnSpeed(params.startTurnSpeed)
+	PerspectiveCamera::PerspectiveCamera(const PerspectiveCamera::Params& params)
 	{
-		front = glm::vec3(0.0f, 0.0f, -1.0f);
+		m_Params = params;
 
-		mouseDeltaX = 0.0f;
-		mouseDeltaY = 0.0f;
+		m_Position = params.startPosition;
+		m_WorldUp = params.startUp;
+		turnSpeed = params.startTurnSpeed;
+		movementSpeed = params.startMoveSpeed;
 
-		for (unsigned int i = 0; i < 1024; i++) 
-		{
-			keys[i] = false;
-		}
+		m_Front = glm::vec3(0.0f, 0.0f, -1.0f);
 
-		for (unsigned int i = 0; i < 2; i++)
-		{
-			mouseButtons[i] = false;
-		}
+		m_Projection = glm::perspective(
+			m_Params.fov,
+			(float)m_Params.renderWidth / m_Params.renderHeight,
+			m_Params.zNear,
+			m_Params.zFar);
 
-		init();
-
-		projection = glm::perspective(fov, (GLfloat) renderWidth / (GLfloat) renderHeight, 0.1f, 1000.0f);
-	}
-
-	PerspectiveCamera::~PerspectiveCamera() {}
-
-	void PerspectiveCamera::init()
-	{
 		onUpdate(1.0f);
 	}
 
 	void PerspectiveCamera::onUpdate(float deltaTime)
 	{
-		this->deltaTime = deltaTime;
+		glm::vec2 mouseInput = {
+			Input::GetMousePosX(),
+			Input::GetMousePosY()
+		};
 
-		mouseDeltaX = lastMousePosX - Input::GetMousePosX();
-		mouseDeltaY = lastMousePosY - Input::GetMousePosY();
+		mouseDelta = lastMousePos - mouseInput;
+		lastMousePos = mouseInput;
 
-		lastMousePosX = Input::GetMousePosX();
-		lastMousePosY = Input::GetMousePosY();
 
 		if (Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT)) 
 		{
-			keyControl();
-			mouseControl(mouseDeltaX, mouseDeltaY);
+			moveCamera(deltaTime);
+			rotateCamera(deltaTime);
 		}
 		else 
 		{
 			moveTransitionEffect = 0.5f;
-			velocity = { 0.0f, 0.0f, 0.0f };
+			m_Velocity = { 0.0f, 0.0f, 0.0f };
 		}
 
-		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		front.y = sin(glm::radians(pitch));
-		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		m_Front = glm::normalize(glm::vec3{
+			 cos(glm::radians(m_Rotation.y))* cos(glm::radians(m_Rotation.x)),
+			 sin(glm::radians(m_Rotation.x)),
+			 sin(glm::radians(m_Rotation.y))* cos(glm::radians(m_Rotation.x))
+		});
 
-		front = glm::normalize(front);
-		right = glm::normalize(glm::cross(front, worldUp));
-		up = glm::normalize(glm::cross(right, front));
+		m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
+		m_Up = glm::normalize(glm::cross(m_Right, m_Front));
 	}
 
 	void PerspectiveCamera::onEvent(Event& event)
@@ -81,26 +70,26 @@ namespace Moongoose {
 
 	bool PerspectiveCamera::onResize(WindowResizeEvent& event)
 	{
-		renderWidth = event.getWidth();
-		renderHeight = event.getHeight();
-		projection = glm::perspective(fov, (GLfloat)renderWidth / (GLfloat)renderHeight, 0.1f, 1000.0f);
+		m_Params.renderWidth = event.getWidth();
+		m_Params.renderHeight = event.getHeight();
+		m_Projection = glm::perspective(
+			m_Params.fov,
+			(float) m_Params.renderWidth / m_Params.renderHeight, 
+			m_Params.zNear,
+			m_Params.zFar);
 
 		return false;
 	}
 
 	bool PerspectiveCamera::onMouseScrolled(MouseScrolledEvent& event)
 	{
-		/*
-		cameraDrag += event->yoffset * 0.01;
-		cameraDrag = std::min(1.0f, cameraDrag);
-		cameraDrag = std::max(0.1f, cameraDrag);
-		LOG_CORE_INFO("Camera drag: {0}", cameraDrag);
-		*/
+		maxSpeed += event.GetYOffset() * 0.01;
+		maxSpeed = std::clamp(maxSpeed, 0.05f, 10.0f);
 
 		return false;
 	}
 
-	void PerspectiveCamera::keyControl()
+	void PerspectiveCamera::moveCamera(float deltaTime)
 	{
 		m_IsCameraMoving = 
 			Input::IsKeyPressed(MG_KEY_W) || 
@@ -115,56 +104,46 @@ namespace Moongoose {
 
 		if (!m_IsCameraMoving) {
 			speed = 8.0f * maxSpeed * deltaTime;
-			newVel = -velocity;
+			newVel = -m_Velocity;
 		}
-		else {
+		else 
+		{
 			moveTransitionEffect += 0.75f * deltaTime;
 			moveTransitionEffect = std::min(moveTransitionEffect, 1.0f);
 			speed = moveTransitionEffect * movementSpeed * deltaTime;
 
-			if (Input::IsKeyPressed(MG_KEY_LEFT_SHIFT)) {
-				speed *= 2.0f;
-			}
-
-			if (Input::IsKeyPressed(MG_KEY_W)) newVel += front;
-			if (Input::IsKeyPressed(MG_KEY_S)) newVel += -front;
-			if (Input::IsKeyPressed(MG_KEY_D)) newVel += right;
-			if (Input::IsKeyPressed(MG_KEY_A)) newVel += -right;
-			if (Input::IsKeyPressed(MG_KEY_SPACE)) newVel += worldUp;
-			if (Input::IsKeyPressed(MG_KEY_LEFT_CONTROL))	newVel += -worldUp;
+			if (Input::IsKeyPressed(MG_KEY_W)) newVel += m_Front;
+			if (Input::IsKeyPressed(MG_KEY_S)) newVel += -m_Front;
+			if (Input::IsKeyPressed(MG_KEY_D)) newVel += m_Right;
+			if (Input::IsKeyPressed(MG_KEY_A)) newVel += -m_Right;
+			if (Input::IsKeyPressed(MG_KEY_SPACE)) newVel += m_WorldUp;
+			if (Input::IsKeyPressed(MG_KEY_LEFT_CONTROL))	newVel += -m_WorldUp;
+			if (Input::IsKeyPressed(MG_KEY_LEFT_SHIFT)) speed *= 2.0f;
 		}
 		speed = std::clamp(speed, 0.0f, maxSpeed);
-		velocity = cameraDrag * velocity + 1.25f * (newVel * speed);
-		position += velocity;
+		m_Velocity = cameraDrag * m_Velocity + 1.25f * (newVel * speed);
+		m_Position += m_Velocity;
 	}
 
-	void PerspectiveCamera::mouseControl(GLfloat deltaX, GLfloat deltaY) {
-		deltaX *= turnSpeed;
-		deltaY *= turnSpeed;
+	void PerspectiveCamera::rotateCamera(float deltaTime) {
+		mouseDelta *= turnSpeed;
 
-		yaw += deltaX;
-		pitch += deltaY;
+		m_Rotation.y -= mouseDelta.x;
+		m_Rotation.x += mouseDelta.y;
 
-		pitch = fmin(pitch, 89.0f);
-		pitch = fmax(pitch, -89.0f);
+		m_Rotation.x = std::clamp(m_Rotation.x, -89.0f, 89.0f);
 
-		mouseDeltaX = 0.0f;
-		mouseDeltaY = 0.0f;
-	}
-
-	glm::mat4& PerspectiveCamera::getProjection()
-	{
-		return projection;
+		mouseDelta = { 0.0f, 0.0f };
 	}
 
 	glm::vec3 PerspectiveCamera::getCameraPosition() const
 	{
-		return position;
+		return m_Position;
 	}
 
-	glm::mat4 PerspectiveCamera::calculateViewMatrix() const
+	glm::mat4 PerspectiveCamera::getViewMatrix() const
 	{
-		return glm::lookAt(position, position + front, up);
+		return glm::lookAt(m_Position, m_Position + m_Front, m_Up);
 	}
 
 }

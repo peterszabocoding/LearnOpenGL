@@ -22,7 +22,6 @@ private:
 	Moongoose::Framebuffer* m_RenderBuffer;
 	Moongoose::PerspectiveCamera* m_EditorCamera;
 	Moongoose::Shader* m_BaseShader;
-
 	Moongoose::Mesh m_Mesh;
 
 };

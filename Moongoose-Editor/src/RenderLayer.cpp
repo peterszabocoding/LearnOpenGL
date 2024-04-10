@@ -51,12 +51,12 @@ void RenderLayer::onUpdate(float deltaTime)
 {
 	m_EditorCamera->onUpdate(deltaTime);
 
-	glm::mat4 viewMatrix = m_EditorCamera->calculateViewMatrix();
+	glm::mat4 viewMatrix = m_EditorCamera->getViewMatrix();
 	glm::vec3 cameraPosition = m_EditorCamera->getCameraPosition();
 	glm::mat4 projection = m_EditorCamera->getProjection();
 
 	Moongoose::Transform transform;
-	transform.position += glm::vec3(0.0f, 0.0f, -2.0f);
+	transform.position += glm::vec3(0.0f, 0.0f, -50.0f);
 
 	m_RenderBuffer->Bind();
 
@@ -85,12 +85,14 @@ void RenderLayer::onImGuiRender()
 {
 	ImGui::Begin("RenderLayer");
 	ImVec2 imageSize = ImVec2(1280, 720);
-	ImGui::Image((void*)m_RenderBuffer->GetColorAttachments()[0], imageSize, ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::Image((void*) m_RenderBuffer->GetColorAttachments()[0],
+		imageSize, 
+		ImVec2(0, 1),
+		ImVec2(1, 0));
 	ImGui::End();
 }
 
 bool RenderLayer::onResize(Moongoose::WindowResizeEvent& event)
 {
-	m_RenderBuffer->Resize(event.getWidth(), event.getHeight());
 	return false;
 }
