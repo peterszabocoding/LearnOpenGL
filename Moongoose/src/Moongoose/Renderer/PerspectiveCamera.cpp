@@ -117,7 +117,7 @@ namespace Moongoose {
 			if (Input::IsKeyPressed(MG_KEY_D)) newVel += m_Right;
 			if (Input::IsKeyPressed(MG_KEY_A)) newVel += -m_Right;
 			if (Input::IsKeyPressed(MG_KEY_SPACE)) newVel += m_WorldUp;
-			if (Input::IsKeyPressed(MG_KEY_LEFT_CONTROL))	newVel += -m_WorldUp;
+			if (Input::IsKeyPressed(MG_KEY_LEFT_CONTROL)) newVel += -m_WorldUp;
 			if (Input::IsKeyPressed(MG_KEY_LEFT_SHIFT)) speed *= 2.0f;
 		}
 		speed = std::clamp(speed, 0.0f, maxSpeed);

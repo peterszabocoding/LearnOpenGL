@@ -27,7 +27,7 @@ void RenderLayer::onAttach()
 	Moongoose::PerspectiveCamera::Params params{};
 	params.renderWidth = specs.Width;
 	params.renderHeight = specs.Height;
-	params.startPosition = { 0.0f, 1.0f, 0.0f };
+	params.startPosition = { 0.0f, 0.0f, -1.0f };
 	m_EditorCamera = new Moongoose::PerspectiveCamera(params);
 
 	m_BaseShader = new Moongoose::Shader(
@@ -37,8 +37,7 @@ void RenderLayer::onAttach()
 			"Shader/shader.frag" 
 		});
 
-	m_Mesh = *Moongoose::SkyboxCube(15.0f);
-
+	m_Mesh = *Moongoose::ResourceManager::LoadMesh("Assets/Monkey.obj");
 }
 
 void RenderLayer::onDetach()
@@ -56,7 +55,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	glm::mat4 projection = m_EditorCamera->getProjection();
 
 	Moongoose::Transform transform;
-	transform.position += glm::vec3(0.0f, 0.0f, -50.0f);
+	transform.position += glm::vec3(0.0f, 0.0f, -5.0f);
 
 	m_RenderBuffer->Bind();
 

@@ -153,6 +153,11 @@ namespace Moongoose {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			data.EventCallback(MouseMovedEvent((float)xPos, (float)yPos));
 		});
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_MULTISAMPLE);
 	}
 
 	void Moongoose::WindowsWindow::shutdown()

@@ -11,10 +11,11 @@ workspace "Moongoose"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["GLFW"]	=	"Moongoose/vendor/GLFW/include"
-IncludeDir["Glad"]	=	"Moongoose/vendor/Glad/include"
-IncludeDir["ImGui"]	=	"Moongoose/vendor/imgui"
-IncludeDir["GLM"]	=	"Moongoose/vendor/glm"
+IncludeDir["GLFW"]		=	"Moongoose/vendor/GLFW/include"
+IncludeDir["Glad"]		=	"Moongoose/vendor/Glad/include"
+IncludeDir["ImGui"]		=	"Moongoose/vendor/imgui"
+IncludeDir["GLM"]		=	"Moongoose/vendor/glm"
+IncludeDir["ASSIMP"]	=	"Moongoose/vendor/ASSIMP/include"
 
 group "Dependencies"
 	include "Moongoose/vendor/GLFW"
@@ -50,7 +51,13 @@ group "Engine"
 			"%{IncludeDir.GLFW}",
 			"%{IncludeDir.Glad}",
 			"%{IncludeDir.GLM}",
-			"%{IncludeDir.ImGui}"
+			"%{IncludeDir.ImGui}",
+			"%{IncludeDir.ASSIMP}"
+		}
+
+		libdirs
+		{
+			"%{prj.name}/vendor/ASSIMP/lib/Debug"
 		}
 
 		links 
@@ -58,7 +65,8 @@ group "Engine"
 			"GLFW",
 			"Glad",
 			"ImGui",
-			"opengl32.lib"
+			"opengl32.lib",
+			"assimp-vc143-mtd.lib"
 		}
 
 		filter "system:windows"
