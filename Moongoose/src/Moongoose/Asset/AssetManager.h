@@ -9,7 +9,7 @@ class Mesh;
 
 namespace Moongoose {
 
-	class ResourceManager
+	class AssetManager
 	{
 	public:
 		static Mesh* LoadMesh(std::string meshPath);

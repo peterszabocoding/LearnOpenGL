@@ -1,7 +1,8 @@
 #pragma once
 
 #include <glad/glad.h>
-#include "Moongoose/Util/UUID.h"
+#include "Moongoose/Asset/Asset.h"
+#include "Moongoose/Asset/UUID.h"
 
 namespace Moongoose {
 
@@ -16,49 +17,31 @@ namespace Moongoose {
 		uint32_t		MaxMipmapLevel = 4;
 	};
 
-	class Texture {
+	class Texture: Asset {
 	public:
 
-		Texture(UUID uuid, TextureSpecs specs) {
-			textureID = 0;
-			m_Specs = specs;
-		}
+		Texture(TextureSpecs specs);
+		Texture(const char* fileLoc);
+		virtual ~Texture();
 
-		Texture(const char* fileLoc) {
-			textureID = 0;
-			m_Specs = TextureSpecs{};
-			m_Specs.Width = 0;
-			m_Specs.Height = 0;
-			m_Specs.BitDepth = 0;
-			m_Specs.FileLocation = fileLoc;
-			m_Specs.InternalFormat = GL_RGBA8;
-			m_Specs.DataFormat = GL_RGBA;
-		}
+		GLuint getTextureID() const { return m_TextureID; }
+		const TextureSpecs& getSpecs() const { return m_Specs; }
+		TextureSpecs getSpecs() { return m_Specs; }
 
-		GLuint GetTextureID() const { return textureID; }
-		const TextureSpecs& GetSpecs() const { return m_Specs; }
-		TextureSpecs GetSpecs() { return m_Specs; }
-		GLenum GetInternalFormat() const { return m_Specs.InternalFormat; }
-		GLenum GetDataFormat() const { return m_Specs.DataFormat; }
+		GLenum getInternalFormat() const { return m_Specs.InternalFormat; }
+		GLenum getDataFormat() const { return m_Specs.DataFormat; }
 
-		const std::string& GetSourceFilePath() const { return m_Specs.FileLocation; }
-
-		virtual ~Texture() {
-			ClearTexture();
-		}
+		const std::string& getSourceFilePath() const { return m_Specs.FileLocation; }
 
 		virtual bool operator==(const Texture& other) const {
-			return textureID == other.GetTextureID();
+			return m_TextureID == other.getTextureID();
 		}
 
 	private:
-		void ClearTexture() {
-			glDeleteTextures(1, &textureID);
-			textureID = 0;
-		}
+		void clearTexture();
 
 	protected:
-		GLuint textureID;
+		GLuint m_TextureID;
 		TextureSpecs m_Specs;
 	};
 

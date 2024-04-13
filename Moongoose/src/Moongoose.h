@@ -32,4 +32,4 @@
 #include "Moongoose/Renderer/RendererAPI.h"
 #include "Moongoose/Renderer/RenderCommand.h"
 #include "Moongoose/Renderer/Transform.h"
-#include "Moongoose/Resource/ResourceManager.h"
+#include "Moongoose/Asset/AssetManager.h"

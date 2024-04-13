@@ -3,32 +3,10 @@
 
 #include "Moongoose/Events/Event.h"
 
-RenderLayer::RenderLayer() : Layer("RenderLayer")
-{
-}
-
-RenderLayer::~RenderLayer()
-{
-}
-
 void RenderLayer::onAttach()
 {
-	Moongoose::FramebufferSpecs specs{};
-	specs.Width = 1280;
-	specs.Height = 720;
-	specs.Attachments = { 
-		Moongoose::FramebufferTextureFormat::RGBA8, 
-		Moongoose::FramebufferTextureFormat::DEPTH24STENCIL8 
-	};
-	specs.ClearColor = { 1.0f, 0.0f, 1.0f, 1.0f };
-	m_RenderBuffer = new Moongoose::Framebuffer(specs);
-
-
-	Moongoose::PerspectiveCamera::Params params{};
-	params.renderWidth = specs.Width;
-	params.renderHeight = specs.Height;
-	params.startPosition = { 0.0f, 0.0f, -1.0f };
-	m_EditorCamera = new Moongoose::PerspectiveCamera(params);
+	createRenderBuffer();
+	createCamera();
 
 	m_BaseShader = new Moongoose::Shader(
 		Moongoose::ShaderSpecs{ 
@@ -37,14 +15,10 @@ void RenderLayer::onAttach()
 			"Shader/shader.frag" 
 		});
 
-	m_Mesh = *Moongoose::ResourceManager::LoadMesh("Assets/Monkey.obj");
+	m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Monkey.obj");
 }
 
-void RenderLayer::onDetach()
-{
-	delete m_RenderBuffer;
-	delete m_EditorCamera;
-}
+void RenderLayer::onDetach(){}
 
 void RenderLayer::onUpdate(float deltaTime)
 {
@@ -66,7 +40,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	m_BaseShader->SetCamera(cameraPosition, viewMatrix, projection);
 	m_BaseShader->SetModelTransform(transform.getModelMatrix());
 
-	Moongoose::Renderer::RenderMesh(m_Mesh.GetVertexArray());
+	Moongoose::Renderer::RenderMesh(m_Mesh->GetVertexArray());
 
 	m_BaseShader->Unbind();
 	m_RenderBuffer->Unbind();
@@ -75,23 +49,49 @@ void RenderLayer::onUpdate(float deltaTime)
 void RenderLayer::onEvent(Moongoose::Event& event)
 {
 	m_EditorCamera->onEvent(event);
-	
-	Moongoose::EventDispatcher dispatcher(event);
-	dispatcher.Dispatch<Moongoose::WindowResizeEvent>(BIND_EVENT_FUNC(RenderLayer::onResize));
 }
 
 void RenderLayer::onImGuiRender()
 {
 	ImGui::Begin("RenderLayer");
-	ImVec2 imageSize = ImVec2(1280, 720);
+	
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	windowSize.x -= 35.0f;
+	windowSize.y -= 35.0f;
+
+	if (windowSize.x != m_WindowSize.x || windowSize.y != m_WindowSize.y)
+	{
+		m_WindowSize = { windowSize.x, windowSize.y };
+		m_EditorCamera->setRenderResolution(m_WindowSize.x, m_WindowSize.y);
+		createRenderBuffer();
+	}
+	
 	ImGui::Image((void*) m_RenderBuffer->GetColorAttachments()[0],
-		imageSize, 
+		windowSize,
 		ImVec2(0, 1),
 		ImVec2(1, 0));
+
 	ImGui::End();
 }
 
-bool RenderLayer::onResize(Moongoose::WindowResizeEvent& event)
+void RenderLayer::createRenderBuffer()
 {
-	return false;
+	Moongoose::FramebufferSpecs specs;
+	specs.Width = m_WindowSize.x;
+	specs.Height = m_WindowSize.y;
+	specs.Attachments = {
+		Moongoose::FramebufferTextureFormat::RGBA8,
+		Moongoose::FramebufferTextureFormat::DEPTH24STENCIL8
+	};
+	specs.ClearColor = { 1.0f, 0.0f, 1.0f, 1.0f };
+	m_RenderBuffer = CreateScope<Moongoose::Framebuffer>(specs);
+}
+
+void RenderLayer::createCamera()
+{
+	Moongoose::PerspectiveCamera::Params params;
+	params.renderWidth = m_WindowSize.x;
+	params.renderHeight = m_WindowSize.y;
+	params.startPosition = { 0.0f, 0.0f, -1.0f };
+	m_EditorCamera = CreateScope<Moongoose::PerspectiveCamera>(params);
 }

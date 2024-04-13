@@ -68,6 +68,17 @@ namespace Moongoose {
 		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(PerspectiveCamera::onMouseScrolled));
 	}
 
+	void PerspectiveCamera::setRenderResolution(float width, float height)
+	{
+		m_Params.renderWidth = width;
+		m_Params.renderHeight = height;
+		m_Projection = glm::perspective(
+			m_Params.fov,
+			(float)m_Params.renderWidth / m_Params.renderHeight,
+			m_Params.zNear,
+			m_Params.zFar);
+	}
+
 	bool PerspectiveCamera::onResize(WindowResizeEvent& event)
 	{
 		m_Params.renderWidth = event.getWidth();

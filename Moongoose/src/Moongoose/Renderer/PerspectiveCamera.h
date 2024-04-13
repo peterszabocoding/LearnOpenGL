@@ -39,6 +39,8 @@ namespace Moongoose {
 		void onUpdate(float deltaTime);
 		void onEvent(Event& e);
 
+		void setRenderResolution(float width, float height);
+
 		void moveCamera(float deltaTime);
 		void rotateCamera(float deltaTime);
 

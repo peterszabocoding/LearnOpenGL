@@ -4,11 +4,11 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "Moongoose/Renderer/Mesh.h"
-#include "ResourceManager.h"
+#include "AssetManager.h"
 
 namespace Moongoose {
 
-	Mesh* ResourceManager::LoadMesh(std::string meshPath)
+	Mesh* AssetManager::LoadMesh(std::string meshPath)
 	{
 		Assimp::Importer importer;
 		unsigned int importerFlags = aiProcess_Triangulate |
@@ -27,7 +27,7 @@ namespace Moongoose {
 		return LoadMesh(scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]], scene);
 	}
 
-	Mesh* ResourceManager::LoadMesh(aiMesh* mesh, const aiScene* scene)
+	Mesh* AssetManager::LoadMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		std::vector<GLfloat> vertices;
 		std::vector<unsigned int> indices;
@@ -61,7 +61,7 @@ namespace Moongoose {
 
 		return new Mesh(&vertices[0], &indices[0], vertices.size(), indices.size());
 	}
-	void ResourceManager::LoadNode(aiNode* node, const aiScene* scene)
+	void AssetManager::LoadNode(aiNode* node, const aiScene* scene)
 	{
 		for (size_t i = 0; i < node->mNumMeshes; i++) {
 			LoadMesh(scene->mMeshes[node->mMeshes[i]], scene);

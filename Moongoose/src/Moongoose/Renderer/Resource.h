@@ -2,7 +2,7 @@
 
 #include <string>
 #include "Moongoose/Core.h"
-#include "Moongoose/Util/UUID.h"
+#include "Moongoose/Asset/UUID.h"
 
 namespace Moongoose {
 
