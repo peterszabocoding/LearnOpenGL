@@ -12,7 +12,7 @@
 
 namespace Moongoose {
 
-	Mesh* AssetManager::LoadMesh(std::string meshPath)
+	Ref<Mesh> AssetManager::LoadMesh(std::string meshPath)
 	{
 		Assimp::Importer importer;
 		unsigned int importerFlags = aiProcess_Triangulate |
@@ -60,10 +60,10 @@ namespace Moongoose {
 			}
 		}
 
-		return new Mesh(&vertices[0], &indices[0], vertices.size(), indices.size());
+		return CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
 	}
 	
-	Ref<Texture2D> AssetManager::LoadTexture2D(const std::string& filepath)
+	Ref<Texture2D> AssetManager::LoadTexture2D(const std::string& filepath, TextureFormat textureFormat)
 	{
 		int width, height, bitDepth;
 		uint8_t* textureData = nullptr;
@@ -79,6 +79,7 @@ namespace Moongoose {
 			specs.Height = height;
 			specs.BitDepth = bitDepth;
 			specs.FileLocation = filepath;
+			specs.TextureFormat = textureFormat;
 			
 			Ref<Texture2D> texture = Texture2D::Create(specs);
 			texture->loadData(textureData, width, height, bitDepth);

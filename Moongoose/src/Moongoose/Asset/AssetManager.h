@@ -9,8 +9,8 @@ namespace Moongoose {
 	class AssetManager
 	{
 	public:
-		static Mesh* LoadMesh(std::string meshPath);
-		static Ref<Texture2D> LoadTexture2D(const std::string& filepath);
+		static Ref<Mesh> LoadMesh(std::string meshPath);
+		static Ref<Texture2D> LoadTexture2D(const std::string& filepath, TextureFormat textureFormat);
 	};
 
 }

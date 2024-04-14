@@ -7,6 +7,7 @@ namespace Moongoose {
 	OpenGLTexture2D::OpenGLTexture2D(TextureSpecs specs)
 	{
 		m_TextureSpecs = specs;
+		m_TextureFormat = specs.TextureFormat;
 	}
 
 	OpenGLTexture2D::~OpenGLTexture2D()
@@ -33,26 +34,24 @@ namespace Moongoose {
 	{
 		m_TextureData.Data = data;
 		m_TextureData.Size = width * height * bitDepth;
-		m_TextureFormat = bitDepth == 4 ? TextureFormat::RGBA : TextureFormat::RGB;
 
 		GLenum internalFormat = 0, dataFormat = 0;
 
-		if (this->m_TextureSpecs.BitDepth == 1) {
+		if (m_TextureSpecs.BitDepth == 1) {
 			internalFormat = GL_R8;
 			dataFormat = GL_RED;
 			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (Red integer)", m_TextureSpecs.FileLocation);
 		}
-		else if (this->m_TextureSpecs.BitDepth == 4) {
+		else if (m_TextureSpecs.BitDepth == 4) {
 			internalFormat = GL_RGBA8;
 			dataFormat = GL_RGBA;
 			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGBA)", m_TextureSpecs.FileLocation);
 		}
-		else if (this->m_TextureSpecs.BitDepth == 3) {
+		else if (m_TextureSpecs.BitDepth == 3) {
 			internalFormat = GL_RGB8;
 			dataFormat = GL_RGB;
 			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGB)", m_TextureSpecs.FileLocation);
 		}
-
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
 		glTextureStorage2D(m_TextureID, 1, internalFormat, m_TextureSpecs.Width, m_TextureSpecs.Height);

@@ -16,6 +16,5 @@ void main()
 
     vec4 textureColor = texture(AlbedoTexture, TexCoord);
     vec3 color = (ambient + diffuse) * textureColor.rgb;
-    //vec3 color = (ambient + diffuse) * vec3(0.5, 0.5, 0.5);
     FragColor = vec4(color, 1.0f);
 } 

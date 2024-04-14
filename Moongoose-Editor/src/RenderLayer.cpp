@@ -9,15 +9,34 @@ void RenderLayer::onAttach()
 	createRenderBuffer();
 	createCamera();
 
-	m_BaseShader = new Moongoose::Shader(
+	m_BaseShader = CreateRef<Moongoose::Shader>(
 		Moongoose::ShaderSpecs{ 
 			Moongoose::ShaderType::STATIC, 
 			"Shader/shader.vert", 
 			"Shader/shader.frag" 
 		});
+	m_CheckerTexture = Moongoose::AssetManager::LoadTexture2D("Assets/Texture/checker_2k_c.png", Moongoose::TextureFormat::RGB);
+	m_ColorCheckerTexture = Moongoose::AssetManager::LoadTexture2D("Assets/Texture/checker_2k_b.png", Moongoose::TextureFormat::RGB);
 
-	m_CheckerTexture = Moongoose::AssetManager::LoadTexture2D("Assets/Texture/checker_2k.png");
-	m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
+	m_Scene = CreateRef<Moongoose::Scene>();
+	Ref<Moongoose::Entity> entityMonkey = m_Scene->AddEntity("Monkey");
+	Ref<Moongoose::Entity> entityGround = m_Scene->AddEntity("Ground");
+
+	entityMonkey->m_TransformComponent = CreateRef<Moongoose::TransformComponent>();
+	entityMonkey->m_TransformComponent->m_Position += glm::vec3(0.0f, 0.0f, 0.0f);
+
+	entityMonkey->m_MeshComponent->m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
+	entityMonkey->m_MeshComponent->m_Texture = m_ColorCheckerTexture;
+	entityMonkey->m_MeshComponent->m_Shader = m_BaseShader;
+
+	entityGround->m_TransformComponent = CreateRef<Moongoose::TransformComponent>();
+	entityGround->m_TransformComponent->m_Position += glm::vec3(0.0f, -3.0f, 0.0f);
+	entityGround->m_TransformComponent->m_Scale = glm::vec3(15.0f, 15.0f, 15.0f);
+
+	entityGround->m_MeshComponent = CreateRef<Moongoose::MeshComponent>();
+	entityGround->m_MeshComponent->m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Plane.obj");
+	entityGround->m_MeshComponent->m_Texture = m_CheckerTexture;
+	entityGround->m_MeshComponent->m_Shader = m_BaseShader;
 }
 
 void RenderLayer::onDetach(){}
@@ -30,22 +49,13 @@ void RenderLayer::onUpdate(float deltaTime)
 	glm::vec3 cameraPosition = m_EditorCamera->getCameraPosition();
 	glm::mat4 projection = m_EditorCamera->getProjection();
 
-	Moongoose::Transform transform;
-	transform.position += glm::vec3(0.0f, 0.0f, -5.0f);
-
 	m_RenderBuffer->Bind();
 
 	Moongoose::RenderCommand::SetClearColor(glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	Moongoose::RenderCommand::Clear();
 
-	m_BaseShader->Bind();
-	m_BaseShader->SetCamera(cameraPosition, viewMatrix, projection);
-	m_BaseShader->SetModelTransform(transform.getModelMatrix());
-	m_CheckerTexture->bind(0);
+	Moongoose::RenderSystem::Run(m_Scene, m_EditorCamera);
 
-	Moongoose::Renderer::RenderMesh(m_Mesh->GetVertexArray());
-
-	m_BaseShader->Unbind();
 	m_RenderBuffer->Unbind();
 }
 
@@ -95,6 +105,6 @@ void RenderLayer::createCamera()
 	Moongoose::PerspectiveCamera::Params params;
 	params.renderWidth = m_WindowSize.x;
 	params.renderHeight = m_WindowSize.y;
-	params.startPosition = { 0.0f, 0.0f, -1.0f };
-	m_EditorCamera = CreateScope<Moongoose::PerspectiveCamera>(params);
+	params.startPosition = { 0.0f, 0.0f, 5.0f };
+	m_EditorCamera = CreateRef<Moongoose::PerspectiveCamera>(params);
 }

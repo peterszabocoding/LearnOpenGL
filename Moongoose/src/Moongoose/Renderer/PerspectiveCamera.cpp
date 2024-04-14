@@ -94,8 +94,8 @@ namespace Moongoose {
 
 	bool PerspectiveCamera::onMouseScrolled(MouseScrolledEvent& event)
 	{
-		maxSpeed += event.GetYOffset() * 0.01;
-		maxSpeed = std::clamp(maxSpeed, 0.05f, 10.0f);
+		maxSpeed += event.GetYOffset() * 0.005;
+		maxSpeed = std::clamp(maxSpeed, 0.01f, 10.0f);
 
 		return false;
 	}

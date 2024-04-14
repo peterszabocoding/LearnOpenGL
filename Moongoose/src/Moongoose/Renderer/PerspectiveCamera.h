@@ -21,7 +21,7 @@ namespace Moongoose {
 			float fov = 45.0f;
 			float zNear = 0.1f;
 			float zFar = 1000.0f;
-			float maxSpeed = 4.0f;
+			float maxSpeed = 2.0f;
 
 			glm::vec3 startPosition = glm::vec3{ 0.0f , 0.0f , 0.0f };
 			glm::vec3 startUp = glm::vec3{ 0.0f , 1.0f , 0.0f };

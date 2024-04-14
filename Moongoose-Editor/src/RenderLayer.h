@@ -23,11 +23,15 @@ private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
 	
 	Scope<Moongoose::Framebuffer> m_RenderBuffer;
-	Scope<Moongoose::PerspectiveCamera> m_EditorCamera;
+	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
 
-	Moongoose::Shader* m_BaseShader = nullptr;
-	Moongoose::Mesh* m_Mesh = nullptr;
+	Ref<Moongoose::RenderSystem> m_RenderSystem;
+
+	Ref<Moongoose::Scene> m_Scene;
+	Ref<Moongoose::Shader> m_BaseShader = nullptr;
+
 	Ref<Moongoose::Texture2D> m_CheckerTexture = nullptr;
+	Ref<Moongoose::Texture2D> m_ColorCheckerTexture = nullptr;
 
 };
 

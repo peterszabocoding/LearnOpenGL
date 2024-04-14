@@ -64,6 +64,7 @@ namespace Moongoose {
 		std::string		FileLocation = "";
 		TextureWrap		TextureWrap = TextureWrap::Repeat;
 		TextureFilter	TextureFilter = TextureFilter::Linear;
+		TextureFormat	TextureFormat = TextureFormat::RGB;
 	};
 
 	class Texture: public Asset {
@@ -79,7 +80,6 @@ namespace Moongoose {
 
 	class Texture2D : public Texture {
 	public:
-		//static Ref<Texture2D> Create(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr, TextureProperties properties = TextureProperties());
 		static Ref<Texture2D> Create(TextureSpecs specs);
 
 		virtual void resize(const glm::uvec2& size) = 0;
