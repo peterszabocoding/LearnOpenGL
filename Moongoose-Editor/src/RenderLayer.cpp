@@ -25,6 +25,7 @@ void RenderLayer::onAttach()
 	entityMonkey->m_TransformComponent = CreateRef<Moongoose::TransformComponent>();
 	entityMonkey->m_TransformComponent->m_Position += glm::vec3(0.0f, 0.0f, 0.0f);
 
+	entityMonkey->m_MeshComponent = CreateRef<Moongoose::MeshComponent>();
 	entityMonkey->m_MeshComponent->m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
 	entityMonkey->m_MeshComponent->m_Texture = m_ColorCheckerTexture;
 	entityMonkey->m_MeshComponent->m_Shader = m_BaseShader;
@@ -37,6 +38,7 @@ void RenderLayer::onAttach()
 	entityGround->m_MeshComponent->m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Plane.obj");
 	entityGround->m_MeshComponent->m_Texture = m_CheckerTexture;
 	entityGround->m_MeshComponent->m_Shader = m_BaseShader;
+
 }
 
 void RenderLayer::onDetach(){}
