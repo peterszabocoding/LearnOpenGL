@@ -27,6 +27,7 @@ private:
 
 	Moongoose::Shader* m_BaseShader = nullptr;
 	Moongoose::Mesh* m_Mesh = nullptr;
+	Ref<Moongoose::Texture2D> m_CheckerTexture = nullptr;
 
 };
 

@@ -1,10 +1,14 @@
-
 #include "mgpch.h"
-#include <assimp/Importer.hpp>
+
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "Moongoose/Renderer/Mesh.h"
+#include <assimp/Importer.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "AssetManager.h"
+#include "Moongoose/Log.h"
 
 namespace Moongoose {
 
@@ -24,11 +28,8 @@ namespace Moongoose {
 			return nullptr;
 		}
 		
-		return LoadMesh(scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]], scene);
-	}
+		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
 
-	Mesh* AssetManager::LoadMesh(aiMesh* mesh, const aiScene* scene)
-	{
 		std::vector<GLfloat> vertices;
 		std::vector<unsigned int> indices;
 
@@ -61,14 +62,30 @@ namespace Moongoose {
 
 		return new Mesh(&vertices[0], &indices[0], vertices.size(), indices.size());
 	}
-	void AssetManager::LoadNode(aiNode* node, const aiScene* scene)
+	
+	Ref<Texture2D> AssetManager::LoadTexture2D(const std::string& filepath)
 	{
-		for (size_t i = 0; i < node->mNumMeshes; i++) {
-			LoadMesh(scene->mMeshes[node->mMeshes[i]], scene);
-		}
+		int width, height, bitDepth;
+		uint8_t* textureData = nullptr;
+		textureData = stbi_load((filepath).c_str(), &width, &height, &bitDepth, 0);
 
-		for (size_t i = 0; i < node->mNumChildren; i++) {
-			LoadNode(node->mChildren[i], scene);
+		if (!textureData) {
+			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", filepath);
+			return nullptr;
+		}
+		else {
+			TextureSpecs specs;
+			specs.Width = width;
+			specs.Height = height;
+			specs.BitDepth = bitDepth;
+			specs.FileLocation = filepath;
+			
+			Ref<Texture2D> texture = Texture2D::Create(specs);
+			texture->loadData(textureData, width, height, bitDepth);
+
+			stbi_image_free(textureData);
+			return texture;
 		}
 	}
+	
 }

@@ -1,7 +1,8 @@
-#include "RenderLayer.h"
 #include <imgui/imgui.h>
 
+#include "RenderLayer.h"
 #include "Moongoose/Events/Event.h"
+#include "Moongoose/Renderer/Texture.h"
 
 void RenderLayer::onAttach()
 {
@@ -15,7 +16,8 @@ void RenderLayer::onAttach()
 			"Shader/shader.frag" 
 		});
 
-	m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Monkey.obj");
+	m_CheckerTexture = Moongoose::AssetManager::LoadTexture2D("Assets/Texture/checker_2k.png");
+	m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
 }
 
 void RenderLayer::onDetach(){}
@@ -39,6 +41,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	m_BaseShader->Bind();
 	m_BaseShader->SetCamera(cameraPosition, viewMatrix, projection);
 	m_BaseShader->SetModelTransform(transform.getModelMatrix());
+	m_CheckerTexture->bind(0);
 
 	Moongoose::Renderer::RenderMesh(m_Mesh->GetVertexArray());
 
@@ -83,7 +86,7 @@ void RenderLayer::createRenderBuffer()
 		Moongoose::FramebufferTextureFormat::RGBA8,
 		Moongoose::FramebufferTextureFormat::DEPTH24STENCIL8
 	};
-	specs.ClearColor = { 1.0f, 0.0f, 1.0f, 1.0f };
+	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 	m_RenderBuffer = CreateScope<Moongoose::Framebuffer>(specs);
 }
 

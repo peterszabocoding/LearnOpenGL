@@ -16,6 +16,7 @@ IncludeDir["Glad"]		=	"Moongoose/vendor/Glad/include"
 IncludeDir["ImGui"]		=	"Moongoose/vendor/imgui"
 IncludeDir["GLM"]		=	"Moongoose/vendor/glm"
 IncludeDir["ASSIMP"]	=	"Moongoose/vendor/ASSIMP/include"
+IncludeDir["stb"]		=	"Moongoose/vendor/stb/include"
 
 group "Dependencies"
 	include "Moongoose/vendor/GLFW"
@@ -52,7 +53,8 @@ group "Engine"
 			"%{IncludeDir.Glad}",
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.ImGui}",
-			"%{IncludeDir.ASSIMP}"
+			"%{IncludeDir.ASSIMP}",
+			"%{IncludeDir.stb}"
 		}
 
 		libdirs

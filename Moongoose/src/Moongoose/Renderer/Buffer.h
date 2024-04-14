@@ -137,4 +137,96 @@ namespace Moongoose {
 		uint32_t m_IndexBufferID;
 		uint32_t m_Count;
 	};
+
+	struct Buffer
+	{
+		void* Data;
+		uint32_t Size;
+
+		Buffer()
+			: Data(nullptr), Size(0)
+		{
+		}
+
+		Buffer(void* data, uint32_t size)
+			: Data(data), Size(size)
+		{
+		}
+
+		static Buffer copy(const void* data, uint32_t size)
+		{
+			Buffer buffer;
+			buffer.allocate(size);
+			memcpy(buffer.Data, data, size);
+			return buffer;
+		}
+
+		void allocate(uint32_t size)
+		{
+			delete[](uint8_t*)Data;
+			Data = nullptr;
+
+			if (size == 0)
+				return;
+
+			Data = new uint8_t[size];
+			Size = size;
+		}
+
+		void release()
+		{
+			delete[](uint8_t*)Data;
+			Data = nullptr;
+			Size = 0;
+		}
+
+		void zeroInitialize()
+		{
+			if (Data)
+				memset(Data, 0, Size);
+		}
+
+		template<typename T>
+		T& read(uint32_t offset = 0)
+		{
+			return *(T*)((byte*)Data + offset);
+		}
+
+		uint8_t* readBytes(uint32_t size, uint32_t offset)
+		{
+			MG_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
+			uint8_t* buffer = new uint8_t[size];
+			memcpy(buffer, (uint8_t*)Data + offset, size);
+			return buffer;
+		}
+
+		void write(const void* data, uint32_t size, uint32_t offset = 0)
+		{
+			MG_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
+			memcpy((uint8_t*)Data + offset, data, size);
+		}
+
+		operator bool() const
+		{
+			return Data;
+		}
+
+		uint8_t& operator[](int index)
+		{
+			return ((uint8_t*)Data)[index];
+		}
+
+		uint8_t operator[](int index) const
+		{
+			return ((uint8_t*)Data)[index];
+		}
+
+		template<typename T>
+		T* As() const
+		{
+			return (T*)Data;
+		}
+
+		inline uint32_t getSize() const { return Size; }
+	};
 }

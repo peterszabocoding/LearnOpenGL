@@ -7,8 +7,7 @@ namespace Moongoose {
 	class Asset
 	{
 	public:
-		UUID m_ID;
-
+		
 		virtual ~Asset() {};
 
 		virtual AssetType getAssetType() const { return AssetType::None; }
@@ -22,6 +21,8 @@ namespace Moongoose {
 		{
 			return !(*this == other);
 		}
+
+		UUID m_ID;
 	};
 
 }

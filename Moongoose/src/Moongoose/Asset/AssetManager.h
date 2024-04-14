@@ -1,11 +1,8 @@
 #pragma once
 
 #include "Moongoose/Core.h"
-
-class aiMesh;
-class aiScene;
-class aiNode;
-class Mesh;
+#include "Moongoose/Renderer/Mesh.h"
+#include "Moongoose/Renderer/Texture.h"
 
 namespace Moongoose {
 
@@ -13,10 +10,7 @@ namespace Moongoose {
 	{
 	public:
 		static Mesh* LoadMesh(std::string meshPath);
-
-	private:
-		static Mesh* LoadMesh(aiMesh* mesh, const aiScene* scene);
-		static void LoadNode(aiNode* node, const aiScene* scene);
+		static Ref<Texture2D> LoadTexture2D(const std::string& filepath);
 	};
 
 }
