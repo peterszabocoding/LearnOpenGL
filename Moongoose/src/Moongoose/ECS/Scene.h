@@ -11,12 +11,12 @@ namespace Moongoose {
 		Scene() {}
 		~Scene() {}
 
-		Ref<Entity> AddEntity(std::string name);
-		std::vector<Ref<Entity>>& getEntities();
+		Entity AddEntity(std::string name);
+		std::vector<Entity>& getEntities();
 
 
 	private:
-		std::vector<Ref<Entity>> m_Entities;
+		std::vector<Entity> m_Entities;
 	};
 
 }
