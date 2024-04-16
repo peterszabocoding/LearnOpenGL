@@ -8,10 +8,10 @@ namespace Moongoose {
 	class RenderSystem
 	{
 	public:
-		static void Run(Ref<Scene> scene, Ref<PerspectiveCamera> camera);
+		static void Run(Ref<PerspectiveCamera> camera);
 
 	private:
-		static glm::mat4 getModelMatrix(Ref<TransformComponent> component);
+		static glm::mat4 getModelMatrix(const TransformComponent& component);
 	};
 
 

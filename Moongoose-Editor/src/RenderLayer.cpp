@@ -18,27 +18,27 @@ void RenderLayer::onAttach()
 	m_CheckerTexture = Moongoose::AssetManager::LoadTexture2D("Assets/Texture/checker_2k_c.png", Moongoose::TextureFormat::RGB);
 	m_ColorCheckerTexture = Moongoose::AssetManager::LoadTexture2D("Assets/Texture/checker_2k_b.png", Moongoose::TextureFormat::RGB);
 
-	m_Scene = CreateRef<Moongoose::Scene>();
-	Ref<Moongoose::Entity> entityMonkey = m_Scene->AddEntity("Monkey");
-	Ref<Moongoose::Entity> entityGround = m_Scene->AddEntity("Ground");
+	using namespace Moongoose;
+	{
+		Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
+		Entity groundEntity = EntityManager::Get().addEntity("Ground");
+		
+		EntityMemoryPool::Get().addComponent<TransformComponent>(monkeyEntity);
+		
+		auto& groundTransform = EntityMemoryPool::Get().addComponent<TransformComponent>(groundEntity);
+		groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
+		groundTransform.m_Scale = glm::vec3(15.0f, 15.0f, 15.0f);
 
-	entityMonkey->m_TransformComponent = CreateRef<Moongoose::TransformComponent>();
-	entityMonkey->m_TransformComponent->m_Position += glm::vec3(0.0f, 0.0f, 0.0f);
+		MeshComponent& monkeyMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(monkeyEntity);
+		monkeyMeshComponent.m_Mesh = AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
+		monkeyMeshComponent.m_Texture = m_ColorCheckerTexture;
+		monkeyMeshComponent.m_Shader = m_BaseShader;
 
-	entityMonkey->m_MeshComponent = CreateRef<Moongoose::MeshComponent>();
-	entityMonkey->m_MeshComponent->m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
-	entityMonkey->m_MeshComponent->m_Texture = m_ColorCheckerTexture;
-	entityMonkey->m_MeshComponent->m_Shader = m_BaseShader;
-
-	entityGround->m_TransformComponent = CreateRef<Moongoose::TransformComponent>();
-	entityGround->m_TransformComponent->m_Position += glm::vec3(0.0f, -3.0f, 0.0f);
-	entityGround->m_TransformComponent->m_Scale = glm::vec3(15.0f, 15.0f, 15.0f);
-
-	entityGround->m_MeshComponent = CreateRef<Moongoose::MeshComponent>();
-	entityGround->m_MeshComponent->m_Mesh = Moongoose::AssetManager::LoadMesh("Assets/Mesh/Plane.obj");
-	entityGround->m_MeshComponent->m_Texture = m_CheckerTexture;
-	entityGround->m_MeshComponent->m_Shader = m_BaseShader;
-
+		MeshComponent& groundMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(groundEntity);
+		groundMeshComponent.m_Mesh = AssetManager::LoadMesh("Assets/Mesh/Plane.obj");
+		groundMeshComponent.m_Texture = m_CheckerTexture;
+		groundMeshComponent.m_Shader = m_BaseShader;
+	}
 }
 
 void RenderLayer::onDetach(){}
@@ -56,7 +56,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	Moongoose::RenderCommand::SetClearColor(glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	Moongoose::RenderCommand::Clear();
 
-	Moongoose::RenderSystem::Run(m_Scene, m_EditorCamera);
+	Moongoose::RenderSystem::Run(m_EditorCamera);
 
 	m_RenderBuffer->Unbind();
 }
@@ -68,7 +68,7 @@ void RenderLayer::onEvent(Moongoose::Event& event)
 
 void RenderLayer::onImGuiRender()
 {
-	ImGui::Begin("RenderLayer");
+	ImGui::Begin("Render");
 	
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	windowSize.x -= 35.0f;

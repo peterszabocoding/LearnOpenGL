@@ -9,38 +9,41 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "Moongoose/Renderer/Renderer.h"
+#include "Moongoose/ECS/EntityManager.h"
 
 namespace Moongoose {
 
-	void RenderSystem::Run(Ref<Scene> scene, Ref<PerspectiveCamera> camera)
+	void RenderSystem::Run(Ref<PerspectiveCamera> camera)
 	{
-		for (Ref<Entity> e : scene->getEntities())
-		{
-			if (e->m_MeshComponent)
-			{
-				Ref<Shader> shader = e->m_MeshComponent->m_Shader;
-				Ref<Mesh> mesh = e->m_MeshComponent->m_Mesh;
+		auto entites = EntityManager::Get().getEntities();
 
-				shader->Bind();
-				shader->SetCamera(
+		for (auto e : entites)
+		{
+			if (EntityManager::Get().hasComponent<TransformComponent>(e) && EntityManager::Get().hasComponent<MeshComponent>(e))
+			{
+				TransformComponent& cTransform = EntityManager::Get().getComponent<TransformComponent>(e);
+				MeshComponent& cMesh = EntityManager::Get().getComponent<MeshComponent>(e);
+
+				cMesh.m_Shader->Bind();
+				cMesh.m_Shader->SetCamera(
 					camera->getCameraPosition(),
 					camera->getViewMatrix(),
 					camera->getProjection()
 				);
 
-				shader->SetModelTransform(getModelMatrix(e->m_TransformComponent));
-				e->m_MeshComponent->m_Texture->bind(0);
-				Renderer::RenderMesh(mesh->GetVertexArray());
+				cMesh.m_Shader->SetModelTransform(getModelMatrix(cTransform));
+				cMesh.m_Texture->bind(0);
+				Renderer::RenderMesh(cMesh.m_Mesh->GetVertexArray());
 
-				shader->Unbind();
+				cMesh.m_Shader->Unbind();
 			}
 		}
 	}
 
-	 glm::mat4 RenderSystem::getModelMatrix(Ref<TransformComponent> component)
+	 glm::mat4 RenderSystem::getModelMatrix(const TransformComponent& component)
 	{
-		return glm::translate(glm::mat4(1.0f), component->m_Position)
-			* glm::toMat4(glm::quat(glm::radians(component->m_Rotation)))
-			* glm::scale(glm::mat4(1.0f), component->m_Scale);
+		return glm::translate(glm::mat4(1.0f), component.m_Position)
+			* glm::toMat4(glm::quat(glm::radians(component.m_Rotation)))
+			* glm::scale(glm::mat4(1.0f), component.m_Scale);
 	}
 }

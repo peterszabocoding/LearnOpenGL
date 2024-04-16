@@ -76,7 +76,7 @@ namespace Moongoose {
 		MG_CORE_ASSERT(status, "Failed to initialize GLAD");
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		setVSync(true);
+		setVSync(false);
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int w, int h)
 			{

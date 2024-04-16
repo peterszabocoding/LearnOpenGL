@@ -27,7 +27,7 @@ void PerformanceLayer::onEvent(Moongoose::Event& event)
 
 void PerformanceLayer::onImGuiRender()
 {
-	ImGui::Begin("PerformanceLayer");
+	ImGui::Begin("Performance");
 
 	auto& io = ImGui::GetIO();
 

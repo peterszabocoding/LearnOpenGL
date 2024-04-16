@@ -31,13 +31,12 @@ namespace Moongoose
 
 	void Application::Run()
 	{
-
-		float time = glfwGetTime();
-		float deltaTime = time - m_LastFrameTime;
-		m_LastFrameTime = time;
-
 		while (m_Running)
 		{
+			float time = glfwGetTime();
+			float deltaTime = time - m_LastFrameTime;
+			m_LastFrameTime = time;
+
 			glClearColor(0, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT);
 

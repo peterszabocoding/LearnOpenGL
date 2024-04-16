@@ -4,20 +4,6 @@
 #include "Components.h"
 #include "Moongoose/Renderer/Transform.h"
 #include <unordered_set>
+#include "EntityMemoryPool.h"
 
-namespace Moongoose {
-
-	class Entity
-	{
-	public:
-		Entity(std::string name): m_Name(name), m_ID(UUID()) {}
-		~Entity() {}
-
-	public:
-		UUID m_ID;
-		std::string m_Name;
-		Ref<TransformComponent> m_TransformComponent;
-		Ref<MeshComponent> m_MeshComponent;
-	};
-
-}
+typedef size_t Entity;
