@@ -25,6 +25,7 @@ namespace Moongoose {
 		virtual uint32_t getHeight() const override { return m_TextureSpecs.Height; }
 		virtual glm::uvec2 getSize() const override { return { m_TextureSpecs.Width, m_TextureSpecs.Height }; }
 		virtual Buffer getBuffer() override { return m_TextureData; }
+		virtual void* getPointerToData() { return (void*) m_TextureID; }
 
 	private:
 		GLuint m_TextureID;

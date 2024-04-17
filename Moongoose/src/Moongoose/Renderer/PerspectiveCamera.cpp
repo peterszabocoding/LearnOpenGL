@@ -94,8 +94,8 @@ namespace Moongoose {
 
 	bool PerspectiveCamera::onMouseScrolled(MouseScrolledEvent& event)
 	{
-		maxSpeed += event.GetYOffset() * 0.005;
-		maxSpeed = std::clamp(maxSpeed, 0.01f, 10.0f);
+		maxSpeed += event.GetYOffset() * 1.0f;
+		maxSpeed = std::clamp(maxSpeed, 0.01f, 100.0f);
 
 		return false;
 	}
@@ -114,7 +114,7 @@ namespace Moongoose {
 		glm::vec3 newVel = { 0.0f, 0.0f, 0.0f };
 
 		if (!m_IsCameraMoving) {
-			speed = 8.0f * maxSpeed * deltaTime;
+			speed = maxSpeed * deltaTime;
 			newVel = -m_Velocity;
 		}
 		else 
@@ -132,7 +132,7 @@ namespace Moongoose {
 			if (Input::IsKeyPressed(MG_KEY_LEFT_SHIFT)) speed *= 2.0f;
 		}
 		speed = std::clamp(speed, 0.0f, maxSpeed);
-		m_Velocity = cameraDrag * m_Velocity + 1.25f * (newVel * speed);
+		m_Velocity = cameraDrag * m_Velocity + (newVel * speed);
 		m_Position += m_Velocity;
 	}
 

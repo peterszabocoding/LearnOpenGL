@@ -94,6 +94,8 @@ namespace Moongoose {
 		virtual bool isLoaded() const = 0;
 		virtual const std::string& getPath() const = 0;
 
+		virtual void* getPointerToData() = 0;
+
 		virtual TextureType getType() const override { return TextureType::Texture2D; }
 		virtual AssetType getAssetType() const override { return AssetType::Texture; }
 	};

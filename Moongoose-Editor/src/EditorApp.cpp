@@ -4,9 +4,9 @@
 #include "Moongoose/EntryPoint.h"
 #include <imgui/imgui.h>
 
-#include "RenderLayer.h"
-#include "PerformanceLayer.h"
-#include "InspectorLayer.h"
+#include "Layer/RenderLayer.h"
+#include "Layer/PerformanceLayer.h"
+#include "Layer/InspectorLayer.h"
 
 class EditorApp : public Moongoose::Application
 {

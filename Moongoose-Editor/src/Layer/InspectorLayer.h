@@ -13,4 +13,7 @@ public:
 	virtual void onEvent(Moongoose::Event& event) override {};
 	virtual void onImGuiRender() override;
 
+private:
+	void DrawMaterialControls(Ref<Moongoose::Material> material);
+
 };

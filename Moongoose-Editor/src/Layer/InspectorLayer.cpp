@@ -2,15 +2,17 @@
 #include <imgui/imgui.h>
 #include "GuiWidgets.h"
 #include "Moongoose/ECS/EntityManager.h"
+#include "Moongoose/Renderer/Material.h"
+#include "Moongoose/Renderer/OpenGL/OpenGLTexture2D.h"
 
 void InspectorLayer::onImGuiRender()
 {
 	bool hasTransformComponent = Moongoose::EntityManager::Get().hasComponent<Moongoose::TransformComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
+	bool hasMeshComponent = Moongoose::EntityManager::Get().hasComponent<Moongoose::MeshComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
 
+	ImGui::Begin("Inspector");
 	if (hasTransformComponent)
 	{
-		ImGui::Begin("Inspector");
-
 		auto& tag = Moongoose::EntityMemoryPool::Get().getTag(Moongoose::EntityManager::Get().getEntities()[0]);
 		auto& cTransform = Moongoose::EntityManager::Get().getComponent<Moongoose::TransformComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
 
@@ -32,8 +34,34 @@ void InspectorLayer::onImGuiRender()
 
 			ImGui::TreePop();
 		}
-
-		ImGui::End();
 	}
 
+	if (hasMeshComponent)
+	{
+		auto& cMesh = Moongoose::EntityManager::Get().getComponent<Moongoose::MeshComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
+		DrawMaterialControls(cMesh.m_Material);
+	}
+
+	ImGui::End();
+}
+
+void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
+{
+	auto albedo = material->Albedo;
+
+	ImGui::PushID("Material");
+	if (ImGui::TreeNode("Material ID")) {
+
+		ImGui::Text("Albedo Map: ");
+		ImGui::SameLine();
+
+		if (albedo) {
+			GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{128.0f, 128.0f });
+		}
+
+		ImGui::TreePop();
+	}
+	ImGui::PopID();
+
+	ImGui::Separator();
 }

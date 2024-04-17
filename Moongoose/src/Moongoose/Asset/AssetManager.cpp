@@ -88,5 +88,12 @@ namespace Moongoose {
 			return texture;
 		}
 	}
+
+	Ref<Shader> AssetManager::LoadShader(ShaderType shaderType)
+	{
+		return CreateRef<Shader>(ShaderSpecs{ ShaderType::STATIC, "Shader/shader.vert", "Shader/shader.frag"});
+	}
+
+	
 	
 }

@@ -15,7 +15,7 @@ namespace Moongoose {
 
 	void RenderSystem::Run(Ref<PerspectiveCamera> camera)
 	{
-		auto entites = EntityManager::Get().getEntities();
+		auto& entites = EntityManager::Get().getEntities();
 
 		for (auto e : entites)
 		{
@@ -32,7 +32,7 @@ namespace Moongoose {
 				);
 
 				cMesh.m_Shader->SetModelTransform(getModelMatrix(cTransform));
-				cMesh.m_Texture->bind(0);
+				cMesh.m_Material->bind();
 				Renderer::RenderMesh(cMesh.m_Mesh->GetVertexArray());
 
 				cMesh.m_Shader->Unbind();

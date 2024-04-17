@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 
 #include "Moongoose/Renderer/Mesh.h"
-#include "Moongoose/Renderer/Texture.h"
 #include "Moongoose/Renderer/Shader.h"
+#include "Moongoose/Renderer/Material.h"
 
 namespace Moongoose {
 
@@ -31,7 +31,7 @@ namespace Moongoose {
 	struct MeshComponent: public Component
 	{
 		Ref<Mesh> m_Mesh = nullptr;
-		Ref<Texture2D> m_Texture = nullptr;
+		Ref<Material> m_Material = nullptr;
 		Ref<Shader> m_Shader = nullptr;
 	};
 

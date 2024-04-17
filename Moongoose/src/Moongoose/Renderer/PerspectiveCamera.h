@@ -28,7 +28,7 @@ namespace Moongoose {
 
 			float startYaw = -90.0f;
 			float startPitch = 0.0f;
-			float startMoveSpeed = 1.0f;
+			float startMoveSpeed = 0.5f;
 			float startTurnSpeed = 0.3f;
 		};
 
@@ -71,9 +71,9 @@ namespace Moongoose {
 		float movementSpeed;
 		float turnSpeed;
 
-		float moveTransitionEffect = 0.0f;
+		float moveTransitionEffect = 0.5f;
 		float maxSpeed = 0.1f;
-		float cameraDrag = 0.9f;
+		float cameraDrag = 0.975f;
 
 	};
 
