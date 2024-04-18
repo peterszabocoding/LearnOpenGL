@@ -10,6 +10,7 @@
 
 #include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/ECS/EntityManager.h"
+#include "Moongoose/ECS/Components.h"
 
 namespace Moongoose {
 

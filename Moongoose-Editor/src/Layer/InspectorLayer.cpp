@@ -5,16 +5,20 @@
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/OpenGL/OpenGLTexture2D.h"
 
+using namespace Moongoose;
+
 void InspectorLayer::onImGuiRender()
 {
-	bool hasTransformComponent = Moongoose::EntityManager::Get().hasComponent<Moongoose::TransformComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
-	bool hasMeshComponent = Moongoose::EntityManager::Get().hasComponent<Moongoose::MeshComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
+	bool hasTransformComponent = EntityManager::Get().hasComponent<TransformComponent>(EntityManager::Get().getEntities()[0]);
+	bool hasMeshComponent = EntityManager::Get().hasComponent<MeshComponent>(EntityManager::Get().getEntities()[0]);
+
+	auto selectedEntity = EntityManager::Get().getSelectedEntity();
 
 	ImGui::Begin("Inspector");
 	if (hasTransformComponent)
 	{
-		auto& tag = Moongoose::EntityMemoryPool::Get().getTag(Moongoose::EntityManager::Get().getEntities()[0]);
-		auto& cTransform = Moongoose::EntityManager::Get().getComponent<Moongoose::TransformComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
+		auto& tag = EntityMemoryPool::Get().getTag(selectedEntity);
+		auto& cTransform = EntityManager::Get().getComponent<TransformComponent>(selectedEntity);
 
 		auto windowSize = ImGui::GetWindowSize();
 
@@ -38,7 +42,7 @@ void InspectorLayer::onImGuiRender()
 
 	if (hasMeshComponent)
 	{
-		auto& cMesh = Moongoose::EntityManager::Get().getComponent<Moongoose::MeshComponent>(Moongoose::EntityManager::Get().getEntities()[0]);
+		auto& cMesh = EntityManager::Get().getComponent<MeshComponent>(selectedEntity);
 		DrawMaterialControls(cMesh.m_Material);
 	}
 
@@ -56,7 +60,7 @@ void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 		ImGui::SameLine();
 
 		if (albedo) {
-			GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{128.0f, 128.0f });
+			GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{ 128.0f, 128.0f });
 		}
 
 		ImGui::TreePop();

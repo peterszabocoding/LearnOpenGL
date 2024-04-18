@@ -27,14 +27,20 @@ namespace Moongoose {
 			return EntityMemoryPool::Get().getComponent<T>(entity);
 		}
 
-		const std::vector<Entity>& getEntities() const;
+		const std::vector<size_t>& getEntities() const;
+
+		const std::string& getTag(size_t e) const;
+
+		void setSelectedEntity(size_t entity);
+
+		const size_t getSelectedEntity() const;
 
 	private:
 		EntityManager() {};
 
 	private:
-		std::vector<Entity> m_Entities;
-
+		size_t m_SelectedEntity = 0;
+		std::vector<size_t> m_Entities;
 
 	};
 

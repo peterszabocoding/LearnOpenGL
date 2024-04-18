@@ -27,7 +27,7 @@ void RenderLayer::onAttach()
 		
 		auto& groundTransform = EntityMemoryPool::Get().addComponent<TransformComponent>(groundEntity);
 		groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
-		groundTransform.m_Scale = glm::vec3(15.0f, 15.0f, 15.0f);
+		groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
 
 		MeshComponent& monkeyMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(monkeyEntity);
 		monkeyMeshComponent.m_Mesh = AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
