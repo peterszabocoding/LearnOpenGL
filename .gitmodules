@@ -13,3 +13,6 @@
 [submodule "Moongoose/vendor/ASSIMP"]
 	path = Moongoose/vendor/ASSIMP
 	url = https://github.com/assimp/assimp.git
+[submodule "Moongoose-Editor/vendor/ImGuizmo"]
+	path = Moongoose-Editor/vendor/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

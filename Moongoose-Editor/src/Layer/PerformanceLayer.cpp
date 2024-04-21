@@ -1,30 +1,6 @@
 #include "PerformanceLayer.h"
 #include <imgui/imgui.h>
 
-PerformanceLayer::PerformanceLayer()
-{
-}
-
-PerformanceLayer::~PerformanceLayer()
-{
-}
-
-void PerformanceLayer::onAttach()
-{
-}
-
-void PerformanceLayer::onDetach()
-{
-}
-
-void PerformanceLayer::onUpdate(float deltaTime)
-{
-}
-
-void PerformanceLayer::onEvent(Moongoose::Event& event)
-{
-}
-
 void PerformanceLayer::onImGuiRender()
 {
 	ImGui::Begin("Performance");

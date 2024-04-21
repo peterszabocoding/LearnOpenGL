@@ -19,6 +19,8 @@ private:
 	void createRenderBuffer();
 	void createCamera();
 
+	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
+
 private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
 	
@@ -33,5 +35,6 @@ private:
 	Ref<Moongoose::Texture2D> m_CheckerTexture = nullptr;
 	Ref<Moongoose::Texture2D> m_ColorCheckerTexture = nullptr;
 
+	size_t m_GizmoMode = 7;
 };
 

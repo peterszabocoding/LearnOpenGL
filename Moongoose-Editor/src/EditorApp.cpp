@@ -2,7 +2,6 @@
 
 #include <Moongoose.h>
 #include "Moongoose/EntryPoint.h"
-#include <imgui/imgui.h>
 
 #include "Layer/RenderLayer.h"
 #include "Layer/PerformanceLayer.h"

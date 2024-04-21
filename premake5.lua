@@ -17,6 +17,7 @@ IncludeDir["ImGui"]		=	"Moongoose/vendor/imgui"
 IncludeDir["GLM"]		=	"Moongoose/vendor/glm"
 IncludeDir["ASSIMP"]	=	"Moongoose/vendor/ASSIMP/include"
 IncludeDir["stb"]		=	"Moongoose/vendor/stb/include"
+IncludeDir["ImGuizmo"] 	= 	"Moongoose-Editor/vendor/ImGuizmo"
 
 group "Dependencies"
 	include "Moongoose/vendor/GLFW"
@@ -35,14 +36,14 @@ group "Engine"
 		objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 		pchheader "mgpch.h"
-		pchsource "Moongoose/src/mgpch.cpp"
+		pchsource "%{prj.name}/src/mgpch.cpp"
 
 		files
 		{
 			"%{prj.name}/src/**.h",
 			"%{prj.name}/src/**.cpp",
 			"%{prj.name}/vendor/glm/glm/**.hpp",
-			"%{prj.name}/vendor/glm/glm/**.inl"
+			"%{prj.name}/vendor/glm/glm/**.inl",
 		}
 
 		includedirs
@@ -56,7 +57,7 @@ group "Engine"
 			"%{IncludeDir.ASSIMP}",
 			"%{IncludeDir.stb}"
 		}
-
+ 
 		libdirs
 		{
 			"%{prj.name}/vendor/ASSIMP/lib/Debug"
@@ -68,7 +69,7 @@ group "Engine"
 			"Glad",
 			"ImGui",
 			"opengl32.lib",
-			"assimp-vc143-mtd.lib"
+			"assimp-vc143-mtd.lib" 
 		}
 
 		filter "system:windows"
@@ -115,16 +116,21 @@ group "Engine"
 		files
 		{
 			"%{prj.name}/src/**.h",
-			"%{prj.name}/src/**.cpp"
+			"%{prj.name}/src/**.cpp",
+
+			"Moongoose-Editor/vendor/ImGuizmo/ImGuizmo.h",
+			"Moongoose-Editor/vendor/ImGuizmo/ImGuizmo.cpp"
 		}
 
 		includedirs
 		{
-			"Moongoose/vendor/spdlog/include",
 			"Moongoose/src",
 			"Moongoose/vendor",
+			"Moongoose/vendor/spdlog/include",
 			"%{IncludeDir.GLM}",
-			"%{IncludeDir.Glad}"
+			"%{IncludeDir.Glad}",
+			"%{IncludeDir.ImGui}",
+			"%{IncludeDir.ImGuizmo}"
 		}
 
 		links
