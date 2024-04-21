@@ -13,7 +13,8 @@ namespace Moongoose {
 
 	typedef std::tuple<
 		std::vector<TransformComponent>,
-		std::vector<MeshComponent>> EntityComponentVectorTuple;
+		std::vector<MeshComponent>,
+		std::vector<LightComponent>> EntityComponentVectorTuple;
 
 	class EntityMemoryPool
 	{

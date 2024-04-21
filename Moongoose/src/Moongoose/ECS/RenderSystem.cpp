@@ -14,6 +14,23 @@
 
 namespace Moongoose {
 
+	namespace Utils {
+
+		static glm::mat4 GetLightProjection(LightType type) {
+			switch (type) {
+			case LightType::DIRECTIONAL:
+				return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
+			case LightType::POINT:
+				return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
+			case LightType::SPOT:
+				return glm::perspective(30.0f, (GLfloat)4096 / (GLfloat)4096, 0.1f, 1000.0f);
+			default:
+				MG_ASSERT(false, "Unknown light type");
+				return glm::mat4(1.0);
+			}
+		}
+	}
+
 	void RenderSystem::SetCamera(Ref<PerspectiveCamera> camera)
 	{
 		m_RenderCamera = camera;
@@ -27,6 +44,18 @@ namespace Moongoose {
 	void RenderSystem::Run()
 	{
 		auto& entites = EntityManager::Get().getEntities();
+		LightComponent directionalLightComponent;
+		TransformComponent directionalLightTransformComponent;
+
+		for (auto e : entites)
+		{
+			if (EntityManager::Get().hasComponent<TransformComponent>(e) && EntityManager::Get().hasComponent<LightComponent>(e))
+			{
+				directionalLightComponent = EntityManager::Get().getComponent<LightComponent>(e);
+				directionalLightTransformComponent = EntityManager::Get().getComponent<TransformComponent>(e);
+			}
+		}
+
 
 		for (auto e : entites)
 		{
@@ -41,6 +70,20 @@ namespace Moongoose {
 					m_RenderCamera->getViewMatrix(),
 					m_RenderCamera->getProjection()
 				);
+
+				glm::vec4 lightDirection = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+				glm::vec3 localUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+				glm::vec3 direction = glm::vec3(directionalLightTransformComponent.getTransform() * lightDirection);
+				glm::mat4 projection = Utils::GetLightProjection(directionalLightComponent.m_Type);
+
+				glm::mat4 lightTransform = projection * glm::lookAt(-direction, glm::vec3(0.0f), localUp);
+
+				cMesh.m_Shader->SetDirectionalLight(
+					lightTransform,
+					direction, 
+					directionalLightComponent.m_Color, 
+					directionalLightComponent.m_Intensity);
 
 				cMesh.m_Shader->SetModelTransform(getModelMatrix(cTransform));
 				cMesh.m_Shader->SetEntityID(e);

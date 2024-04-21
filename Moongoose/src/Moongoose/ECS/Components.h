@@ -22,6 +22,13 @@ namespace Moongoose {
 		Camera
 	};
 
+	enum class LightType
+	{
+		DIRECTIONAL = 0,
+		POINT,
+		SPOT
+	};
+
 	struct Component
 	{
 		bool m_Active = false;
@@ -33,7 +40,7 @@ namespace Moongoose {
 		glm::vec3 m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
-		glm::mat4 getTransform() {
+		glm::mat4 getTransform() const {
 			return glm::translate(glm::mat4(1.0f), m_Position)
 				* glm::toMat4(glm::quat(glm::radians(m_Rotation)))
 				* glm::scale(glm::mat4(1.0f), m_Scale);
@@ -118,5 +125,14 @@ namespace Moongoose {
 		Ref<Material> m_Material = nullptr;
 		Ref<Shader> m_Shader = nullptr;
 	};
+
+	struct LightComponent : public Component
+	{
+		LightType m_Type = LightType::POINT;
+		glm::vec3 m_Color = glm::vec3(1.0f);
+		float m_Intensity = 1.0f;
+	};
+
+
 
 }

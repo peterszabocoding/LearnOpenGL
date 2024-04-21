@@ -28,7 +28,14 @@ void RenderLayer::onAttach()
 		Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
 		Entity monkey2Entity = EntityManager::Get().addEntity("Monkey 2");
 		Entity groundEntity = EntityManager::Get().addEntity("Ground");
+		Entity directionalLight = EntityManager::Get().addEntity("Directional Light");
 		EntityMemoryPool::Get().addComponent<TransformComponent>(monkeyEntity);
+
+		auto& dirLightTransform = EntityMemoryPool::Get().addComponent<TransformComponent>(directionalLight);
+		dirLightTransform.m_Rotation += glm::vec3(135.0f, 0.0f, 0.0f);
+
+		auto& dirLightComponent = EntityMemoryPool::Get().addComponent<LightComponent>(directionalLight);
+		dirLightComponent.m_Type = LightType::DIRECTIONAL;
 		
 		auto& groundTransform = EntityMemoryPool::Get().addComponent<TransformComponent>(groundEntity);
 		groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
@@ -221,7 +228,7 @@ bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
 
 bool RenderLayer::onMouseButtonPresed(Moongoose::MousePressedEvent& event)
 {
-	if (m_HoveredEntityId != -1 && Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT))
+	if (m_HoveredEntityId != -1 && Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT))
 	{
 		EntityManager::Get().setSelectedEntity(m_HoveredEntityId);
 	}

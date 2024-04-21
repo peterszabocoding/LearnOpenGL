@@ -1,6 +1,9 @@
 #include "mgpch.h"
 #include "Shader.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace Moongoose {
 
 	Shader::Shader(ShaderSpecs specs)
@@ -79,23 +82,17 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	}
 
-	/*
-	void Shader::SetDirectionalLight(const std::tuple<Transform*, Ref<Light>>& directionalLightTuple)
+	
+	void Shader::SetDirectionalLight(glm::mat4 transform, glm::vec3 direction, glm::vec3 color, float intensity)
 	{
-		const Transform* transform = std::get<0>(directionalLightTuple);
-		const Ref<Light>& dirLight = std::get<1>(directionalLightTuple);
-		const auto& lightTransform = dirLight->CalculateLightTransform(transform);
+		//glUniformMatrix4fv(uniformDirectionalLightTransform, 1, false, glm::value_ptr(transform));
 
-		glUniformMatrix4fv(uniformDirectionalLightTransform, 1, false, glm::value_ptr(lightTransform));
-
-		UploadUniformFloat3("directionalLight.base.color", dirLight->GetColor());
-		UploadUniformFloat("directionalLight.base.ambientIntensity", dirLight->GetAmbientIntensity());
-		UploadUniformFloat("directionalLight.base.diffuseIntensity", dirLight->GetDiffuseIntensity());
-		UploadUniformFloat("directionalLight.base.isShadowCasting", dirLight->IsShadowCasting());
-		UploadUniformFloat("directionalLight.base.useSoftShadow", dirLight->UseSoftShadow());
-		UploadUniformFloat3("directionalLight.direction", dirLight->GetDirection(transform));
+		UploadUniformFloat3("directionalLight.base.color", color);
+		UploadUniformFloat("directionalLight.base.intensity", intensity);
+		UploadUniformFloat3("directionalLight.direction", direction);
 	}
 
+	/*
 	void Shader::SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight)
 	{
 		size_t lightCount = pLight.size();

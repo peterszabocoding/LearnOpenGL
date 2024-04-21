@@ -6,6 +6,7 @@ namespace Moongoose {
 	EntityMemoryPool::EntityMemoryPool(size_t maxEntities) {
 		std::vector<TransformComponent>& transformComponentList = std::get<std::vector<TransformComponent>>(m_Pool);
 		std::vector<MeshComponent>& meshComponentList = std::get<std::vector<MeshComponent>>(m_Pool);
+		std::vector<LightComponent>& lightComponentList = std::get<std::vector<LightComponent>>(m_Pool);
 
 		transformComponentList.reserve(maxEntities);
 		meshComponentList.reserve(maxEntities);
@@ -17,6 +18,7 @@ namespace Moongoose {
 		{
 			transformComponentList.push_back(TransformComponent());
 			meshComponentList.push_back(MeshComponent());
+			lightComponentList.push_back(LightComponent());
 			m_Tags.push_back("");
 			m_Active.push_back(false);
 		}

@@ -18,6 +18,7 @@ void InspectorLayer::onImGuiRender()
 
 	bool hasTransformComponent = EntityManager::Get().hasComponent<TransformComponent>(EntityManager::Get().getEntities()[selectedEntity]);
 	bool hasMeshComponent = EntityManager::Get().hasComponent<MeshComponent>(EntityManager::Get().getEntities()[selectedEntity]);
+	bool hasLightComponent = EntityManager::Get().hasComponent<LightComponent>(EntityManager::Get().getEntities()[selectedEntity]);
 
 	
 	if (hasTransformComponent)
@@ -49,6 +50,14 @@ void InspectorLayer::onImGuiRender()
 	{
 		auto& cMesh = EntityManager::Get().getComponent<MeshComponent>(selectedEntity);
 		DrawMaterialControls(cMesh.m_Material);
+	}
+
+	if (hasLightComponent)
+	{
+		auto& cLight = EntityManager::Get().getComponent<LightComponent>(selectedEntity);
+		auto windowSize = ImGui::GetWindowSize();
+		GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
+		GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
 	}
 
 	ImGui::End();
