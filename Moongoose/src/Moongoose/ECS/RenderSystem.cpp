@@ -43,6 +43,7 @@ namespace Moongoose {
 				);
 
 				cMesh.m_Shader->SetModelTransform(getModelMatrix(cTransform));
+				cMesh.m_Shader->SetEntityID(e);
 				cMesh.m_Material->bind();
 				Renderer::RenderMesh(cMesh.m_Mesh->GetVertexArray());
 

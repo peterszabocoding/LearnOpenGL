@@ -20,6 +20,8 @@ private:
 	void createCamera();
 
 	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
+	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override;
+	bool isMouseInWindow() const;
 
 private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
@@ -36,5 +38,9 @@ private:
 	Ref<Moongoose::Texture2D> m_ColorCheckerTexture = nullptr;
 
 	size_t m_GizmoMode = 7;
+	int m_HoveredEntityId = -1;
+
+	glm::vec2 m_WindowMousePos = { 0, 0 };
+	glm::vec2 m_ViewportBounds[2];
 };
 

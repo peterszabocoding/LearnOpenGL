@@ -40,7 +40,7 @@ namespace Moongoose {
 		lastMousePos = mouseInput;
 
 
-		if (Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT)) 
+		if (isCameraActive && Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT))
 		{
 			moveCamera(deltaTime);
 			rotateCamera(deltaTime);

@@ -39,7 +39,7 @@ namespace Moongoose {
 		EntityManager() {};
 
 	private:
-		size_t m_SelectedEntity = 0;
+		size_t m_SelectedEntity = -1;
 		std::vector<size_t> m_Entities;
 
 	};

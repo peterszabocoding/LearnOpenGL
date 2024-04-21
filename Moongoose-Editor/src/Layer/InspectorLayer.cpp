@@ -9,12 +9,17 @@ using namespace Moongoose;
 
 void InspectorLayer::onImGuiRender()
 {
-	bool hasTransformComponent = EntityManager::Get().hasComponent<TransformComponent>(EntityManager::Get().getEntities()[0]);
-	bool hasMeshComponent = EntityManager::Get().hasComponent<MeshComponent>(EntityManager::Get().getEntities()[0]);
-
-	auto selectedEntity = EntityManager::Get().getSelectedEntity();
-
 	ImGui::Begin("Inspector");
+	auto selectedEntity = EntityManager::Get().getSelectedEntity();
+	if (selectedEntity == -1) {
+		ImGui::End();
+		return;
+	}
+
+	bool hasTransformComponent = EntityManager::Get().hasComponent<TransformComponent>(EntityManager::Get().getEntities()[selectedEntity]);
+	bool hasMeshComponent = EntityManager::Get().hasComponent<MeshComponent>(EntityManager::Get().getEntities()[selectedEntity]);
+
+	
 	if (hasTransformComponent)
 	{
 		auto& tag = EntityMemoryPool::Get().getTag(selectedEntity);
@@ -24,7 +29,7 @@ void InspectorLayer::onImGuiRender()
 
 		ImGui::Dummy({ windowSize.x , 1.0f });
 
-		ImGui::Text(tag.c_str());
+		ImGui::Text("%s", tag.c_str());
 
 		ImGui::Dummy({ windowSize.x , 5.0f });
 		ImGui::Separator();

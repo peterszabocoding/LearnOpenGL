@@ -134,7 +134,17 @@ namespace Moongoose {
 	}
 
 	void Framebuffer::Bind() {
+
+		int attachmentSize = m_ColorAttachments.size();
+		std::vector<unsigned int> attachments;
+		attachments.reserve(attachmentSize);
+
+		for (size_t i = 0; i < attachmentSize; i++) {
+			attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferID);
+		glDrawBuffers(attachmentSize, attachments.data());
 		RenderCommand::SetViewport(0, 0, m_Specs.Width, m_Specs.Height);
 	}
 
@@ -155,6 +165,28 @@ namespace Moongoose {
 		Invalidate();
 	}
 
+	int Framebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
+	{
+		MG_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex exeeded number of color attachments");
+
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+		int pixelData = -1;
+		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+		return pixelData;
+	}
+
+	void Framebuffer::ClearAttachment(uint32_t attachmentIndex, int value)
+	{
+		MG_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex exeeded number of color attachments");
+
+		auto& spec = m_ColorAttachmentSpecs[attachmentIndex];
+		glClearTexImage(m_ColorAttachments[attachmentIndex],
+			0,
+			GL_RED_INTEGER, 
+			GL_INT, 
+			&value);
+	}
+
 	void Framebuffer::Invalidate()
 	{
 		DeleteBuffer();
@@ -170,21 +202,15 @@ namespace Moongoose {
 
 			for (size_t i = 0; i < m_ColorAttachments.size(); i++) {
 				Utils::BindTexture(multisample, m_ColorAttachments[i]);
-
-				switch (m_ColorAttachmentSpecs[i].TextureFormat) {
-				case FramebufferTextureFormat::RGBA8:
-					Utils::AttachColorTexture(m_ColorAttachments[i], m_Specs.Samples, GL_RGBA8, GL_RGBA, m_Specs.Width, m_Specs.Height, i);
-					break;
-				case FramebufferTextureFormat::RGBA16:
-					Utils::AttachColorTexture(m_ColorAttachments[i], m_Specs.Samples, GL_RGBA16, GL_RGBA, m_Specs.Width, m_Specs.Height, i);
-					break;
-				case FramebufferTextureFormat::RGBA16F:
-					Utils::AttachColorTexture(m_ColorAttachments[i], m_Specs.Samples, GL_RGBA16F, GL_RGBA, m_Specs.Width, m_Specs.Height, i);
-					break;
-				case FramebufferTextureFormat::RGBA32F:
-					Utils::AttachColorTexture(m_ColorAttachments[i], m_Specs.Samples, GL_RGBA32F, GL_RGBA, m_Specs.Width, m_Specs.Height, i);
-					break;
-				}
+				
+				Utils::AttachColorTexture(
+					m_ColorAttachments[i], 
+					m_Specs.Samples, 
+					TextureFormatToInternalGL(m_ColorAttachmentSpecs[i].TextureFormat),
+					TextureFormatToGL(m_ColorAttachmentSpecs[i].TextureFormat),
+					m_Specs.Width, 
+					m_Specs.Height, 
+					i);
 			}
 		}
 
@@ -245,6 +271,34 @@ namespace Moongoose {
 		//glReadBuffer(GL_NONE);
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_ShadowMapAttachment, 0);
+	}
+
+	int Framebuffer::TextureFormatToInternalGL(const FramebufferTextureFormat format)
+	{
+		switch (format) {
+			case FramebufferTextureFormat::RGBA8:
+				return GL_RGBA8;
+			case FramebufferTextureFormat::RGBA16:
+				return GL_RGBA16;
+			case FramebufferTextureFormat::RGBA16F:
+				return GL_RGBA16F;
+			case FramebufferTextureFormat::RGBA32F:
+				return GL_RGBA32F;
+			case FramebufferTextureFormat::RED_INTEGER:
+				return GL_R32I;
+			default:
+				return GL_RGBA8;
+		}
+	}
+
+	int Framebuffer::TextureFormatToGL(const FramebufferTextureFormat format)
+	{
+		switch (format) {
+			case FramebufferTextureFormat::RED_INTEGER:
+				return GL_RED_INTEGER;
+			default:
+				return GL_RGBA;
+		}
 	}
 
 }

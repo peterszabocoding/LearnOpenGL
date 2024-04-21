@@ -62,6 +62,11 @@ namespace Moongoose {
 		UploadUniformMat4("model", model);
 	}
 
+	void Shader::SetEntityID(const size_t entityId)
+	{
+		UploadUniformInt("aEntityID", entityId);
+	}
+
 	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);

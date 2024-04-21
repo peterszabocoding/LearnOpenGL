@@ -111,6 +111,7 @@ namespace Moongoose {
 
 		void SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection);
 		void SetModelTransform(const glm::mat4& model);
+		void SetEntityID(const size_t entityId);
 		void BindTexture(size_t textureUnit, uint32_t textureID);
 		void BindCubeMapTexture(size_t textureUnit, uint32_t textureID);
 

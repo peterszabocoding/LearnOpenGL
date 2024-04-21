@@ -3,8 +3,10 @@
 in vec3 FragPos;
 in vec2 TexCoord;
 in vec3 Normal;
+in flat int EntityID;
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out int oEntityID;
 
 layout(binding = 0) uniform sampler2D AlbedoTexture;
 
@@ -17,4 +19,5 @@ void main()
     vec4 textureColor = texture(AlbedoTexture, TexCoord);
     vec3 color = (ambient + diffuse) * textureColor.rgb;
     FragColor = vec4(color, 1.0f);
-} 
+    oEntityID = EntityID;
+}

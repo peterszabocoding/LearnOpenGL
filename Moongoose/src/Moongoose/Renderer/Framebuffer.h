@@ -14,6 +14,7 @@ namespace Moongoose {
 		RGBA16,
 		RGBA16F,
 		RGBA32F,
+		RED_INTEGER,
 
 		// Depth
 		DEPTH24,
@@ -60,6 +61,8 @@ namespace Moongoose {
 		void Bind(uint32_t viewportWidth, uint32_t viewportHeight);
 		void Unbind();
 		void Resize(uint32_t width, uint32_t height);
+		int ReadPixel(uint32_t attachmentIndex, int x, int y);
+		void ClearAttachment(uint32_t attachmentIndex, int value);
 
 		FramebufferSpecs GetSpecs() const { return m_Specs; }
 
@@ -73,6 +76,9 @@ namespace Moongoose {
 		void Invalidate();
 		void DeleteBuffer();
 		void AddShadowMapAttachment();
+
+		static int TextureFormatToGL(const FramebufferTextureFormat format);
+		static int TextureFormatToInternalGL(const FramebufferTextureFormat format);
 
 	public:
 		FramebufferSpecs m_Specs;
