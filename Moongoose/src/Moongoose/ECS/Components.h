@@ -121,8 +121,8 @@ namespace Moongoose {
 
 	struct MeshComponent: public Component
 	{
-		Ref<Mesh> m_Mesh = nullptr;
-		Ref<Material> m_Material = nullptr;
+		Ref<Mesh> m_Mesh = Ref<Mesh>();
+		Ref<Material> m_Material = Ref<Material>();
 		Ref<Shader> m_Shader = nullptr;
 	};
 

@@ -7,6 +7,7 @@
 #include "Layer/PerformanceLayer.h"
 #include "Layer/InspectorLayer.h"
 #include "Layer/OutlinerLayer.h"
+#include "Layer/ImGuiDemoLayer.h"
 
 class EditorApp : public Moongoose::Application
 {
@@ -17,6 +18,7 @@ public:
 		PushLayer(new PerformanceLayer());
 		PushLayer(new InspectorLayer());
 		PushLayer(new OutlinerLayer());
+		PushLayer(new ImGuiDemoLayer());
 	}
 	virtual ~EditorApp() {}
 };

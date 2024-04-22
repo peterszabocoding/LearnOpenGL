@@ -14,10 +14,12 @@ void RenderLayer::onAttach()
 	RenderSystem::SetCamera(m_EditorCamera);
 
 	m_BaseShader = AssetManager::LoadShader();
-	m_CheckerTexture = AssetManager::LoadTexture2D("Assets/Texture/checker_2k_c.png", TextureFormat::RGB);
-	m_ColorCheckerTexture = AssetManager::LoadTexture2D("Assets/Texture/checker_2k_b.png", TextureFormat::RGB);
+	m_CheckerTexture = AssetManager::LoadTexture2D("Assets\\Texture\\checker_2k_c.png", TextureFormat::RGB);
+	m_ColorCheckerTexture = AssetManager::LoadTexture2D("Assets\\Texture\\checker_2k_b.png", TextureFormat::RGB);
 
-	auto monkeyMesh = AssetManager::LoadMesh("Assets/Mesh/Monkey.obj");
+	auto cubeMesh = AssetManager::LoadMesh("Assets\\Mesh\\Cube.obj");
+	auto monkeyMesh = AssetManager::LoadMesh("Assets\\Mesh\\Monkey.obj");
+	auto planeMesh = AssetManager::LoadMesh("Assets\\Mesh\\Plane.obj");
 
 	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>();
 	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>();
@@ -25,23 +27,24 @@ void RenderLayer::onAttach()
 	m_ColorCheckerMaterial->Albedo = m_ColorCheckerTexture;
 
 	{
+		Entity cubeEntity = EntityManager::Get().addEntity("Cube");
 		Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
 		Entity monkey2Entity = EntityManager::Get().addEntity("Monkey 2");
 		Entity groundEntity = EntityManager::Get().addEntity("Ground");
 		Entity directionalLight = EntityManager::Get().addEntity("Directional Light");
-		EntityMemoryPool::Get().addComponent<TransformComponent>(monkeyEntity);
+		EntityMemoryPool::Get().addComponent<LightComponent>(directionalLight);
 
-		auto& dirLightTransform = EntityMemoryPool::Get().addComponent<TransformComponent>(directionalLight);
-		dirLightTransform.m_Rotation += glm::vec3(135.0f, 0.0f, 0.0f);
+		auto& dirLightTransform = EntityMemoryPool::Get().getComponent<TransformComponent>(directionalLight);
+		dirLightTransform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
 
-		auto& dirLightComponent = EntityMemoryPool::Get().addComponent<LightComponent>(directionalLight);
+		auto& dirLightComponent = EntityMemoryPool::Get().getComponent<LightComponent>(directionalLight);
 		dirLightComponent.m_Type = LightType::DIRECTIONAL;
 		
-		auto& groundTransform = EntityMemoryPool::Get().addComponent<TransformComponent>(groundEntity);
+		auto& groundTransform = EntityMemoryPool::Get().getComponent<TransformComponent>(groundEntity);
 		groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
 		groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
 
-		auto& monkey2Transform = EntityMemoryPool::Get().addComponent<TransformComponent>(monkey2Entity);
+		auto& monkey2Transform = EntityMemoryPool::Get().getComponent<TransformComponent>(monkey2Entity);
 		monkey2Transform.m_Position = glm::vec3(2.0f, 0.0f, 0.0f);
 		monkey2Transform.m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -56,9 +59,14 @@ void RenderLayer::onAttach()
 		monkey2MeshComponent.m_Shader = m_BaseShader;
 
 		MeshComponent& groundMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(groundEntity);
-		groundMeshComponent.m_Mesh = AssetManager::LoadMesh("Assets/Mesh/Plane.obj");
+		groundMeshComponent.m_Mesh = planeMesh;
 		groundMeshComponent.m_Material = m_CheckerMaterial;
 		groundMeshComponent.m_Shader = m_BaseShader;
+
+		MeshComponent& cubeMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(cubeEntity);
+		cubeMeshComponent.m_Mesh = cubeMesh;
+		cubeMeshComponent.m_Material = m_ColorCheckerMaterial;
+		cubeMeshComponent.m_Shader = m_BaseShader;
 	}
 }
 

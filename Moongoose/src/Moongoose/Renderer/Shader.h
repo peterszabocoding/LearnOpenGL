@@ -29,6 +29,11 @@ namespace Moongoose {
 		BRDF
 	};
 
+	enum class PolygonMode : uint8_t {
+		FILL = 0,
+		WIREFRAME
+	};
+
 	struct ShaderSpecs {
 		ShaderType type;
 		std::string vertexLocation;
@@ -112,6 +117,7 @@ namespace Moongoose {
 		void SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection);
 		void SetModelTransform(const glm::mat4& model);
 		void SetEntityID(const size_t entityId);
+		void SetPolygonMode(PolygonMode mode);
 		void BindTexture(size_t textureUnit, uint32_t textureID);
 		void BindCubeMapTexture(size_t textureUnit, uint32_t textureID);
 

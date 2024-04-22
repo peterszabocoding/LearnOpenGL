@@ -60,7 +60,10 @@ namespace Moongoose {
 			}
 		}
 
-		return CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
+		auto loadedMesh = CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
+		loadedMesh->SetModelSource(meshPath);
+
+		return loadedMesh;
 	}
 	
 	Ref<Texture2D> AssetManager::LoadTexture2D(const std::string& filepath, TextureFormat textureFormat)
@@ -92,8 +95,6 @@ namespace Moongoose {
 	Ref<Shader> AssetManager::LoadShader(ShaderType shaderType)
 	{
 		return CreateRef<Shader>(ShaderSpecs{ ShaderType::STATIC, "Shader/shader.vert", "Shader/shader.frag"});
-	}
-
-	
+	}	
 	
 }

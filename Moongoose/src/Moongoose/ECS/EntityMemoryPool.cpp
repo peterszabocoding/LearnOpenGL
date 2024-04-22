@@ -50,4 +50,15 @@ namespace Moongoose {
 		return m_Tags[entityID];
 	}
 
+	void EntityMemoryPool::setTag(size_t entityID, const std::string& newTag)
+	{
+		m_Tags[entityID] = newTag;
+	}
+
+	bool EntityMemoryPool::isTagReserved(const std::string& tag) const
+	{
+		for (auto& t : m_Tags) if (t == tag) return true;
+		return false;
+	}
+
 }

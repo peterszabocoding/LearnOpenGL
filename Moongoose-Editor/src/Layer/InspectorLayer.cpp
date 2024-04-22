@@ -1,19 +1,33 @@
 #include "InspectorLayer.h"
 #include <imgui/imgui.h>
 #include "GuiWidgets.h"
-#include "Moongoose/ECS/EntityManager.h"
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/OpenGL/OpenGLTexture2D.h"
+#include "Platform/PlatformUtils.h"
 
 using namespace Moongoose;
 
 void InspectorLayer::onImGuiRender()
 {
 	ImGui::Begin("Inspector");
+
 	auto selectedEntity = EntityManager::Get().getSelectedEntity();
 	if (selectedEntity == -1) {
 		ImGui::End();
 		return;
+	}
+
+	if (ImGui::Button("Add Component"))
+	{
+		ImGui::OpenPopup("Add Component");
+	}
+
+	if (ImGui::BeginPopup("Add Component"))
+	{
+		DisplayAddComponentEntry<LightComponent>("Light Component", selectedEntity);
+		DisplayAddComponentEntry<MeshComponent>("Mesh Component", selectedEntity);
+
+		ImGui::EndPopup();
 	}
 
 	bool hasTransformComponent = EntityManager::Get().hasComponent<TransformComponent>(EntityManager::Get().getEntities()[selectedEntity]);
@@ -30,7 +44,12 @@ void InspectorLayer::onImGuiRender()
 
 		ImGui::Dummy({ windowSize.x , 1.0f });
 
-		ImGui::Text("%s", tag.c_str());
+		static char tagArray[50];
+		strcpy(tagArray, tag.c_str());
+		ImGui::InputText("##label", tagArray, IM_ARRAYSIZE(tagArray));
+
+		std::string newTag = std::string(tagArray);
+		if (newTag != tag) EntityManager::Get().setTag(selectedEntity, std::string(tagArray));
 
 		ImGui::Dummy({ windowSize.x , 5.0f });
 		ImGui::Separator();
@@ -49,7 +68,50 @@ void InspectorLayer::onImGuiRender()
 	if (hasMeshComponent)
 	{
 		auto& cMesh = EntityManager::Get().getComponent<MeshComponent>(selectedEntity);
-		DrawMaterialControls(cMesh.m_Material);
+
+		if (ImGui::TreeNode("Mesh Renderer")) {
+			
+			if (ImGui::TreeNode("Mesh"))
+			{
+				ImGui::Text("Mesh: ");
+				ImGui::SameLine();
+
+				if (cMesh.m_Mesh)
+				{
+					ImGui::Text(cMesh.m_Mesh->GetModelSource().c_str());
+				}
+				else
+				{
+					ImGui::Text("Empty");
+				}
+				ImGui::SameLine();
+
+				if (ImGui::Button("Load"))
+				{
+					std::string& filePath = FileDialogs::OpenFile("Mesh Object (*.obj)\0*.obj\0");
+					LOG_APP_INFO(filePath);
+					if (!filePath.empty())
+					{
+						auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
+						cMesh.m_Mesh = AssetManager::LoadMesh(relativePath.string());
+						cMesh.m_Shader = AssetManager::LoadShader();
+
+						Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>();
+						m_ColorCheckerMaterial->Albedo = AssetManager::LoadTexture2D("Assets/Texture/checker_2k_c.png", TextureFormat::RGB);
+
+						cMesh.m_Material = m_ColorCheckerMaterial;
+
+					}
+				}
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Materials")) {
+				DrawMaterialControls(cMesh.m_Material);
+				ImGui::TreePop();
+			}
+			ImGui::TreePop();
+		}
 	}
 
 	if (hasLightComponent)
@@ -65,21 +127,32 @@ void InspectorLayer::onImGuiRender()
 
 void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 {
+	if (!material) return;
+
 	auto albedo = material->Albedo;
-
 	ImGui::PushID("Material");
-	if (ImGui::TreeNode("Material ID")) {
 
-		ImGui::Text("Albedo Map: ");
-		ImGui::SameLine();
+	ImGui::Text("Albedo Map: ");
+	ImGui::SameLine();
 
-		if (albedo) {
-			GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{ 128.0f, 128.0f });
-		}
-
-		ImGui::TreePop();
+	if (albedo) {
+		GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{ 128.0f, 128.0f });
 	}
-	ImGui::PopID();
 
+	ImGui::SameLine();
+
+	if (ImGui::Button("Load"))
+	{
+		std::string& filePath = FileDialogs::OpenFile("PNG Image (*.png)\0*.png\0");
+		if (!filePath.empty())
+		{
+			auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
+			material->Albedo = AssetManager::LoadTexture2D(
+				relativePath.string(),
+				TextureFormat::RGB);
+		}
+	}
+
+	ImGui::PopID();
 	ImGui::Separator();
 }

@@ -70,6 +70,11 @@ namespace Moongoose {
 		UploadUniformInt("aEntityID", entityId);
 	}
 
+	void Shader::SetPolygonMode(PolygonMode mode)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, mode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
+	}
+
 	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);

@@ -40,13 +40,22 @@ namespace Moongoose {
 		}
 
 		template<typename T>
+		std::vector<T>& getComponents()
+		{
+			return std::get<std::vector<T>>(m_Pool);
+		}
+
+		template<typename T>
 		bool hasComponent(size_t entityID)
 		{
 			return static_cast<Component>(getComponent<T>(entityID)).m_Active;
 		}
 
 		size_t addEntity(std::string tag);
+
 		const std::string& getTag(size_t entityID) const;
+		void setTag(size_t entityID, const std::string& newTag);
+		bool isTagReserved(const std::string& tag) const;
 
 	private:
 		EntityMemoryPool(size_t maxEntities);

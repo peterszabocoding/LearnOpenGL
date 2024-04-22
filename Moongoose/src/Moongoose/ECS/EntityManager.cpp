@@ -7,7 +7,16 @@ namespace Moongoose {
 
 	Entity EntityManager::addEntity(std::string tag)
 	{
+		bool isTagReserved = EntityMemoryPool::Get().isTagReserved(tag);
+
 		Entity e = EntityMemoryPool::Get().addEntity(tag);
+
+		if (isTagReserved)
+		{
+			EntityMemoryPool::Get().setTag(e, tag + std::to_string(e));
+		}
+
+		EntityMemoryPool::Get().addComponent<TransformComponent>(e);
 		return m_Entities.emplace_back(e);
 	}
 
@@ -19,6 +28,11 @@ namespace Moongoose {
 	const std::string& EntityManager::getTag(size_t e) const
 	{
 		return EntityMemoryPool::Get().getTag(e);
+	}
+
+	void EntityManager::setTag(size_t e, const std::string& newTag)
+	{
+		return EntityMemoryPool::Get().setTag(e, newTag);
 	}
 
 	void EntityManager::setSelectedEntity(size_t entity)
