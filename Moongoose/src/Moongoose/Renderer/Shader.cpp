@@ -70,11 +70,6 @@ namespace Moongoose {
 		UploadUniformInt("aEntityID", entityId);
 	}
 
-	void Shader::SetPolygonMode(PolygonMode mode)
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, mode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
-	}
-
 	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
@@ -160,6 +155,20 @@ namespace Moongoose {
 
 	void Shader::Bind()
 	{
+		glPolygonMode(GL_FRONT_AND_BACK, m_Specs.polygonMode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
+
+		if (m_Specs.polygonMode == PolygonMode::WIREFRAME)
+		{
+			glLineWidth(2.0f);
+			glDisable(GL_CULL_FACE);
+		} 
+		else 
+		{
+			glLineWidth(1.0f);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+		}
+
 		glUseProgram(shaderID);
 	}
 

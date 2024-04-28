@@ -11,6 +11,7 @@
 #include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/ECS/EntityManager.h"
 #include "Moongoose/ECS/Components.h"
+#include "Moongoose/Renderer/MeshPrimitives.h"
 
 namespace Moongoose {
 
@@ -63,7 +64,7 @@ namespace Moongoose {
 		{
 			MeshComponent& cMesh = meshComponents[i];
 			if (!cMesh.m_Active || !cMesh.m_Mesh) continue;
-			
+
 			cMesh.m_Shader->Bind();
 			cMesh.m_Shader->SetCamera(
 				m_RenderCamera->getCameraPosition(),
@@ -88,11 +89,34 @@ namespace Moongoose {
 			TransformComponent& cTransform = EntityManager::Get().getComponent<TransformComponent>(i);
 			cMesh.m_Shader->SetModelTransform(getModelMatrix(cTransform));
 			cMesh.m_Shader->SetEntityID(i);
-			cMesh.m_Material->bind();
+
+			if (cMesh.m_Material)
+			{
+				cMesh.m_Material->bind();
+			}
 
 			Renderer::RenderMesh(cMesh.m_Mesh->GetVertexArray());
 
 			cMesh.m_Shader->Unbind();
+
+			if (cMesh.m_DebugShader)
+			{
+				cMesh.m_DebugShader->Bind();
+				cMesh.m_DebugShader->SetCamera(
+					m_RenderCamera->getCameraPosition(),
+					m_RenderCamera->getViewMatrix(),
+					m_RenderCamera->getProjection()
+				);
+
+				TransformComponent& cTransform = EntityManager::Get().getComponent<TransformComponent>(i);
+				cMesh.m_DebugShader->SetModelTransform(getModelMatrix(cTransform));
+
+				Renderer::RenderMesh(BoundingBox(
+					cMesh.m_Mesh->GetBounds().pMin,
+					cMesh.m_Mesh->GetBounds().pMax)->GetVertexArray());
+
+				cMesh.m_DebugShader->Unbind();
+			}
 		}
 	}
 

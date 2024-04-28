@@ -1,6 +1,13 @@
 #pragma once
 
 #include "Mesh.h"
+#include "Moongoose/Core.h"
+#include <glm/glm.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Moongoose {
 
@@ -18,10 +25,7 @@ namespace Moongoose {
 			1, 3, 2
 		};
 
-		return Mesh(vertices, indices, 20, 6, {
-				{ ShaderDataType::Float3, "aPos" },
-				{ ShaderDataType::Float2, "aTexCoords" }
-			});
+		return Mesh();
 	}
 
 	static Mesh Triangle() {
@@ -146,4 +150,62 @@ namespace Moongoose {
 			});
 	}
 
+	static Ref<Mesh> BoundingBox(glm::vec3 min, glm::vec3 max)
+	{
+		glm::vec3 diagonal = max - min;
+
+		std::vector<glm::vec4> vertices4 = { 
+			glm::vec4(	-1.0f,	-1.0f,	1.0f,	1.0f),
+			glm::vec4(	-1.0f,	-1.0f, -1.0f,	1.0f),
+			glm::vec4(	1.0f,	-1.0f, -1.0f,	1.0f),
+			glm::vec4(	1.0f,	-1.0f,	1.0f,	1.0f),
+			glm::vec4(	-1.0f,	1.0f,	1.0f,	1.0f),
+			glm::vec4(	-1.0f,	1.0f,	-1.0f,	1.0f),
+			glm::vec4(	1.0f,	1.0f,	-1.0f,	1.0f),
+			glm::vec4(	1.0f,	1.0f,	1.0f,	1.0f)
+		};
+
+		auto transform = glm::translate(glm::mat4(1.0f), min + diagonal * 0.5f) 
+			* glm::scale(glm::mat4(1.0f), diagonal * 0.5f);
+
+		for (auto& vCoord : vertices4)
+		{
+			vCoord = transform * vCoord;
+		}
+
+		float vertices[] = {
+			vertices4[0].x, vertices4[0].y, vertices4[0].z,
+			vertices4[1].x, vertices4[1].y, vertices4[1].z,
+			vertices4[2].x, vertices4[2].y, vertices4[2].z,
+			vertices4[3].x, vertices4[3].y, vertices4[3].z,
+			vertices4[4].x, vertices4[4].y, vertices4[4].z,
+			vertices4[5].x, vertices4[5].y, vertices4[5].z,
+			vertices4[6].x, vertices4[6].y, vertices4[6].z,
+			vertices4[7].x, vertices4[7].y, vertices4[7].z,
+		};
+
+		unsigned int indices[] = {
+			0, 3, 7, // Front
+			7, 4, 0,
+
+			1, 5, 6, // Back
+			6, 2, 1,
+
+			0, 4, 5, // Left
+			5, 1, 0,
+
+			3, 2, 6, // Right
+			6, 7, 3,
+
+			4, 7, 6, // Top
+			6, 5, 4,
+
+			0, 1, 2, // Bottom
+			2, 3, 0
+		};
+
+		BufferLayout bufferLayout = { { ShaderDataType::Float3, "aPos" } };
+
+		return CreateRef<Mesh>(vertices, indices, 8 * 3, 36, bufferLayout);
+	}
 }

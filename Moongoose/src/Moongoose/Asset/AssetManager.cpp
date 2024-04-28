@@ -30,11 +30,32 @@ namespace Moongoose {
 		
 		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
 
+
+		glm::vec3 min = glm::vec3(
+			std::numeric_limits<float>::max(),
+			std::numeric_limits<float>::max(),
+			std::numeric_limits<float>::max()
+		);
+
+		glm::vec3 max = glm::vec3(
+			std::numeric_limits<float>::lowest(),
+			std::numeric_limits<float>::lowest(),
+			std::numeric_limits<float>::lowest()
+		);
+
 		std::vector<GLfloat> vertices;
 		std::vector<unsigned int> indices;
 
 		for (size_t i = 0; i < mesh->mNumVertices; i++)
 		{
+			min.x = mesh->mVertices[i].x < min.x ? mesh->mVertices[i].x : min.x;
+			min.y = mesh->mVertices[i].y < min.y ? mesh->mVertices[i].y : min.y;
+			min.z = mesh->mVertices[i].z < min.z ? mesh->mVertices[i].z : min.z;
+
+			max.x = mesh->mVertices[i].x > max.x ? mesh->mVertices[i].x : max.x;
+			max.y = mesh->mVertices[i].y > max.y ? mesh->mVertices[i].y : max.y;
+			max.z = mesh->mVertices[i].z > max.z ? mesh->mVertices[i].z : max.z;
+
 			// Position
 			vertices.insert(vertices.end(), { mesh->mVertices[i].x, mesh->mVertices[i].y , mesh->mVertices[i].z });
 
@@ -62,6 +83,7 @@ namespace Moongoose {
 
 		auto loadedMesh = CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
 		loadedMesh->SetModelSource(meshPath);
+		loadedMesh->SetBounds(Bounds3(min, max));
 
 		return loadedMesh;
 	}
@@ -92,9 +114,9 @@ namespace Moongoose {
 		}
 	}
 
-	Ref<Shader> AssetManager::LoadShader(ShaderType shaderType)
+	Ref<Shader> AssetManager::LoadShader(std::string vertexShaderSource, std::string fragmentShaderSource, PolygonMode polygonMode, ShaderType shaderType)
 	{
-		return CreateRef<Shader>(ShaderSpecs{ ShaderType::STATIC, "Shader/shader.vert", "Shader/shader.frag"});
+		return CreateRef<Shader>(ShaderSpecs{ shaderType, vertexShaderSource, fragmentShaderSource, polygonMode });
 	}	
 	
 }

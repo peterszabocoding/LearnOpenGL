@@ -124,6 +124,7 @@ namespace Moongoose {
 		Ref<Mesh> m_Mesh = Ref<Mesh>();
 		Ref<Material> m_Material = Ref<Material>();
 		Ref<Shader> m_Shader = nullptr;
+		Ref<Shader> m_DebugShader = nullptr;
 	};
 
 	struct LightComponent : public Component

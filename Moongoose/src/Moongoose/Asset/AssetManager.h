@@ -12,7 +12,7 @@ namespace Moongoose {
 	public:
 		static Ref<Mesh> LoadMesh(std::string meshPath);
 		static Ref<Texture2D> LoadTexture2D(const std::string& filepath, TextureFormat textureFormat);
-		static Ref<Shader> LoadShader(ShaderType shaderType = ShaderType::STATIC);
+		static Ref<Shader> LoadShader(std::string vertexShaderSource, std::string fragmentShaderSource, PolygonMode polygonMode = PolygonMode::FILL, ShaderType shaderType = ShaderType::STATIC);
 	};
 
 }

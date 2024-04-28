@@ -154,8 +154,6 @@ namespace Moongoose {
 			data.EventCallback(MouseMovedEvent((float)xPos, (float)yPos));
 		});
 
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_MULTISAMPLE);
 	}

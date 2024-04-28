@@ -94,7 +94,7 @@ void InspectorLayer::onImGuiRender()
 					{
 						auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
 						cMesh.m_Mesh = AssetManager::LoadMesh(relativePath.string());
-						cMesh.m_Shader = AssetManager::LoadShader();
+						cMesh.m_Shader = AssetManager::LoadShader("Shader/shader.vert", "Shader/shader.frag");
 
 						Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>();
 						m_ColorCheckerMaterial->Albedo = AssetManager::LoadTexture2D("Assets/Texture/checker_2k_c.png", TextureFormat::RGB);
