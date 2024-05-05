@@ -20,6 +20,9 @@ namespace Moongoose {
 		Mesh(float* vertices, unsigned int* indices, unsigned int numOfVertices, unsigned int numOfIndices, BufferLayout bufferLayout);
 		~Mesh() = default;
 
+		virtual AssetType getAssetType() const override { return AssetType::Mesh; }
+		static AssetType GetStaticAssetType() { return AssetType::Mesh; }
+
 		void SetMaterialID(const std::string& materialId) { this->materialID = materialId; }
 		void SetModelSource(const std::string& source) { this->modelSource = source; }
 		void SetBounds(const Bounds3& bounds);

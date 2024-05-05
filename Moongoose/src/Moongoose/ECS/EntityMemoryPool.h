@@ -57,6 +57,8 @@ namespace Moongoose {
 		void setTag(size_t entityID, const std::string& newTag);
 		bool isTagReserved(const std::string& tag) const;
 
+		bool isEntityActive(size_t entityID) const;
+
 	private:
 		EntityMemoryPool(size_t maxEntities);
 

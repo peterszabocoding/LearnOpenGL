@@ -31,6 +31,6 @@ void main()
 
    FragPos = world_pos.xyz;
    TexCoord = aTexCoords;
-   Normal = transpose(inverse(mat3(model))) * aNormal;
+   Normal = normalize(transpose(inverse(mat3(model))) * aNormal);
    EntityID = aEntityID;
 } 

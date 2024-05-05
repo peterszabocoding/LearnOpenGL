@@ -83,13 +83,11 @@ namespace Moongoose {
 	}
 
 	
-	void Shader::SetDirectionalLight(glm::mat4 transform, glm::vec3 direction, glm::vec3 color, float intensity)
+	void Shader::SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity)
 	{
-		//glUniformMatrix4fv(uniformDirectionalLightTransform, 1, false, glm::value_ptr(transform));
-
 		UploadUniformFloat3("directionalLight.base.color", color);
 		UploadUniformFloat("directionalLight.base.intensity", intensity);
-		UploadUniformFloat3("directionalLight.direction", direction);
+		UploadUniformFloat3("directionalLight.direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 	}
 
 	/*

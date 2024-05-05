@@ -92,15 +92,14 @@ void InspectorLayer::onImGuiRender()
 					LOG_APP_INFO(filePath);
 					if (!filePath.empty())
 					{
+						Ref<Moongoose::Material> material = CreateRef<Moongoose::Material>();
+						Ref<Moongoose::Shader> shader = AssetManager::Get().LoadShader("Shader/shader.vert", "Shader/shader.frag");
+						material->setShader(shader);
+						material->setAlbedo(AssetManager::Get().LoadAsset<Texture2D>("Assets/Texture/checker_2k_c.png"));
+
 						auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
-						cMesh.m_Mesh = AssetManager::LoadMesh(relativePath.string());
-						cMesh.m_Shader = AssetManager::LoadShader("Shader/shader.vert", "Shader/shader.frag");
-
-						Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>();
-						m_ColorCheckerMaterial->Albedo = AssetManager::LoadTexture2D("Assets/Texture/checker_2k_c.png", TextureFormat::RGB);
-
-						cMesh.m_Material = m_ColorCheckerMaterial;
-
+						cMesh.m_Mesh = AssetManager::Get().LoadAsset<Mesh>(relativePath.string());
+						cMesh.m_Material = material;
 					}
 				}
 				ImGui::TreePop();
@@ -129,7 +128,7 @@ void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 {
 	if (!material) return;
 
-	auto albedo = material->Albedo;
+	auto albedo = material->getAlbedo();
 	ImGui::PushID("Material");
 
 	ImGui::Text("Albedo Map: ");
@@ -147,9 +146,7 @@ void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 		if (!filePath.empty())
 		{
 			auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
-			material->Albedo = AssetManager::LoadTexture2D(
-				relativePath.string(),
-				TextureFormat::RGB);
+			material->setAlbedo(AssetManager::Get().LoadAsset<Texture2D>(relativePath.string()));
 		}
 	}
 

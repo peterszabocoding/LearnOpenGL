@@ -1,8 +1,8 @@
 #include <imgui/imgui.h>
 
+#include "ImGuizmo.h"
 #include "RenderLayer.h"
 #include "Moongoose/Events/Event.h"
-#include "ImGuizmo.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 
 using namespace Moongoose;
@@ -12,65 +12,57 @@ void RenderLayer::onAttach()
 	createRenderBuffer();
 	createCamera();
 
-	RenderSystem::SetCamera(m_EditorCamera);
+	auto& assetManager = AssetManager::Get();
 
-	m_BaseShader = AssetManager::LoadShader( "Shader/shader.vert", "Shader/shader.frag");
-	m_DebugShader = AssetManager::LoadShader("Shader/debug_shader.vs", "Shader/debug_shader.fs", PolygonMode::WIREFRAME);
+	m_BaseShader = assetManager.LoadShader( "Shader/shader.vert", "Shader/shader.frag");
+	m_DebugShader = assetManager.LoadShader("Shader/debug_shader.vs", "Shader/debug_shader.fs", PolygonMode::WIREFRAME);
 
-	m_CheckerTexture = AssetManager::LoadTexture2D("Assets\\Texture\\checker_2k_c.png", TextureFormat::RGB);
-	m_ColorCheckerTexture = AssetManager::LoadTexture2D("Assets\\Texture\\checker_2k_b.png", TextureFormat::RGB);
+	m_CheckerTexture = assetManager.LoadAsset<Texture2D>("Assets\\Texture\\checker_2k_c.png");
+	m_ColorCheckerTexture = assetManager.LoadAsset<Texture2D>("Assets\\Texture\\checker_2k_b.png");
 
-	auto cubeMesh = AssetManager::LoadMesh("Assets\\Mesh\\Cube.obj");
-	auto monkeyMesh = AssetManager::LoadMesh("Assets\\Mesh\\Monkey.obj");
-	auto planeMesh = AssetManager::LoadMesh("Assets\\Mesh\\Plane.obj");
-	auto torusOffsetMesh = AssetManager::LoadMesh("Assets\\Mesh\\Torus_Offset.obj");
+	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>(m_BaseShader);
+	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>(m_BaseShader);
+	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
+	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
 
-	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>();
-	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>();
-	m_CheckerMaterial->Albedo = m_CheckerTexture;
-	m_ColorCheckerMaterial->Albedo = m_ColorCheckerTexture;
+	auto cubeMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Cube.obj");
+	auto monkeyMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Monkey.obj");
+	auto planeMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Plane.obj");
+	auto torusOffsetMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Torus_Offset.obj");
 
-	{
-		Entity cubeEntity = EntityManager::Get().addEntity("Cube");
-		Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
-		Entity groundEntity = EntityManager::Get().addEntity("Ground");
-		Entity torusOffset = EntityManager::Get().addEntity("Torus Offset");
+	Entity cubeEntity = EntityManager::Get().addEntity("Cube");
+	Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
+	Entity groundEntity = EntityManager::Get().addEntity("Ground");
+	Entity torusOffset = EntityManager::Get().addEntity("Torus Offset");
 
-		Entity directionalLight = EntityManager::Get().addEntity("Directional Light");
-		EntityMemoryPool::Get().addComponent<LightComponent>(directionalLight);
+	Entity directionalLight = EntityManager::Get().addEntity("Directional Light");
+	EntityManager::Get().addComponent<LightComponent>(directionalLight);
 
-		auto& dirLightTransform = EntityMemoryPool::Get().getComponent<TransformComponent>(directionalLight);
-		dirLightTransform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
+	auto& dirLightTransform = EntityManager::Get().getComponent<TransformComponent>(directionalLight);
+	dirLightTransform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
 
-		auto& dirLightComponent = EntityMemoryPool::Get().getComponent<LightComponent>(directionalLight);
-		dirLightComponent.m_Type = LightType::DIRECTIONAL;
-		
-		auto& groundTransform = EntityMemoryPool::Get().getComponent<TransformComponent>(groundEntity);
-		groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
-		groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
+	auto& dirLightComponent = EntityManager::Get().getComponent<LightComponent>(directionalLight);
+	dirLightComponent.m_Type = LightType::DIRECTIONAL;
 
-		MeshComponent& monkeyMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(monkeyEntity);
-		monkeyMeshComponent.m_Mesh = monkeyMesh;
-		monkeyMeshComponent.m_Material = m_ColorCheckerMaterial;
-		monkeyMeshComponent.m_Shader = m_BaseShader;
-		monkeyMeshComponent.m_DebugShader = m_DebugShader;
+	auto& groundTransform = EntityManager::Get().getComponent<TransformComponent>(groundEntity);
+	groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
+	groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
 
-		MeshComponent& groundMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(groundEntity);
-		groundMeshComponent.m_Mesh = planeMesh;
-		groundMeshComponent.m_Material = m_CheckerMaterial;
-		groundMeshComponent.m_Shader = m_BaseShader;
+	MeshComponent& monkeyMeshComponent = EntityManager::Get().addComponent<MeshComponent>(monkeyEntity);
+	monkeyMeshComponent.m_Mesh = monkeyMesh;
+	monkeyMeshComponent.m_Material = m_ColorCheckerMaterial;
 
-		MeshComponent& cubeMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(cubeEntity);
-		cubeMeshComponent.m_Mesh = cubeMesh;
-		cubeMeshComponent.m_Material = m_ColorCheckerMaterial;
-		cubeMeshComponent.m_Shader = m_BaseShader;
-		
-		MeshComponent& torusMeshComponent = EntityMemoryPool::Get().addComponent<MeshComponent>(torusOffset);
-		torusMeshComponent.m_Mesh = torusOffsetMesh;
-		torusMeshComponent.m_Material = m_ColorCheckerMaterial;
-		torusMeshComponent.m_Shader = m_BaseShader;
-		torusMeshComponent.m_DebugShader = m_DebugShader;
-	}
+	MeshComponent& groundMeshComponent = EntityManager::Get().addComponent<MeshComponent>(groundEntity);
+	groundMeshComponent.m_Mesh = planeMesh;
+	groundMeshComponent.m_Material = m_CheckerMaterial;
+
+	MeshComponent& cubeMeshComponent = EntityManager::Get().addComponent<MeshComponent>(cubeEntity);
+	cubeMeshComponent.m_Mesh = cubeMesh;
+	cubeMeshComponent.m_Material = m_ColorCheckerMaterial;
+
+	MeshComponent& torusMeshComponent = EntityManager::Get().addComponent<MeshComponent>(torusOffset);
+	torusMeshComponent.m_Mesh = torusOffsetMesh;
+	torusMeshComponent.m_Material = m_ColorCheckerMaterial;
 }
 
 void RenderLayer::onDetach(){}
@@ -85,7 +77,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	RenderCommand::Clear();
 	m_RenderBuffer->ClearAttachment(1, -1);
 
-	RenderSystem::Run();
+	RenderSystem::Run(m_EditorCamera);
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= m_ViewportBounds[0].x;

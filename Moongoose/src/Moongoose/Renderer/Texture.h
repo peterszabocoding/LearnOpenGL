@@ -98,6 +98,7 @@ namespace Moongoose {
 
 		virtual TextureType getType() const override { return TextureType::Texture2D; }
 		virtual AssetType getAssetType() const override { return AssetType::Texture; }
+		static AssetType GetStaticAssetType() { return AssetType::Texture; }
 	};
 
 	class TextureCube : public Texture {

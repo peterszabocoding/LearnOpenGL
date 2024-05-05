@@ -1,23 +1,23 @@
 #include "mgpch.h"
 
+#include "AssetLoader.h"
+
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "AssetManager.h"
-#include "Moongoose/Log.h"
+#include "Moongoose/Renderer/Mesh.h"
+#include "Moongoose/Renderer/Texture.h"
+#include "Moongoose/Renderer/Bounds.h"
+
+#include "glm/glm.hpp"
 
 namespace Moongoose {
 
-	AssetManager::AssetManager() {
-		s_AssetLoaders[AssetType::Mesh] = CreateScope<MeshAssetLoader>();
-		s_AssetLoaders[AssetType::Texture] = CreateScope<TextureAssetLoader>();
-	}
-
-	Ref<Mesh> AssetManager::LoadMesh(std::string meshPath)
+	Ref<Asset> Moongoose::MeshAssetLoader::LoadAsset(const std::string& filePath)
 	{
 		Assimp::Importer importer;
 		unsigned int importerFlags = aiProcess_Triangulate |
@@ -26,15 +26,14 @@ namespace Moongoose {
 			aiProcess_JoinIdenticalVertices |
 			aiProcess_CalcTangentSpace;
 
-		const aiScene* scene = importer.ReadFile(meshPath, importerFlags);
+		const aiScene* scene = importer.ReadFile(filePath, importerFlags);
 		if (!scene)
 		{
-			LOG_CORE_ERROR("Model ({0}) failed to load: {1}", meshPath, importer.GetErrorString());
+			LOG_CORE_ERROR("Model ({0}) failed to load: {1}", filePath, importer.GetErrorString());
 			return nullptr;
 		}
-		
-		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
 
+		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
 
 		glm::vec3 min = glm::vec3(
 			std::numeric_limits<float>::max(),
@@ -48,7 +47,7 @@ namespace Moongoose {
 			std::numeric_limits<float>::lowest()
 		);
 
-		std::vector<GLfloat> vertices;
+		std::vector<float> vertices;
 		std::vector<unsigned int> indices;
 
 		for (size_t i = 0; i < mesh->mNumVertices; i++)
@@ -86,21 +85,21 @@ namespace Moongoose {
 			}
 		}
 
-		auto loadedMesh = CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
-		loadedMesh->SetModelSource(meshPath);
-		loadedMesh->SetBounds(Bounds3(min, max));
+		auto meshAsset = CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
+		meshAsset->SetModelSource(filePath);
+		meshAsset->SetBounds(Bounds3(min, max));
 
-		return loadedMesh;
+		return meshAsset;
 	}
-	
-	Ref<Texture2D> AssetManager::LoadTexture2D(const std::string& filepath, TextureFormat textureFormat)
+
+	Ref<Asset> Moongoose::TextureAssetLoader::LoadAsset(const std::string& filePath)
 	{
 		int width, height, bitDepth;
 		uint8_t* textureData = nullptr;
-		textureData = stbi_load((filepath).c_str(), &width, &height, &bitDepth, 0);
+		textureData = stbi_load((filePath).c_str(), &width, &height, &bitDepth, 0);
 
 		if (!textureData) {
-			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", filepath);
+			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", filePath);
 			return nullptr;
 		}
 		else {
@@ -108,24 +107,16 @@ namespace Moongoose {
 			specs.Width = width;
 			specs.Height = height;
 			specs.BitDepth = bitDepth;
-			specs.FileLocation = filepath;
-			specs.TextureFormat = textureFormat;
-			
+			specs.FileLocation = filePath;
+			specs.TextureFormat = TextureFormat::RGB;
+
 			Ref<Texture2D> texture = Texture2D::Create(specs);
 			texture->loadData(textureData, width, height, bitDepth);
 
 			stbi_image_free(textureData);
+
 			return texture;
 		}
 	}
 
-	Ref<Shader> AssetManager::LoadShader(std::string vertexShaderSource, std::string fragmentShaderSource, PolygonMode polygonMode, ShaderType shaderType)
-	{
-		return CreateRef<Shader>(ShaderSpecs{ shaderType, vertexShaderSource, fragmentShaderSource, polygonMode });
-	}	
-
-	std::unordered_map<UUID, AssetDeclaration> AssetManager::s_AssetRegistry;
-	std::unordered_map<UUID, Ref<Asset>> AssetManager::s_LoadedAssets;
-	std::unordered_map<UUID, Ref<Asset>> AssetManager::s_MemoryAssets;
-	std::unordered_map<AssetType, Scope<AssetLoader>> AssetManager::s_AssetLoaders;
 }

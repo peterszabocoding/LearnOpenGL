@@ -121,7 +121,7 @@ namespace Moongoose {
 		void BindTexture(size_t textureUnit, uint32_t textureID);
 		void BindCubeMapTexture(size_t textureUnit, uint32_t textureID);
 
-		void SetDirectionalLight(glm::mat4 transform, glm::vec3 direction, glm::vec3 color, float intensity);
+		void SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity);
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);
 		void SetSpotLights(std::vector<std::tuple<Transform*, Ref<Light>>> sLight);

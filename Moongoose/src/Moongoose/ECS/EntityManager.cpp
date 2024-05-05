@@ -20,9 +20,15 @@ namespace Moongoose {
 		return m_Entities.emplace_back(e);
 	}
 
-	const std::vector<size_t>& EntityManager::getEntities() const
+	std::vector<size_t> EntityManager::getEntities() const
 	{
-		return m_Entities;
+		std::vector<Entity> m_ActiveEntities;
+		for (auto& e : m_Entities)
+		{
+			if (EntityMemoryPool::Get().isEntityActive(e))
+				m_ActiveEntities.push_back(e);
+		}
+		return m_ActiveEntities;
 	}
 
 	const std::string& EntityManager::getTag(size_t e) const

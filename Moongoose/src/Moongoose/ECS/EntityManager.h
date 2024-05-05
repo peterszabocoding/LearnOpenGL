@@ -18,6 +18,12 @@ namespace Moongoose {
 		Entity addEntity(std::string tag);
 
 		template<typename T>
+		T& addComponent(size_t entity)
+		{
+			return EntityMemoryPool::Get().addComponent<T>(entity);
+		}
+
+		template<typename T>
 		bool hasComponent(size_t entity) {
 			return EntityMemoryPool::Get().hasComponent<T>(entity);
 		}
@@ -32,9 +38,10 @@ namespace Moongoose {
 			return EntityMemoryPool::Get().getComponents<T>();
 		}
 
-		const std::vector<size_t>& getEntities() const;
+		std::vector<size_t> getEntities() const;
 
 		const std::string& getTag(size_t e) const;
+
 		void setTag(size_t entityID, const std::string& newTag);
 
 		void setSelectedEntity(size_t entity);

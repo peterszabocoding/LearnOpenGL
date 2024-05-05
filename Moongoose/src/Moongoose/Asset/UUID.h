@@ -9,7 +9,7 @@ namespace Moongoose {
 	public:
 		UUID();
 		UUID(uint64_t uuid);
-		UUID(const UUID&) = default;
+		UUID(const UUID&);
 
 		operator uint64_t() const { return m_UUID; }
 

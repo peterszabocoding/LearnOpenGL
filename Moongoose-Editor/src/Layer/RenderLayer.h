@@ -31,7 +31,6 @@ private:
 
 	Ref<Moongoose::RenderSystem> m_RenderSystem;
 
-	Ref<Moongoose::Scene> m_Scene;
 	Ref<Moongoose::Shader> m_BaseShader = nullptr;
 	Ref<Moongoose::Shader> m_DebugShader = nullptr;
 

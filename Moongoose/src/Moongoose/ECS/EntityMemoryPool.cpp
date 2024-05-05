@@ -61,4 +61,10 @@ namespace Moongoose {
 		return false;
 	}
 
+	bool EntityMemoryPool::isEntityActive(size_t entityID) const
+	{
+		if (m_Active.size() <= entityID) return false;
+		return m_Active[entityID];
+	}
+
 }

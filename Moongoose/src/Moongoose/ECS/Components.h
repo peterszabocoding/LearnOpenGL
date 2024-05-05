@@ -46,6 +46,13 @@ namespace Moongoose {
 				* glm::scale(glm::mat4(1.0f), m_Scale);
 		}
 
+		static glm::mat4 GetModelMatrix(const TransformComponent& component)
+		{
+			return glm::translate(glm::mat4(1.0f), component.m_Position)
+				* glm::toMat4(glm::quat(glm::radians(component.m_Rotation)))
+				* glm::scale(glm::mat4(1.0f), component.m_Scale);
+		}
+
 		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 		{
 			// From glm::decompose in matrix_decompose.inl
@@ -123,8 +130,6 @@ namespace Moongoose {
 	{
 		Ref<Mesh> m_Mesh = Ref<Mesh>();
 		Ref<Material> m_Material = Ref<Material>();
-		Ref<Shader> m_Shader = nullptr;
-		Ref<Shader> m_DebugShader = nullptr;
 	};
 
 	struct LightComponent : public Component
