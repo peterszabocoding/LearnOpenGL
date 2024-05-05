@@ -17,6 +17,7 @@ IncludeDir["ImGui"]		=	"Moongoose/vendor/imgui"
 IncludeDir["GLM"]		=	"Moongoose/vendor/glm"
 IncludeDir["ASSIMP"]	=	"Moongoose/vendor/ASSIMP/include"
 IncludeDir["stb"]		=	"Moongoose/vendor/stb/include"
+IncludeDir["json"] 		= 	"Moongoose/vendor/json/include"
 IncludeDir["ImGuizmo"] 	= 	"Moongoose-Editor/vendor/ImGuizmo"
 
 group "Dependencies"
@@ -44,6 +45,7 @@ group "Engine"
 			"%{prj.name}/src/**.cpp",
 			"%{prj.name}/vendor/glm/glm/**.hpp",
 			"%{prj.name}/vendor/glm/glm/**.inl",
+			"%{prj.name}/vendor/json/include/nlohmann/**.hpp",
 		}
 
 		includedirs
@@ -55,7 +57,8 @@ group "Engine"
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.ImGui}",
 			"%{IncludeDir.ASSIMP}",
-			"%{IncludeDir.stb}"
+			"%{IncludeDir.stb}",
+			"%{IncludeDir.json}"
 		}
  
 		libdirs

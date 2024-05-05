@@ -25,7 +25,7 @@ namespace Moongoose {
 		Ref<Shader> LoadShader(std::string vertexShaderSource, std::string fragmentShaderSource, PolygonMode polygonMode = PolygonMode::FILL, ShaderType shaderType = ShaderType::STATIC);
 	
 		template<typename T>
-		static Ref<T> LoadAsset(const std::string& filePath)
+		Ref<T> LoadAsset(const std::string& filePath)
 		{
 			static_assert(std::is_base_of<Asset, T>::value, "Type must derive from Asset!");
 			AssetDeclaration decl;
@@ -40,12 +40,16 @@ namespace Moongoose {
 			asset->m_ID = decl.ID;
 			s_LoadedAssets[asset->m_ID] = asset;
 
+			serializeDecl(decl);
+
 			return asset;
 		}
 
 	private:
 		AssetManager();
 		~AssetManager() = default;
+
+		void serializeDecl(const AssetDeclaration& decl) const;
 	
 	private:
 

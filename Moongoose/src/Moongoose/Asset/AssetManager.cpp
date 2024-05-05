@@ -10,11 +10,27 @@
 #include "AssetManager.h"
 #include "Moongoose/Log.h"
 
+#include <nlohmann/json.hpp>
+#include <fstream>
+
 namespace Moongoose {
 
 	AssetManager::AssetManager() {
 		s_AssetLoaders[AssetType::Mesh] = CreateScope<MeshAssetLoader>();
 		s_AssetLoaders[AssetType::Texture] = CreateScope<TextureAssetLoader>();
+	}
+
+	void AssetManager::serializeDecl(const AssetDeclaration& decl) const
+	{
+		auto& filename = std::filesystem::path(decl.FilePath).filename().string();
+
+		nlohmann::json j;
+		j["id"] = (uint64_t)decl.ID;
+		j["filepath"] = decl.FilePath;
+		j["type"] = decl.Type;
+
+		std::ofstream o(filename + ".json");
+		o << std::setw(4) << j << std::endl;
 	}
 
 	Ref<Mesh> AssetManager::LoadMesh(std::string meshPath)

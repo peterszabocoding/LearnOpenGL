@@ -16,3 +16,6 @@
 [submodule "Moongoose-Editor/vendor/ImGuizmo"]
 	path = Moongoose-Editor/vendor/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "Moongoose/vendor/json"]
+	path = Moongoose/vendor/json
+	url = https://github.com/nlohmann/json.git
