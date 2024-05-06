@@ -19,7 +19,7 @@ namespace Moongoose {
 	enum class ShaderType : uint32_t {
 		STATIC = 0,
 		LIGHTING,
-		ALPHA_TEST,
+		STATIC_ALPHA,
 		SHADOW_MAP,
 		SHADOW_MAP_ALPHA,
 		EQUIRECTANGULAR_TO_CUBE,
@@ -42,49 +42,48 @@ namespace Moongoose {
 	};
 
 	struct UniformDirectionalLight {
-		GLuint uniformColor;
-		GLuint uniformAmbientIntensity;
-		GLuint uniformDiffuseIntensity;
-		GLboolean uniformIsShadowCasting;
-		GLboolean uniformUseSoftShadow;
-
-		GLuint uniformDirection;
+		unsigned int uniformColor;
+		unsigned int uniformAmbientIntensity;
+		unsigned int uniformDiffuseIntensity;
+		bool uniformIsShadowCasting;
+		bool uniformUseSoftShadow;
+		unsigned int uniformDirection;
 	};
 
 	struct UniformPointLight {
-		GLuint uniformColor;
-		GLuint uniformAmbientIntensity;
-		GLuint uniformDiffuseIntensity;
-		GLboolean uniformIsShadowCasting;
-		GLboolean uniformUseSoftShadow;
+		unsigned int uniformColor;
+		unsigned int uniformAmbientIntensity;
+		unsigned int uniformDiffuseIntensity;
+		bool uniformIsShadowCasting;
+		bool uniformUseSoftShadow;
 
-		GLuint uniformPosition;
-		GLuint uniformConstant;
-		GLuint uniformLinear;
-		GLuint uniformExponent;
+		unsigned int uniformPosition;
+		unsigned int uniformConstant;
+		unsigned int uniformLinear;
+		unsigned int uniformExponent;
 	};
 
 	struct UniformSpotLight {
-		GLuint uniformColor;
-		GLuint uniformAmbientIntensity;
-		GLuint uniformDiffuseIntensity;
-		GLboolean uniformIsShadowCasting;
-		GLboolean uniformUseSoftShadow;
+		unsigned int uniformColor;
+		unsigned int uniformAmbientIntensity;
+		unsigned int uniformDiffuseIntensity;
+		bool uniformIsShadowCasting;
+		bool uniformUseSoftShadow;
 
-		GLuint uniformPosition;
-		GLuint uniformConstant;
-		GLuint uniformLinear;
-		GLuint uniformExponent;
+		unsigned int uniformPosition;
+		unsigned int uniformConstant;
+		unsigned int uniformLinear;
+		unsigned int uniformExponent;
 
-		GLuint uniformDirection;
-		GLuint uniformAttenuationAngle;
+		unsigned int uniformDirection;
+		unsigned int uniformAttenuationAngle;
 	};
 
 	namespace Utils {
 		static std::string GetShaderTypeString(ShaderType type) {
 			switch (type) {
-			case ShaderType::STATIC:					return "Static";
-			case ShaderType::ALPHA_TEST:				return "Static - Alpha tested";
+			case ShaderType::STATIC:					return "STATIC";
+			case ShaderType::STATIC_ALPHA:				return "STATIC_ALPHA";
 			case ShaderType::LIGHTING:					return "LIGHTING";
 			case ShaderType::SHADOW_MAP:				return "SHADOW_MAP";
 			case ShaderType::SHADOW_MAP_ALPHA:			return "SHADOW_MAP_ALPHA";
@@ -105,15 +104,11 @@ namespace Moongoose {
 
 		std::string ReadFile(const char* fileLocation);
 
-		ShaderType GetShaderType() const {
-			return m_Specs.type;
-		}
+		ShaderType GetShaderType() const { return m_Specs.type; }
 
-		std::string GetShaderTypeString() const {
-			return Utils::GetShaderTypeString(m_Specs.type);
-		}
+		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(m_Specs.type); }
 
-		GLuint GetDirectionLocation();
+		unsigned int GetDirectionLocation();
 
 		void SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection);
 		void SetModelTransform(const glm::mat4& model);
@@ -147,15 +142,15 @@ namespace Moongoose {
 
 		ShaderSpecs m_Specs;
 
-		GLuint shaderID,
+		unsigned int shaderID,
 			uniformEyePosition,
 			uniformTexture,
 			uniformNormalMap,
 			uniformDirectionalLightTransform, uniformDirectionalShadowMap;
 
-		std::unordered_map<std::string, GLuint> uniformLocationCache;
-		GLuint uniformPointLightCount;
-		GLuint uniformSpotLightCount;
+		std::unordered_map<std::string, unsigned int> uniformLocationCache;
+		unsigned int uniformPointLightCount;
+		unsigned int uniformSpotLightCount;
 
 		UniformDirectionalLight uniformDirectionalLight;
 		//UniformPointLight uniformPointLight[MAX_POINT_LIGHTS];
@@ -163,8 +158,8 @@ namespace Moongoose {
 
 		void CreateFromFiles(const char* vertexLocation, const char* fragmentLocation);
 		void CompileShader(const char* vertexCode, const char* fragmentCode);
-		void AddShader(GLuint program, const char* shaderCode, GLenum shaderType);
-		GLuint GetUniformLocation(const std::string& name);
+		void AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType);
+		unsigned int GetUniformLocation(const std::string& name);
 	};
 
 }

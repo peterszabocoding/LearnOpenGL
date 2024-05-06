@@ -48,7 +48,7 @@ namespace Moongoose {
 		return content;
 	}
 
-	GLuint Shader::GetDirectionLocation()
+	unsigned int Shader::GetDirectionLocation()
 	{
 		return uniformDirectionalLight.uniformDirection;
 	}
@@ -195,8 +195,8 @@ namespace Moongoose {
 		AddShader(shaderID, vertexCode, GL_VERTEX_SHADER);
 		AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER);
 
-		GLint result = 0;
-		GLchar eLog[1024] = { 0 };
+		int result = 0;
+		char eLog[1024] = { 0 };
 
 		glLinkProgram(shaderID);
 		glGetProgramiv(shaderID, GL_LINK_STATUS, &result);
@@ -294,20 +294,20 @@ namespace Moongoose {
 		uniformDirectionalShadowMap = glGetUniformLocation(shaderID, "directionalShadowMap");
 	}
 
-	void Shader::AddShader(GLuint program, const char* shaderCode, GLenum shaderType)
+	void Shader::AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType)
 	{
-		GLuint shader = glCreateShader(shaderType);
-		const GLchar* code[1];
+		unsigned int shader = glCreateShader(shaderType);
+		const char* code[1];
 		code[0] = shaderCode;
 
-		GLint codeLength[1];
+		int codeLength[1];
 		codeLength[0] = strlen(shaderCode);
 
 		glShaderSource(shader, 1, code, codeLength);
 		glCompileShader(shader);
 
-		GLint result = 0;
-		GLchar eLog[1024] = { 0 };
+		int result = 0;
+		char eLog[1024] = { 0 };
 
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
 		if (!result) {
@@ -319,9 +319,9 @@ namespace Moongoose {
 		glAttachShader(shaderID, shader);
 	}
 
-	GLuint Shader::GetUniformLocation(const std::string& name)
+	unsigned int Shader::GetUniformLocation(const std::string& name)
 	{
-		GLuint location;
+		unsigned int location;
 
 		auto it = uniformLocationCache.find(name);
 		if (it != uniformLocationCache.end()) {
