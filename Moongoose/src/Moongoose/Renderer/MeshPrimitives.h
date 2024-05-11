@@ -40,10 +40,15 @@ namespace Moongoose {
 			0, 1, 2
 		};
 
-		return Mesh(vertices, indices, 20, 6, {
+		Mesh mesh;
+		mesh.AddSubmesh(0, 
+			vertices, indices, 	20, 	6, 
+			{
 				{ ShaderDataType::Float3, "aPos" },
 				{ ShaderDataType::Float2, "aTexCoords" }
 			});
+
+		return mesh;
 	}
 
 	static Mesh* SkyboxCube(float size) {
@@ -78,9 +83,12 @@ namespace Moongoose {
 			6, 2, 3
 		};
 
-		return new Mesh(vertices, indices, 24, 36, {
+		Mesh* mesh = new Mesh();
+		mesh->AddSubmesh(0, vertices, indices, 24, 36, {
 			  { ShaderDataType::Float3, "aPos" },
 			});
+
+		return mesh;
 	}
 
 	static Mesh* EnvCube() {
@@ -143,11 +151,14 @@ namespace Moongoose {
 			22, 21, 23
 		};
 
-		return new Mesh(vertices, indices, 8 * 24, 36, {
+		Mesh* mesh = new Mesh();
+		mesh->AddSubmesh(0, vertices, indices, 8 * 24, 36, {
 				{ ShaderDataType::Float3, "aPos" },
 				{ ShaderDataType::Float3, "aNormal" },
 				{ ShaderDataType::Float2, "aTexCoords" }
 			});
+
+		return mesh;
 	}
 
 	static Ref<Mesh> BoundingBox(glm::vec3 min, glm::vec3 max)
@@ -204,8 +215,9 @@ namespace Moongoose {
 			2, 3, 0
 		};
 
-		BufferLayout bufferLayout = { { ShaderDataType::Float3, "aPos" } };
+		Ref<Mesh> mesh = CreateRef<Mesh>();
+		mesh->AddSubmesh(0, vertices, indices, 8 * 3, 36, { { ShaderDataType::Float3, "aPos" } });
 
-		return CreateRef<Mesh>(vertices, indices, 8 * 3, 36, bufferLayout);
+		return mesh;
 	}
 }

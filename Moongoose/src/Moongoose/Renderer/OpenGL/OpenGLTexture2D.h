@@ -29,9 +29,7 @@ namespace Moongoose {
 
 	private:
 		GLuint m_TextureID;
-		TextureSpecs m_TextureSpecs;
 		Buffer m_TextureData;
-		TextureFormat m_TextureFormat = TextureFormat::None;
 	};
 
 }

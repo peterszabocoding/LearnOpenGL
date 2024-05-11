@@ -55,27 +55,31 @@ namespace Moongoose {
 		for (size_t i = 0; i < meshComponents.size(); i++)
 		{
 			MeshComponent& cMesh = meshComponents[i];
-			if (!cMesh.m_Active || !cMesh.m_Mesh || !cMesh.m_Material) continue;
+			if (!cMesh.m_Active || !cMesh.m_Mesh) continue;
+
 			TransformComponent& cTransform = EntityManager::Get().getComponent<TransformComponent>(i);
+			std::vector<Ref<Material>> materials = cMesh.m_Mesh->GetMaterials();
 
-			cMesh.m_Material->bind();
-			cMesh.m_Material->getShader()->SetCamera(
-				camera->getCameraPosition(),
-				camera->getViewMatrix(),
-				camera->getProjection()
-			);
+			for (auto& mat : materials)
+			{
+				mat->bind();
+				mat->getShader()->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
+				mat->getShader()->SetDirectionalLight(
+					directionalLightTransformComponent.getTransform(),
+					directionalLightComponent.m_Color,
+					directionalLightComponent.m_Intensity);
 
-			cMesh.m_Material->getShader()->SetDirectionalLight(
-				directionalLightTransformComponent.getTransform(),
-				directionalLightComponent.m_Color,
-				directionalLightComponent.m_Intensity);
+				mat->getShader()->SetModelTransform(TransformComponent::GetModelMatrix(cTransform));
+				mat->getShader()->SetEntityID(i);
+				mat->unbind();
+			}
 
-			cMesh.m_Material->getShader()->SetModelTransform(TransformComponent::GetModelMatrix(cTransform));
-			cMesh.m_Material->getShader()->SetEntityID(i);
-
-			Renderer::RenderMesh(cMesh.m_Mesh->GetVertexArray());
-
-			cMesh.m_Material->unbind();
+			for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
+			{
+				materials[submesh->materialIndex]->bind();
+				Renderer::RenderMesh(submesh->vertexArray);
+				materials[submesh->materialIndex]->unbind();
+			}
 
 			/*
 			if (cMesh.m_DebugShader)

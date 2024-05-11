@@ -67,6 +67,77 @@ namespace Moongoose {
 		TextureFormat	TextureFormat = TextureFormat::RGB;
 	};
 
+	namespace Utils {
+
+		inline TextureType TextureTypeFromString(const std::string& textureType)
+		{
+			if (textureType == "None")				return TextureType::None;
+			if (textureType == "Texture2D")			return TextureType::Texture2D;
+			if (textureType == "TextureCube")		return TextureType::TextureCube;
+
+			MG_ASSERT(false, "Unknown Texture Type");
+			return TextureType::None;
+		}
+		inline const char* TextureTypeToString(TextureType textureType)
+		{
+			switch (textureType)
+			{
+			case TextureType::None:				return "None";
+			case TextureType::Texture2D:		return "Texture2D";
+			case TextureType::TextureCube:		return "TextureCube";
+			}
+
+			MG_ASSERT(false, "Unknown Texture Type");
+			return "None";
+		}
+
+		inline TextureFilter TextureFilterFromString(const std::string& textureType)
+		{
+			if (textureType == "None")			return TextureFilter::None;
+			if (textureType == "Linear")		return TextureFilter::Linear;
+			if (textureType == "Nearest")		return TextureFilter::Nearest;
+			if (textureType == "Cubic")			return TextureFilter::Cubic;
+
+			MG_ASSERT(false, "Unknown Texture Filter");
+			return TextureFilter::None;
+		}
+		inline const char* TextureFilterToString(TextureFilter textureType)
+		{
+			switch (textureType)
+			{
+			case TextureFilter::None:			return "None";
+			case TextureFilter::Linear:			return "Linear";
+			case TextureFilter::Nearest:		return "Nearest";
+			case TextureFilter::Cubic:			return "Cubic";
+			}
+
+			MG_ASSERT(false, "Unknown Texture Filter");
+			return "None";
+		}
+
+		inline TextureWrap TextureWrapFromString(const std::string& textureWrap)
+		{
+			if (textureWrap == "None")			return TextureWrap::None;
+			if (textureWrap == "Clamp")			return TextureWrap::Clamp;
+			if (textureWrap == "Repeat")		return TextureWrap::Repeat;
+
+			MG_ASSERT(false, "Unknown Texture Wrap");
+			return TextureWrap::None;
+		}
+		inline const char* TextureWrapToString(TextureWrap textureWrap)
+		{
+			switch (textureWrap)
+			{
+			case TextureWrap::None:			return "None";
+			case TextureWrap::Clamp:		return "Clamp";
+			case TextureWrap::Repeat:		return "Repeat";
+			}
+
+			MG_ASSERT(false, "Unknown Texture Wrap");
+			return "None";
+		}
+	}
+
 	class Texture: public Asset {
 	public:
 		virtual void bind(uint32_t slot = 0) const = 0;
@@ -82,23 +153,28 @@ namespace Moongoose {
 	public:
 		static Ref<Texture2D> Create(TextureSpecs specs);
 
+		virtual AssetType getAssetType() const override { return AssetType::Texture; }
+		static AssetType GetStaticAssetType() { return AssetType::Texture; }
+
 		virtual void resize(const glm::uvec2& size) = 0;
 		virtual void resize(const uint32_t width, const uint32_t height) = 0;
 
 		virtual void loadData(void* data, uint32_t width, uint32_t height, uint8_t bitDepth) = 0;
 
-		//virtual Ref<Image2D> GetImage() const = 0;
-
-		virtual Buffer getBuffer() = 0;
-
 		virtual bool isLoaded() const = 0;
 		virtual const std::string& getPath() const = 0;
 
 		virtual void* getPointerToData() = 0;
+		virtual Buffer getBuffer() = 0;
 
 		virtual TextureType getType() const override { return TextureType::Texture2D; }
-		virtual AssetType getAssetType() const override { return AssetType::Texture; }
-		static AssetType GetStaticAssetType() { return AssetType::Texture; }
+		TextureWrap getTextureWrap() const { return m_TextureSpecs.TextureWrap; }
+		TextureFilter getTextureFilter() const { return m_TextureSpecs.TextureFilter; }
+		TextureFormat getTextureFormat() const { return m_TextureFormat; }
+
+	protected:
+		TextureSpecs m_TextureSpecs;
+		TextureFormat m_TextureFormat = TextureFormat::None;
 	};
 
 	class TextureCube : public Texture {

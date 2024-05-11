@@ -9,15 +9,23 @@ namespace Moongoose {
 	class Material: public Asset
 	{
 	public:
-		Material() { m_ID = UUID(); }
-		Material(Ref<Shader> shader)
+		Material(const std::string& name)
+		{ 
+			m_ID = UUID();
+			m_Name = name;
+		}
+		Material(const std::string& name, Ref<Shader> shader)
 		{
 			m_ID = UUID();
+			m_Name = name;
 			m_Shader = shader;
 		}
 
 		virtual AssetType getAssetType() const override { return AssetType::Material; }
 		static AssetType getStaticAssetType() { return AssetType::Material; }
+
+		const std::string& GetName() const { return m_Name; }
+		void SetName(const std::string& newName) { m_Name = newName; }
 
 		void bind() const { 
 			m_Shader->Bind();

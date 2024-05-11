@@ -129,7 +129,6 @@ namespace Moongoose {
 	struct MeshComponent: public Component
 	{
 		Ref<Mesh> m_Mesh = Ref<Mesh>();
-		Ref<Material> m_Material = Ref<Material>();
 	};
 
 	struct LightComponent : public Component

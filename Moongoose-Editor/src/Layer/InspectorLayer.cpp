@@ -84,30 +84,16 @@ void InspectorLayer::onImGuiRender()
 				{
 					ImGui::Text("Empty");
 				}
-				ImGui::SameLine();
-
-				if (ImGui::Button("Load"))
-				{
-					std::string& filePath = FileDialogs::OpenFile("Mesh Object (*.obj)\0*.obj\0");
-					LOG_APP_INFO(filePath);
-					if (!filePath.empty())
-					{
-						Ref<Moongoose::Material> material = CreateRef<Moongoose::Material>();
-						Ref<Moongoose::Shader> shader = AssetManager::Get().LoadShader("Shader/shader.vert", "Shader/shader.frag");
-						material->setShader(shader);
-						material->setAlbedo(AssetManager::Get().LoadAsset<Texture2D>("Assets/Texture/checker_2k_c.png"));
-
-						auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
-						cMesh.m_Mesh = AssetManager::Get().LoadAsset<Mesh>(relativePath.string());
-						cMesh.m_Material = material;
-					}
-				}
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("Materials")) {
-				DrawMaterialControls(cMesh.m_Material);
-				ImGui::TreePop();
+				auto& materials = cMesh.m_Mesh->GetMaterials();
+				for (auto& mat : materials)
+				{
+					DrawMaterialControls(mat);
+					ImGui::TreePop();
+				}
 			}
 			ImGui::TreePop();
 		}
@@ -129,25 +115,15 @@ void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 	if (!material) return;
 
 	auto albedo = material->getAlbedo();
+	auto& matName = material->GetName();
 	ImGui::PushID("Material");
 
+	ImGui::Text("Material: %s", matName.c_str());
 	ImGui::Text("Albedo Map: ");
 	ImGui::SameLine();
 
 	if (albedo) {
 		GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{ 128.0f, 128.0f });
-	}
-
-	ImGui::SameLine();
-
-	if (ImGui::Button("Load"))
-	{
-		std::string& filePath = FileDialogs::OpenFile("PNG Image (*.png)\0*.png\0");
-		if (!filePath.empty())
-		{
-			auto& relativePath = std::filesystem::relative(filePath, std::filesystem::current_path());
-			material->setAlbedo(AssetManager::Get().LoadAsset<Texture2D>(relativePath.string()));
-		}
 	}
 
 	ImGui::PopID();

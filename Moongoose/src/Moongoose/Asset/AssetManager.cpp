@@ -10,131 +10,13 @@
 #include "AssetManager.h"
 #include "Moongoose/Log.h"
 
-#include <nlohmann/json.hpp>
-#include <fstream>
-
 namespace Moongoose {
 
 	AssetManager::AssetManager() {
 		s_AssetLoaders[AssetType::Mesh] = CreateScope<MeshAssetLoader>();
 		s_AssetLoaders[AssetType::Texture] = CreateScope<TextureAssetLoader>();
 	}
-
-	void AssetManager::serializeDecl(const AssetDeclaration& decl) const
-	{
-		auto& filename = std::filesystem::path(decl.FilePath).filename().string();
-
-		nlohmann::json j;
-		j["id"] = (uint64_t)decl.ID;
-		j["filepath"] = decl.FilePath;
-		j["type"] = decl.Type;
-
-		std::ofstream o(filename + ".json");
-		o << std::setw(4) << j << std::endl;
-	}
-
-	Ref<Mesh> AssetManager::LoadMesh(std::string meshPath)
-	{
-		Assimp::Importer importer;
-		unsigned int importerFlags = aiProcess_Triangulate |
-			aiProcess_FlipUVs |
-			aiProcess_GenSmoothNormals |
-			aiProcess_JoinIdenticalVertices |
-			aiProcess_CalcTangentSpace;
-
-		const aiScene* scene = importer.ReadFile(meshPath, importerFlags);
-		if (!scene)
-		{
-			LOG_CORE_ERROR("Model ({0}) failed to load: {1}", meshPath, importer.GetErrorString());
-			return nullptr;
-		}
-		
-		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
-
-
-		glm::vec3 min = glm::vec3(
-			std::numeric_limits<float>::max(),
-			std::numeric_limits<float>::max(),
-			std::numeric_limits<float>::max()
-		);
-
-		glm::vec3 max = glm::vec3(
-			std::numeric_limits<float>::lowest(),
-			std::numeric_limits<float>::lowest(),
-			std::numeric_limits<float>::lowest()
-		);
-
-		std::vector<GLfloat> vertices;
-		std::vector<unsigned int> indices;
-
-		for (size_t i = 0; i < mesh->mNumVertices; i++)
-		{
-			min.x = mesh->mVertices[i].x < min.x ? mesh->mVertices[i].x : min.x;
-			min.y = mesh->mVertices[i].y < min.y ? mesh->mVertices[i].y : min.y;
-			min.z = mesh->mVertices[i].z < min.z ? mesh->mVertices[i].z : min.z;
-
-			max.x = mesh->mVertices[i].x > max.x ? mesh->mVertices[i].x : max.x;
-			max.y = mesh->mVertices[i].y > max.y ? mesh->mVertices[i].y : max.y;
-			max.z = mesh->mVertices[i].z > max.z ? mesh->mVertices[i].z : max.z;
-
-			// Position
-			vertices.insert(vertices.end(), { mesh->mVertices[i].x, mesh->mVertices[i].y , mesh->mVertices[i].z });
-
-			// UV
-			auto vertexX = mesh->mTextureCoords[0] ? mesh->mTextureCoords[0][i].x : 0;
-			auto vertexY = mesh->mTextureCoords[0] ? mesh->mTextureCoords[0][i].y : 0;
-			vertices.insert(vertices.end(), { vertexX, vertexY });
-
-			// Normal
-			vertices.insert(vertices.end(), { mesh->mNormals[i].x, mesh->mNormals[i].y , mesh->mNormals[i].z });
-
-			// Tangent and Bitangent
-			vertices.insert(vertices.end(), { mesh->mTangents[i].x, mesh->mTangents[i].y , mesh->mTangents[i].z });
-			vertices.insert(vertices.end(), { mesh->mBitangents[i].x, mesh->mBitangents[i].y , mesh->mBitangents[i].z });
-		}
-
-		for (size_t i = 0; i < mesh->mNumFaces; i++)
-		{
-			aiFace face = mesh->mFaces[i];
-			for (size_t j = 0; j < face.mNumIndices; j++)
-			{
-				indices.push_back(face.mIndices[j]);
-			}
-		}
-
-		auto loadedMesh = CreateRef<Mesh>(&vertices[0], &indices[0], vertices.size(), indices.size());
-		loadedMesh->SetModelSource(meshPath);
-		loadedMesh->SetBounds(Bounds3(min, max));
-
-		return loadedMesh;
-	}
 	
-	Ref<Texture2D> AssetManager::LoadTexture2D(const std::string& filepath, TextureFormat textureFormat)
-	{
-		int width, height, bitDepth;
-		uint8_t* textureData = nullptr;
-		textureData = stbi_load((filepath).c_str(), &width, &height, &bitDepth, 0);
-
-		if (!textureData) {
-			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", filepath);
-			return nullptr;
-		}
-		else {
-			TextureSpecs specs;
-			specs.Width = width;
-			specs.Height = height;
-			specs.BitDepth = bitDepth;
-			specs.FileLocation = filepath;
-			specs.TextureFormat = textureFormat;
-			
-			Ref<Texture2D> texture = Texture2D::Create(specs);
-			texture->loadData(textureData, width, height, bitDepth);
-
-			stbi_image_free(textureData);
-			return texture;
-		}
-	}
-
 	Ref<Shader> AssetManager::LoadShader(std::string vertexShaderSource, std::string fragmentShaderSource, PolygonMode polygonMode, ShaderType shaderType)
 	{
 		return CreateRef<Shader>(ShaderSpecs{ shaderType, vertexShaderSource, fragmentShaderSource, polygonMode });

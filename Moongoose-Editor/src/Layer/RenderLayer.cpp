@@ -17,21 +17,32 @@ void RenderLayer::onAttach()
 	m_BaseShader = assetManager.LoadShader( "Shader/shader.vert", "Shader/shader.frag");
 	m_DebugShader = assetManager.LoadShader("Shader/debug_shader.vs", "Shader/debug_shader.fs", PolygonMode::WIREFRAME);
 
-	m_CheckerTexture = assetManager.LoadAsset<Texture2D>("Assets\\Texture\\checker_2k_c.png");
-	m_ColorCheckerTexture = assetManager.LoadAsset<Texture2D>("Assets\\Texture\\checker_2k_b.png");
+	m_CheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_C", "Assets\\Texture\\checker_2k_c.png");
+	m_ColorCheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_B", "Assets\\Texture\\checker_2k_b.png");
 
-	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>(m_BaseShader);
-	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>(m_BaseShader);
+	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>("M_Checker", m_BaseShader);
+	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>("M_Color_Checker", m_BaseShader);
 	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
 	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
 
-	auto cubeMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Cube.obj");
-	auto monkeyMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Monkey.obj");
-	auto planeMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Plane.obj");
-	auto torusOffsetMesh = assetManager.LoadAsset<Mesh>("Assets\\Mesh\\Torus_Offset.obj");
+	auto cubeMesh = assetManager.LoadAsset<Mesh>("SM_Cube", "Assets\\Mesh\\Cube.obj");
+	cubeMesh->SetMaterial(0, m_ColorCheckerMaterial);
+
+	auto monkeyMesh = assetManager.LoadAsset<Mesh>("SM_Monkey", "Assets\\Mesh\\Monkey.fbx");
+	monkeyMesh->SetMaterial(0, m_ColorCheckerMaterial);
+
+	auto monkeyHat = assetManager.LoadAsset<Mesh>("SM_Monkey_Hat", "Assets\\Mesh\\Monkey_Hat.fbx");
+	monkeyHat->SetMaterial(0, m_ColorCheckerMaterial);
+
+	auto planeMesh = assetManager.LoadAsset<Mesh>("SM_Plane", "Assets\\Mesh\\Plane.obj");
+	planeMesh->SetMaterial(0, m_CheckerMaterial);
+	
+	auto torusOffsetMesh = assetManager.LoadAsset<Mesh>("SM_Torus_Offset", "Assets\\Mesh\\Torus_Offset.obj");
+	torusOffsetMesh->SetMaterial(0, m_ColorCheckerMaterial);
 
 	Entity cubeEntity = EntityManager::Get().addEntity("Cube");
 	Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
+	Entity monkeyHatEntity = EntityManager::Get().addEntity("Monkey_Hat");
 	Entity groundEntity = EntityManager::Get().addEntity("Ground");
 	Entity torusOffset = EntityManager::Get().addEntity("Torus Offset");
 
@@ -49,20 +60,19 @@ void RenderLayer::onAttach()
 	groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
 
 	MeshComponent& monkeyMeshComponent = EntityManager::Get().addComponent<MeshComponent>(monkeyEntity);
-	monkeyMeshComponent.m_Mesh = monkeyMesh;
-	monkeyMeshComponent.m_Material = m_ColorCheckerMaterial;
+	monkeyMeshComponent.m_Mesh = monkeyMesh;	
+	
+	MeshComponent& monkeyHatMeshComponent = EntityManager::Get().addComponent<MeshComponent>(monkeyHatEntity);
+	monkeyHatMeshComponent.m_Mesh = monkeyHat;
 
 	MeshComponent& groundMeshComponent = EntityManager::Get().addComponent<MeshComponent>(groundEntity);
 	groundMeshComponent.m_Mesh = planeMesh;
-	groundMeshComponent.m_Material = m_CheckerMaterial;
 
 	MeshComponent& cubeMeshComponent = EntityManager::Get().addComponent<MeshComponent>(cubeEntity);
 	cubeMeshComponent.m_Mesh = cubeMesh;
-	cubeMeshComponent.m_Material = m_ColorCheckerMaterial;
 
 	MeshComponent& torusMeshComponent = EntityManager::Get().addComponent<MeshComponent>(torusOffset);
 	torusMeshComponent.m_Mesh = torusOffsetMesh;
-	torusMeshComponent.m_Material = m_ColorCheckerMaterial;
 }
 
 void RenderLayer::onDetach(){}

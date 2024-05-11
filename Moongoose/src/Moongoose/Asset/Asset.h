@@ -7,9 +7,6 @@ namespace Moongoose {
 	class Asset
 	{
 	public:
-		
-		virtual ~Asset() {};
-
 		virtual AssetType getAssetType() const { return AssetType::None; }
 		static AssetType getStaticAssetType() { return AssetType::None; }
 
@@ -18,11 +15,13 @@ namespace Moongoose {
 
 	public:
 		UUID m_ID;
+		std::string m_Name = "";
 	};
 
 	struct AssetDeclaration
 	{
 		UUID ID = 0;
+		std::string Name = "";
 		AssetType Type;
 
 		std::filesystem::path FilePath;
