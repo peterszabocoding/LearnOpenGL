@@ -14,6 +14,7 @@
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/Bounds.h"
 #include "Moongoose/Util/FileSystem.h"
+#include "Moongoose/Asset/AssetManager.h"
 
 #include "glm/glm.hpp"
 
@@ -81,6 +82,17 @@ namespace Moongoose {
 			for (size_t i = 0; i < node->mNumMeshes; i++) LoadSubmesh(scene->mMeshes[node->mMeshes[i]], meshAsset, boundsMin, boundsMax);
 			for (size_t i = 0; i < node->mNumChildren; i++) LoadComplexMesh(node->mChildren[i], scene, meshAsset, boundsMin, boundsMax);
 		}
+
+		static inline void LoadMeshMaterials(const aiScene* scene, Ref<Mesh>& meshAsset)
+		{
+			for (size_t i = 0; i < scene->mNumMaterials; i++)
+			{
+				aiMaterial* mat = scene->mMaterials[i];
+				aiString materialName = mat->GetName();
+				Ref<Material> newMaterial = AssetManager::Get().LoadAsset<Material>(materialName.C_Str(), "Assets\\Material\\");
+				meshAsset->AddMaterial(newMaterial);
+			}
+		}
 	}
 
 	
@@ -104,19 +116,13 @@ namespace Moongoose {
 		glm::vec3 boundsMin = glm::vec3(MAX_FLOAT, MAX_FLOAT, MAX_FLOAT);
 		glm::vec3 boundsMax = glm::vec3(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT);
 
-		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
 		Ref<Mesh> meshAsset = CreateRef<Mesh>();
 		Utils::LoadComplexMesh(scene->mRootNode, scene, meshAsset, boundsMin, boundsMax);
 
 		meshAsset->SetModelSource(decl.FilePath.string());
 		meshAsset->SetBounds(Bounds3(boundsMin, boundsMax));
 
-		for (size_t i = 0; i < scene->mNumMaterials; i++)
-		{
-			aiMaterial* mat = scene->mMaterials[i];
-			aiString materialName = mat->GetName();
-			meshAsset->AddMaterial(CreateRef<Material>(std::string(materialName.C_Str())));
-		}
+		Utils::LoadMeshMaterials(scene, meshAsset);
 
 		return meshAsset;
 	}
@@ -130,16 +136,16 @@ namespace Moongoose {
 
 		nlohmann::json j;
 		j["id"] = (uint64_t)decl.ID;
-		j["filepath"] = decl.FilePath;
-		j["type"] = decl.Type;
+		j["name"] = decl.Name;
+		j["source"] = decl.FilePath;
+		j["type"] = Utils::AssetTypeToString(decl.Type);
 
 		auto& materials = meshAsset->GetMaterials();
 		if (materials.size() > 0)
 		{
-			for (size_t i = 0; i < materials.size(); i++) 
-			{
-				j["material_" + i] = (uint64_t)materials[i]->m_ID;
-			}
+			std::vector<std::tuple<uint64_t, std::string>> materialNamesAndIds;
+			for (auto& mat : materials) materialNamesAndIds.push_back(std::tuple{ (uint64_t)mat->m_ID, mat->m_Name });
+			j["materials"] = materialNamesAndIds;
 		}
 
 		auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
@@ -193,8 +199,9 @@ namespace Moongoose {
 
 		nlohmann::json j;
 		j["id"] = (uint64_t)decl.ID;
+		j["name"] = decl.Name;
 		j["filepath"] = decl.FilePath;
-		j["type"] = decl.Type;
+		j["type"] = Utils::AssetTypeToString(decl.Type);
 		j["texture_type"] = Utils::TextureTypeToString(textureAsset->getType());
 		j["texture_wrap"] = Utils::TextureWrapToString(textureAsset->getTextureWrap());
 		j["texture_filter"] = Utils::TextureFilterToString(textureAsset->getTextureFilter());
@@ -212,17 +219,17 @@ namespace Moongoose {
 
 	Ref<Asset> MaterialAssetLoader::CreateAsset(AssetDeclaration& decl)
 	{
-		return Ref<Asset>();
+		return CreateRef<Material>(decl.Name);
 	}
 
 	Ref<Asset> MaterialAssetLoader::LoadAsset(AssetDeclaration& decl)
 	{
-		return Ref<Asset>();
+		return CreateRef<Material>(decl.Name);
 	}
 
 	void MaterialAssetLoader::SaveAsset(AssetDeclaration& decl, Ref<Asset> asset)
 	{
-		Ref<Material> textureAsset = std::static_pointer_cast<Material>(asset);
+		Ref<Material> materialAsset = std::static_pointer_cast<Material>(asset);
 		auto& filepath = std::filesystem::path(decl.FilePath);
 		auto& filename = filepath.filename().string();
 		auto& fileDir = filepath.parent_path().string();
@@ -230,7 +237,16 @@ namespace Moongoose {
 		nlohmann::json j;
 		j["id"] = (uint64_t)decl.ID;
 		j["filepath"] = decl.FilePath;
-		j["type"] = decl.Type;
+		j["type"] = Utils::AssetTypeToString(decl.Type);
+
+		if (materialAsset->getAlbedo())
+		{
+			auto& albedoTexture = materialAsset->getAlbedo();
+			j["albedo"] = { 
+				{ "ID", std::to_string((uint64_t)albedoTexture->m_ID)},
+				{ "Name", albedoTexture->m_Name},
+			};
+		}
 
 		auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
 		if (!FileSystem::IsFileExist(fileDir)) FileSystem::MakeDir(fileDir);

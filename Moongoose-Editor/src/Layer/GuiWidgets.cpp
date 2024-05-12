@@ -181,6 +181,7 @@ void GuiWidgets::DrawColorDragControl(const std::string& label, glm::vec3& value
 void GuiWidgets::DrawSingleSelectDropdown(const char* title, std::vector<std::string> options, int currentSelected, std::function<void(int)> onItemSelected) {
 	std::string currentSelectedString = options.at(currentSelected);
 
+	ImGui::PushID(title);
 	ImGui::Text(title);
 	ImGui::SameLine();
 	if (ImGui::BeginCombo("##", currentSelectedString.c_str()))
@@ -198,6 +199,7 @@ void GuiWidgets::DrawSingleSelectDropdown(const char* title, std::vector<std::st
 		}
 		ImGui::EndCombo();
 	}
+	ImGui::PopID();
 }
 
 void GuiWidgets::DrawList(const char* title, std::vector<std::string> listItems, int currentSelected, std::function<void(int)> onItemSelected) {

@@ -4,9 +4,6 @@
 #include "VertexArray.h"
 #include <glm/glm.hpp>
 
-class Shader;
-class Material;
-
 namespace Moongoose {
 
 	class Renderer {

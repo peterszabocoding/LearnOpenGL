@@ -24,7 +24,7 @@ namespace Moongoose {
 		}
 
 		virtual AssetType getAssetType() const override { return AssetType::Material; }
-		static AssetType getStaticAssetType() { return AssetType::Material; }
+		static AssetType GetStaticAssetType() { return AssetType::Material; }
 
 		ShaderType getShaderType() const { return m_ShaderType; }
 		const std::string& GetName() const { return m_Name; }

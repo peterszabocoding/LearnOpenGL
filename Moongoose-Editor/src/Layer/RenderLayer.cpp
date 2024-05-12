@@ -15,16 +15,22 @@ void RenderLayer::onAttach()
 
 	auto& assetManager = AssetManager::Get();
 	auto& shaderManager = ShaderManager::Get();
+	auto& entityManager = EntityManager::Get();
 
-	shaderManager.AssignShaderToType(Moongoose::ShaderType::STATIC, "Shader\\shader.vert", "Shader\\shader.frag");
+	shaderManager.AssignShaderToType(ShaderType::STATIC, "Shader\\shader.vert", "Shader\\shader.frag");
 
 	m_CheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_C", "Assets\\Texture\\checker_2k_c.png");
 	m_ColorCheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_B", "Assets\\Texture\\checker_2k_b.png");
 
-	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>("M_Checker");
-	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>("M_Color_Checker");
+	Ref<Moongoose::Material> m_CheckerMaterial = assetManager.LoadAsset<Moongoose::Material>("M_Checker", "Assets\\Material\\");
+	Ref<Moongoose::Material> m_ColorCheckerMaterial = assetManager.LoadAsset<Moongoose::Material>("M_Color_Checker", "Assets\\Material\\");
+	
 	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
 	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
+
+	assetManager.SaveAsset<Moongoose::Material>(m_CheckerMaterial);
+	assetManager.SaveAsset<Moongoose::Material>(m_ColorCheckerMaterial);
+
 
 	auto cubeMesh = assetManager.LoadAsset<Mesh>("SM_Cube", "Assets\\Mesh\\Cube.obj");
 	cubeMesh->SetMaterial(0, m_ColorCheckerMaterial);
@@ -42,38 +48,40 @@ void RenderLayer::onAttach()
 	auto torusOffsetMesh = assetManager.LoadAsset<Mesh>("SM_Torus_Offset", "Assets\\Mesh\\Torus_Offset.obj");
 	torusOffsetMesh->SetMaterial(0, m_ColorCheckerMaterial);
 
-	Entity cubeEntity = EntityManager::Get().addEntity("Cube");
-	Entity monkeyEntity = EntityManager::Get().addEntity("Monkey");
-	Entity monkeyHatEntity = EntityManager::Get().addEntity("Monkey_Hat");
-	Entity groundEntity = EntityManager::Get().addEntity("Ground");
-	Entity torusOffset = EntityManager::Get().addEntity("Torus Offset");
+	auto& loadedAssets = assetManager.GetLoadedAssets();
 
-	Entity directionalLight = EntityManager::Get().addEntity("Directional Light");
-	EntityManager::Get().addComponent<LightComponent>(directionalLight);
+	Entity cubeEntity = entityManager.addEntity("Cube");
+	Entity monkeyEntity = entityManager.addEntity("Monkey");
+	Entity monkeyHatEntity = entityManager.addEntity("Monkey_Hat");
+	Entity groundEntity = entityManager.addEntity("Ground");
+	Entity torusOffset = entityManager.addEntity("Torus Offset");
 
-	auto& dirLightTransform = EntityManager::Get().getComponent<TransformComponent>(directionalLight);
+	Entity directionalLight = entityManager.addEntity("Directional Light");
+	entityManager.addComponent<LightComponent>(directionalLight);
+
+	auto& dirLightTransform = entityManager.getComponent<TransformComponent>(directionalLight);
 	dirLightTransform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
 
-	auto& dirLightComponent = EntityManager::Get().getComponent<LightComponent>(directionalLight);
+	auto& dirLightComponent = entityManager.getComponent<LightComponent>(directionalLight);
 	dirLightComponent.m_Type = LightType::DIRECTIONAL;
 
-	auto& groundTransform = EntityManager::Get().getComponent<TransformComponent>(groundEntity);
+	auto& groundTransform = entityManager.getComponent<TransformComponent>(groundEntity);
 	groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
 	groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
 
-	MeshComponent& monkeyMeshComponent = EntityManager::Get().addComponent<MeshComponent>(monkeyEntity);
+	MeshComponent& monkeyMeshComponent = entityManager.addComponent<MeshComponent>(monkeyEntity);
 	monkeyMeshComponent.m_Mesh = monkeyMesh;	
 	
-	MeshComponent& monkeyHatMeshComponent = EntityManager::Get().addComponent<MeshComponent>(monkeyHatEntity);
+	MeshComponent& monkeyHatMeshComponent = entityManager.addComponent<MeshComponent>(monkeyHatEntity);
 	monkeyHatMeshComponent.m_Mesh = monkeyHat;
 
-	MeshComponent& groundMeshComponent = EntityManager::Get().addComponent<MeshComponent>(groundEntity);
+	MeshComponent& groundMeshComponent = entityManager.addComponent<MeshComponent>(groundEntity);
 	groundMeshComponent.m_Mesh = planeMesh;
 
-	MeshComponent& cubeMeshComponent = EntityManager::Get().addComponent<MeshComponent>(cubeEntity);
+	MeshComponent& cubeMeshComponent = entityManager.addComponent<MeshComponent>(cubeEntity);
 	cubeMeshComponent.m_Mesh = cubeMesh;
 
-	MeshComponent& torusMeshComponent = EntityManager::Get().addComponent<MeshComponent>(torusOffset);
+	MeshComponent& torusMeshComponent = entityManager.addComponent<MeshComponent>(torusOffset);
 	torusMeshComponent.m_Mesh = torusOffsetMesh;
 }
 

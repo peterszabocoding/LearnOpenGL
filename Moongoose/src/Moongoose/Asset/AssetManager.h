@@ -43,6 +43,20 @@ namespace Moongoose {
 			return asset;
 		}
 
+		template<typename T>
+		void SaveAsset(Ref<T> asset)
+		{
+			static_assert(std::is_base_of<Asset, T>::value, "Type must derive from Asset!");
+			auto decl = GetDeclByID(asset->m_ID);
+			s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(decl, asset);
+		}
+
+		const std::unordered_map<UUID, Ref<Asset>>& GetLoadedAssets() const { return s_LoadedAssets; }
+		const AssetDeclaration& GetDeclByID(const UUID& assetID) { return s_AssetRegistry[assetID]; }
+
+		void SetSelectedAsset(Ref<Asset> selectedAsset) { m_SelectedAsset = selectedAsset; }
+		const Ref<Asset>& GetSelectedAsset() const { return m_SelectedAsset; }
+
 	private:
 		AssetManager();
 		~AssetManager() = default;
@@ -52,5 +66,7 @@ namespace Moongoose {
 		static std::unordered_map<UUID, Ref<Asset>> s_LoadedAssets;
 		static std::unordered_map<UUID, Ref<Asset>> s_MemoryAssets;
 		static std::unordered_map<AssetType, Scope<AssetLoader>> s_AssetLoaders;
+
+		Ref<Asset> m_SelectedAsset;
 	};
 }

@@ -168,6 +168,7 @@ namespace Moongoose {
 		virtual Buffer getBuffer() = 0;
 
 		virtual TextureType getType() const override { return TextureType::Texture2D; }
+
 		TextureWrap getTextureWrap() const { return m_TextureSpecs.TextureWrap; }
 		TextureFilter getTextureFilter() const { return m_TextureSpecs.TextureFilter; }
 		TextureFormat getTextureFormat() const { return m_TextureFormat; }

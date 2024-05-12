@@ -33,7 +33,7 @@ namespace Moongoose {
 
 	namespace Utils {
 
-		inline AssetType AssetTypeFromString(const std::string& assetType)
+		inline static AssetType AssetTypeFromString(const std::string& assetType)
 		{
 			if (assetType == "None")			return AssetType::None;
 			if (assetType == "Scene")			return AssetType::Scene;
@@ -48,7 +48,7 @@ namespace Moongoose {
 			return AssetType::None;
 		}
 
-		inline const char* AssetTypeToString(AssetType assetType)
+		inline static const char* AssetTypeToString(AssetType assetType)
 		{
 			switch (assetType)
 			{

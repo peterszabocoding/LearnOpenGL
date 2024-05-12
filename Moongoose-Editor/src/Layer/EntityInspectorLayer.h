@@ -2,11 +2,11 @@
 #include <Moongoose.h>
 #include "Moongoose/ECS/EntityManager.h"
 
-class InspectorLayer : public Moongoose::Layer
+class EntityInspectorLayer : public Moongoose::Layer
 {
 public:
-	InspectorLayer() {};
-	virtual ~InspectorLayer() {};
+	EntityInspectorLayer() {};
+	virtual ~EntityInspectorLayer() {};
 
 	virtual void onAttach() override {};
 	virtual void onDetach() override {};

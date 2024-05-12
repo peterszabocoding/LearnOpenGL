@@ -15,6 +15,7 @@ namespace Moongoose {
 	AssetManager::AssetManager() {
 		s_AssetLoaders[AssetType::Mesh] = CreateScope<MeshAssetLoader>();
 		s_AssetLoaders[AssetType::Texture] = CreateScope<TextureAssetLoader>();
+		s_AssetLoaders[AssetType::Material] = CreateScope<MaterialAssetLoader>();
 	}
 
 	std::unordered_map<UUID, AssetDeclaration> AssetManager::s_AssetRegistry;

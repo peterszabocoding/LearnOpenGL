@@ -1,4 +1,4 @@
-#include "InspectorLayer.h"
+#include "EntityInspectorLayer.h"
 #include <imgui/imgui.h>
 #include "GuiWidgets.h"
 
@@ -8,9 +8,9 @@
 
 using namespace Moongoose;
 
-void InspectorLayer::onImGuiRender()
+void EntityInspectorLayer::onImGuiRender()
 {
-	ImGui::Begin("Inspector");
+	ImGui::Begin("Entity Inspector");
 
 	auto selectedEntity = EntityManager::Get().getSelectedEntity();
 	if (selectedEntity == -1) {
@@ -111,7 +111,7 @@ void InspectorLayer::onImGuiRender()
 	ImGui::End();
 }
 
-void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
+void EntityInspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 {
 	if (!material) return;
 
