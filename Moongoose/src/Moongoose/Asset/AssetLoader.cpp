@@ -105,7 +105,7 @@ namespace Moongoose {
 		glm::vec3 boundsMax = glm::vec3(MIN_FLOAT, MIN_FLOAT, MIN_FLOAT);
 
 		aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
-		auto meshAsset = CreateRef<Mesh>();
+		Ref<Mesh> meshAsset = CreateRef<Mesh>();
 		Utils::LoadComplexMesh(scene->mRootNode, scene, meshAsset, boundsMin, boundsMax);
 
 		meshAsset->SetModelSource(decl.FilePath.string());

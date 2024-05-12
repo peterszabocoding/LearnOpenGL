@@ -4,6 +4,7 @@
 #include "RenderLayer.h"
 #include "Moongoose/Events/Event.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
+#include "Moongoose/Renderer/ShaderManager.h"
 
 using namespace Moongoose;
 
@@ -13,15 +14,15 @@ void RenderLayer::onAttach()
 	createCamera();
 
 	auto& assetManager = AssetManager::Get();
+	auto& shaderManager = ShaderManager::Get();
 
-	m_BaseShader = assetManager.LoadShader( "Shader/shader.vert", "Shader/shader.frag");
-	m_DebugShader = assetManager.LoadShader("Shader/debug_shader.vs", "Shader/debug_shader.fs", PolygonMode::WIREFRAME);
+	shaderManager.AssignShaderToType(Moongoose::ShaderType::STATIC, "Shader\\shader.vert", "Shader\\shader.frag");
 
 	m_CheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_C", "Assets\\Texture\\checker_2k_c.png");
 	m_ColorCheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_B", "Assets\\Texture\\checker_2k_b.png");
 
-	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>("M_Checker", m_BaseShader);
-	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>("M_Color_Checker", m_BaseShader);
+	Ref<Moongoose::Material> m_CheckerMaterial = CreateRef<Moongoose::Material>("M_Checker");
+	Ref<Moongoose::Material> m_ColorCheckerMaterial = CreateRef<Moongoose::Material>("M_Color_Checker");
 	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
 	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
 
@@ -33,6 +34,7 @@ void RenderLayer::onAttach()
 
 	auto monkeyHat = assetManager.LoadAsset<Mesh>("SM_Monkey_Hat", "Assets\\Mesh\\Monkey_Hat.fbx");
 	monkeyHat->SetMaterial(0, m_ColorCheckerMaterial);
+	monkeyHat->SetMaterial(1, m_CheckerMaterial);
 
 	auto planeMesh = assetManager.LoadAsset<Mesh>("SM_Plane", "Assets\\Mesh\\Plane.obj");
 	planeMesh->SetMaterial(0, m_CheckerMaterial);

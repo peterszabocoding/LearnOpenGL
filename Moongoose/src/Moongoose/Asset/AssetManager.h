@@ -20,8 +20,6 @@ namespace Moongoose {
 			return manager;
 		}
 
-		Ref<Shader> LoadShader(std::string vertexShaderSource, std::string fragmentShaderSource, PolygonMode polygonMode = PolygonMode::FILL, ShaderType shaderType = ShaderType::STATIC);
-	
 		template<typename T>
 		Ref<T> LoadAsset(const std::string& assetName, const std::string& filePath)
 		{

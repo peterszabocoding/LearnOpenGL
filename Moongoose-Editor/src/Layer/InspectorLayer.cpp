@@ -1,9 +1,10 @@
 #include "InspectorLayer.h"
 #include <imgui/imgui.h>
 #include "GuiWidgets.h"
+
+#include "Platform/PlatformUtils.h"
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/OpenGL/OpenGLTexture2D.h"
-#include "Platform/PlatformUtils.h"
 
 using namespace Moongoose;
 
@@ -92,8 +93,8 @@ void InspectorLayer::onImGuiRender()
 				for (auto& mat : materials)
 				{
 					DrawMaterialControls(mat);
-					ImGui::TreePop();
 				}
+				ImGui::TreePop();
 			}
 			ImGui::TreePop();
 		}
@@ -119,10 +120,10 @@ void InspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
 	ImGui::PushID("Material");
 
 	ImGui::Text("Material: %s", matName.c_str());
-	ImGui::Text("Albedo Map: ");
-	ImGui::SameLine();
 
 	if (albedo) {
+		ImGui::Text("Albedo Map: ");
+		ImGui::SameLine();
 		GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{ 128.0f, 128.0f });
 	}
 

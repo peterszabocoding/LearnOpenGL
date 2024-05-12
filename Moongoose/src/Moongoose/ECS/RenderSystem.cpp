@@ -12,6 +12,7 @@
 #include "Moongoose/ECS/EntityManager.h"
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
+#include "Moongoose/Renderer/ShaderManager.h"
 
 namespace Moongoose {
 
@@ -62,23 +63,28 @@ namespace Moongoose {
 
 			for (auto& mat : materials)
 			{
-				mat->bind();
-				mat->getShader()->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
-				mat->getShader()->SetDirectionalLight(
+				auto& shader = ShaderManager::Get().GetShaderByType(mat->getShaderType());
+				shader->Bind();
+				shader->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
+				shader->SetDirectionalLight(
 					directionalLightTransformComponent.getTransform(),
 					directionalLightComponent.m_Color,
 					directionalLightComponent.m_Intensity);
 
-				mat->getShader()->SetModelTransform(TransformComponent::GetModelMatrix(cTransform));
-				mat->getShader()->SetEntityID(i);
-				mat->unbind();
+				shader->SetModelTransform(TransformComponent::GetModelMatrix(cTransform));
+				shader->SetEntityID(i);
+				shader->Unbind();
 			}
 
 			for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
 			{
-				materials[submesh->materialIndex]->bind();
+				auto& mat = materials[submesh->materialIndex];
+				auto& shader = ShaderManager::Get().GetShaderByType(mat->getShaderType());
+				
+				shader->Bind();
+				mat->bind();
 				Renderer::RenderMesh(submesh->vertexArray);
-				materials[submesh->materialIndex]->unbind();
+				shader->Unbind();
 			}
 
 			/*

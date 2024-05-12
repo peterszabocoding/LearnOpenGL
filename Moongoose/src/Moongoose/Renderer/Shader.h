@@ -34,13 +34,6 @@ namespace Moongoose {
 		WIREFRAME
 	};
 
-	struct ShaderSpecs {
-		ShaderType type;
-		std::string vertexLocation;
-		std::string fragmentLocation;
-		PolygonMode polygonMode = PolygonMode::FILL;
-	};
-
 	struct UniformDirectionalLight {
 		unsigned int uniformColor;
 		unsigned int uniformAmbientIntensity;
@@ -82,16 +75,16 @@ namespace Moongoose {
 	namespace Utils {
 		static std::string GetShaderTypeString(ShaderType type) {
 			switch (type) {
-			case ShaderType::STATIC:					return "STATIC";
-			case ShaderType::STATIC_ALPHA:				return "STATIC_ALPHA";
-			case ShaderType::LIGHTING:					return "LIGHTING";
-			case ShaderType::SHADOW_MAP:				return "SHADOW_MAP";
-			case ShaderType::SHADOW_MAP_ALPHA:			return "SHADOW_MAP_ALPHA";
-			case ShaderType::EQUIRECTANGULAR_TO_CUBE:	return "EQUIRECTANGULAR_TO_CUBE";
-			case ShaderType::IRRADIANCE_MAP:			return "IRRADIANCE_MAP";
-			case ShaderType::BACKGROUND:				return "BACKGROUND";
-			case ShaderType::PREFILTER:					return "PREFILTER";
-			case ShaderType::BRDF:						return "BRDF";
+				case ShaderType::STATIC:					return "STATIC";
+				case ShaderType::STATIC_ALPHA:				return "STATIC_ALPHA";
+				case ShaderType::LIGHTING:					return "LIGHTING";
+				case ShaderType::SHADOW_MAP:				return "SHADOW_MAP";
+				case ShaderType::SHADOW_MAP_ALPHA:			return "SHADOW_MAP_ALPHA";
+				case ShaderType::EQUIRECTANGULAR_TO_CUBE:	return "EQUIRECTANGULAR_TO_CUBE";
+				case ShaderType::IRRADIANCE_MAP:			return "IRRADIANCE_MAP";
+				case ShaderType::BACKGROUND:				return "BACKGROUND";
+				case ShaderType::PREFILTER:					return "PREFILTER";
+				case ShaderType::BRDF:						return "BRDF";
 			}
 		}
 	}
@@ -100,34 +93,30 @@ namespace Moongoose {
 	{
 
 	public:
-		Shader(ShaderSpecs specs);
+		Shader(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation);
+		~Shader();
+		void ClearShader();
+		
+		ShaderType GetShaderType() const { return shaderType; }
 
-		std::string ReadFile(const char* fileLocation);
-
-		ShaderType GetShaderType() const { return m_Specs.type; }
-
-		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(m_Specs.type); }
-
-		unsigned int GetDirectionLocation();
+		void Bind();
+		void Unbind();
+		void BindTexture(size_t textureUnit, uint32_t textureID);
+		void BindCubeMapTexture(size_t textureUnit, uint32_t textureID);
 
 		void SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection);
 		void SetModelTransform(const glm::mat4& model);
 		void SetEntityID(const size_t entityId);
-		void BindTexture(size_t textureUnit, uint32_t textureID);
-		void BindCubeMapTexture(size_t textureUnit, uint32_t textureID);
+		void SetPolygonMode(PolygonMode mode);
 
+		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
+
+		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity);
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);
 		void SetSpotLights(std::vector<std::tuple<Transform*, Ref<Light>>> sLight);
-		
 		*/
-
-		void Bind();
-		void Unbind();
-
-		void ClearShader();
-
 		void UploadUniformInt(const std::string& name, int value);
 		void UploadUniformIntArray(const std::string& name, int* values, uint32_t count);
 		void UploadUniformFloat(const std::string& name, float value);
@@ -136,30 +125,32 @@ namespace Moongoose {
 		void UploadUniformFloat4(const std::string& name, const glm::vec4& value);
 		void UploadUniformMat4(const std::string& name, const glm::mat4& value);
 
-		~Shader();
-
 	private:
-
-		ShaderSpecs m_Specs;
-
-		unsigned int shaderID,
-			uniformEyePosition,
-			uniformTexture,
-			uniformNormalMap,
-			uniformDirectionalLightTransform, uniformDirectionalShadowMap;
-
-		std::unordered_map<std::string, unsigned int> uniformLocationCache;
-		unsigned int uniformPointLightCount;
-		unsigned int uniformSpotLightCount;
-
-		UniformDirectionalLight uniformDirectionalLight;
-		//UniformPointLight uniformPointLight[MAX_POINT_LIGHTS];
-		//UniformSpotLight uniformSpotLight[MAX_SPOT_LIGHTS];
-
-		void CreateFromFiles(const char* vertexLocation, const char* fragmentLocation);
+		std::string ReadFile(const char* fileLocation);
 		void CompileShader(const char* vertexCode, const char* fragmentCode);
 		void AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType);
 		unsigned int GetUniformLocation(const std::string& name);
+
+	private:
+		ShaderType shaderType;
+		std::string vertexShaderSourcePath;
+		std::string fragmentShaderSourcePath;
+		PolygonMode polygonMode = PolygonMode::FILL;
+
+		unsigned int shaderID;
+		unsigned int uniformEyePosition;
+		unsigned int uniformTexture;
+		unsigned int uniformNormalMap;
+		unsigned int uniformDirectionalLightTransform;
+		unsigned int uniformDirectionalShadowMap;
+		unsigned int uniformPointLightCount;
+		unsigned int uniformSpotLightCount;
+
+		std::unordered_map<std::string, unsigned int> uniformLocationCache;
+
+		UniformDirectionalLight uniformDirectionalLight;
+		UniformPointLight uniformPointLight[100];
+		UniformSpotLight uniformSpotLight[100];
 	};
 
 }

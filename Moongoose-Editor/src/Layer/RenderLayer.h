@@ -31,9 +31,6 @@ private:
 
 	Ref<Moongoose::RenderSystem> m_RenderSystem;
 
-	Ref<Moongoose::Shader> m_BaseShader = nullptr;
-	Ref<Moongoose::Shader> m_DebugShader = nullptr;
-
 	Ref<Moongoose::Texture2D> m_CheckerTexture = nullptr;
 	Ref<Moongoose::Texture2D> m_ColorCheckerTexture = nullptr;
 

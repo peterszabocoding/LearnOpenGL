@@ -6,11 +6,19 @@
 
 namespace Moongoose {
 
-	Shader::Shader(ShaderSpecs specs)
+	Shader::Shader(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation)
 	{
 		shaderID = 0;
-		m_Specs = specs;
-		CreateFromFiles(m_Specs.vertexLocation.c_str(), m_Specs.fragmentLocation.c_str());
+		shaderType = type;
+
+		vertexShaderSourcePath = vertexShaderLocation;
+		fragmentShaderSourcePath = fragmentShaderLocation;
+
+		LOG_CORE_INFO("Compile shader: {0} | {1}", vertexShaderSourcePath, fragmentShaderSourcePath);
+		CompileShader(
+			ReadFile(vertexShaderSourcePath.c_str()).c_str(),
+			ReadFile(fragmentShaderSourcePath.c_str()).c_str()
+		);
 	}
 
 	Shader::~Shader()
@@ -18,13 +26,35 @@ namespace Moongoose {
 		ClearShader();
 	}
 
-	void Shader::CreateFromFiles(const char* vertexLocation, const char* fragmentLocation)
+	void Shader::ClearShader()
 	{
-		std::string vertexString = ReadFile(vertexLocation);
-		std::string fragmentString = ReadFile(fragmentLocation);
+		if (shaderID != 0) {
+			glDeleteProgram(shaderID);
+			shaderID = 0;
+		}
+	}
+	
+	void Shader::Bind()
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, polygonMode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
 
-		LOG_CORE_INFO("Compile shader: {0} | {1}", vertexLocation, fragmentLocation);
-		CompileShader(vertexString.c_str(), fragmentString.c_str());
+		if (polygonMode == PolygonMode::WIREFRAME)
+		{
+			glLineWidth(2.0f);
+			glDisable(GL_CULL_FACE);
+		} 
+		else 
+		{
+			glLineWidth(1.0f);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+		}
+		glUseProgram(shaderID);
+	}
+
+	void Shader::Unbind()
+	{
+		glUseProgram(0);
 	}
 
 	std::string Shader::ReadFile(const char* fileLocation)
@@ -44,11 +74,10 @@ namespace Moongoose {
 		}
 
 		fileStream.close();
-
 		return content;
 	}
 
-	unsigned int Shader::GetDirectionLocation()
+	unsigned int Shader::GetDirectionLocation() const
 	{
 		return uniformDirectionalLight.uniformDirection;
 	}
@@ -70,6 +99,11 @@ namespace Moongoose {
 		UploadUniformInt("aEntityID", entityId);
 	}
 
+	void Shader::SetPolygonMode(PolygonMode mode)
+	{
+		polygonMode = mode;
+	}
+
 	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
@@ -81,7 +115,6 @@ namespace Moongoose {
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	}
-
 	
 	void Shader::SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity)
 	{
@@ -150,38 +183,6 @@ namespace Moongoose {
 		}
 	}
 	*/
-
-	void Shader::Bind()
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, m_Specs.polygonMode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
-
-		if (m_Specs.polygonMode == PolygonMode::WIREFRAME)
-		{
-			glLineWidth(2.0f);
-			glDisable(GL_CULL_FACE);
-		} 
-		else 
-		{
-			glLineWidth(1.0f);
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-		}
-
-		glUseProgram(shaderID);
-	}
-
-	void Shader::Unbind()
-	{
-		glUseProgram(0);
-	}
-
-	void Shader::ClearShader()
-	{
-		if (shaderID != 0) {
-			glDeleteProgram(shaderID);
-			shaderID = 0;
-		}
-	}
 
 	void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	{
@@ -369,6 +370,5 @@ namespace Moongoose {
 	{
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	}
-
 
 }

@@ -9,31 +9,29 @@ namespace Moongoose {
 	class Material: public Asset
 	{
 	public:
-		Material(const std::string& name)
+		Material(const std::string& name, ShaderType shaderType = ShaderType::STATIC)
 		{ 
 			m_ID = UUID();
 			m_Name = name;
+			m_ShaderType = shaderType;
 		}
-		Material(const std::string& name, Ref<Shader> shader)
+
+		Material(UUID id, const std::string& name, ShaderType shaderType)
 		{
-			m_ID = UUID();
+			m_ID = id;
 			m_Name = name;
-			m_Shader = shader;
+			m_ShaderType = shaderType;
 		}
 
 		virtual AssetType getAssetType() const override { return AssetType::Material; }
 		static AssetType getStaticAssetType() { return AssetType::Material; }
 
+		ShaderType getShaderType() const { return m_ShaderType; }
 		const std::string& GetName() const { return m_Name; }
 		void SetName(const std::string& newName) { m_Name = newName; }
 
 		void bind() const { 
-			m_Shader->Bind();
-			m_Albedo->bind(0); 
-		}
-
-		void unbind() {
-			m_Shader->Unbind();
+			if (m_Albedo) m_Albedo->bind(0);
 		}
 
 		void setAlbedo(Ref<Texture2D> albedo) {
@@ -42,15 +40,9 @@ namespace Moongoose {
 
 		const Ref<Texture2D> getAlbedo() const { return m_Albedo; }
 
-		void setShader(Ref<Shader> shader) {
-			m_Shader = shader;
-		}
-
-		const Ref<Shader>& getShader() const { return m_Shader; }
-
 	private:
 		Ref<Texture2D> m_Albedo;
-		Ref<Shader> m_Shader;
+		ShaderType m_ShaderType;
 	};
 
 }
