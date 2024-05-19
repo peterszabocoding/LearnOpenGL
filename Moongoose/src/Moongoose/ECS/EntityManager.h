@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include "Entity.h"
+#include "EntityMemoryPool.h"
 
 namespace Moongoose {
 
@@ -20,22 +21,22 @@ namespace Moongoose {
 		template<typename T>
 		T& addComponent(size_t entity)
 		{
-			return EntityMemoryPool::Get().addComponent<T>(entity);
+			return m_Pool.addComponent<T>(entity);
 		}
 
 		template<typename T>
 		bool hasComponent(size_t entity) {
-			return EntityMemoryPool::Get().hasComponent<T>(entity);
+			return m_Pool.hasComponent<T>(entity);
 		}
 
 		template<typename T>
 		T& getComponent(size_t entity) {
-			return EntityMemoryPool::Get().getComponent<T>(entity);
+			return m_Pool.getComponent<T>(entity);
 		}
 
 		template<typename T>
 		std::vector<T>& getComponents() {
-			return EntityMemoryPool::Get().getComponents<T>();
+			return m_Pool.getComponents<T>();
 		}
 
 		std::vector<size_t> getEntities() const;
@@ -54,7 +55,7 @@ namespace Moongoose {
 	private:
 		size_t m_SelectedEntity = -1;
 		std::vector<size_t> m_Entities;
-
+		EntityMemoryPool m_Pool;
 	};
 
 }

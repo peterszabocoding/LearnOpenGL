@@ -54,7 +54,9 @@ namespace Moongoose {
 
 		void AddMaterial(const Ref<Material> material) { m_Materials.push_back(material); }
 		void SetMaterial(unsigned int index, const Ref<Material>& material) { m_Materials[index] = material; }
+
 		const std::vector<Ref<Material>>& GetMaterials() const { return m_Materials; }
+		Ref<Material> GetMaterial(unsigned int index) const { return m_Materials[index]; }
 
 		const Bounds3& GetBounds() const;
 		void SetBounds(const Bounds3& bounds);

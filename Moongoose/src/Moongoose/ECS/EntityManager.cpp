@@ -7,16 +7,16 @@ namespace Moongoose {
 
 	Entity EntityManager::addEntity(std::string tag)
 	{
-		bool isTagReserved = EntityMemoryPool::Get().isTagReserved(tag);
+		bool isTagReserved = m_Pool.isTagReserved(tag);
 
-		Entity e = EntityMemoryPool::Get().addEntity(tag);
+		Entity e = m_Pool.addEntity(tag);
 
 		if (isTagReserved)
 		{
-			EntityMemoryPool::Get().setTag(e, tag + std::to_string(e));
+			m_Pool.setTag(e, tag + std::to_string(e));
 		}
 
-		EntityMemoryPool::Get().addComponent<TransformComponent>(e);
+		m_Pool.addComponent<TransformComponent>(e);
 		return m_Entities.emplace_back(e);
 	}
 
@@ -25,7 +25,7 @@ namespace Moongoose {
 		std::vector<Entity> m_ActiveEntities;
 		for (auto& e : m_Entities)
 		{
-			if (EntityMemoryPool::Get().isEntityActive(e))
+			if (m_Pool.isEntityActive(e))
 				m_ActiveEntities.push_back(e);
 		}
 		return m_ActiveEntities;
@@ -33,12 +33,12 @@ namespace Moongoose {
 
 	const std::string& EntityManager::getTag(size_t e) const
 	{
-		return EntityMemoryPool::Get().getTag(e);
+		return m_Pool.getTag(e);
 	}
 
 	void EntityManager::setTag(size_t e, const std::string& newTag)
 	{
-		return EntityMemoryPool::Get().setTag(e, newTag);
+		return m_Pool.setTag(e, newTag);
 	}
 
 	void EntityManager::setSelectedEntity(size_t entity)

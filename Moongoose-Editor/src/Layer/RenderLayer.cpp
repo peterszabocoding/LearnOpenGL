@@ -5,17 +5,21 @@
 #include "Moongoose/Events/Event.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/ShaderManager.h"
+#include "Moongoose/ECS/WorldManager.h"
 
 using namespace Moongoose;
 
 void RenderLayer::onAttach()
 {
 	createRenderBuffer();
+	createPreviewRenderBuffer();
 	createCamera();
 
 	auto& assetManager = AssetManager::Get();
 	auto& shaderManager = ShaderManager::Get();
-	auto& entityManager = EntityManager::Get();
+	auto& worldManager = WorldManager::Get();
+
+	m_World = worldManager.CreateWorld("Main_Scene");
 
 	shaderManager.AssignShaderToType(ShaderType::STATIC, "Shader\\shader.vert", "Shader\\shader.frag");
 
@@ -31,58 +35,38 @@ void RenderLayer::onAttach()
 	assetManager.SaveAsset<Moongoose::Material>(m_CheckerMaterial);
 	assetManager.SaveAsset<Moongoose::Material>(m_ColorCheckerMaterial);
 
-
-	auto cubeMesh = assetManager.LoadAsset<Mesh>("SM_Cube", "Assets\\Mesh\\Cube.obj");
-	cubeMesh->SetMaterial(0, m_ColorCheckerMaterial);
-
-	auto monkeyMesh = assetManager.LoadAsset<Mesh>("SM_Monkey", "Assets\\Mesh\\Monkey.fbx");
-	monkeyMesh->SetMaterial(0, m_ColorCheckerMaterial);
-
 	auto monkeyHat = assetManager.LoadAsset<Mesh>("SM_Monkey_Hat", "Assets\\Mesh\\Monkey_Hat.fbx");
-	monkeyHat->SetMaterial(0, m_ColorCheckerMaterial);
-	monkeyHat->SetMaterial(1, m_CheckerMaterial);
+	monkeyHat->GetMaterial(0)->setAlbedo(m_ColorCheckerTexture);
+	monkeyHat->GetMaterial(1)->setAlbedo(m_CheckerTexture);
+	assetManager.SaveAsset(monkeyHat->GetMaterial(0));
+	assetManager.SaveAsset(monkeyHat->GetMaterial(1));
 
 	auto planeMesh = assetManager.LoadAsset<Mesh>("SM_Plane", "Assets\\Mesh\\Plane.obj");
 	planeMesh->SetMaterial(0, m_CheckerMaterial);
-	
-	auto torusOffsetMesh = assetManager.LoadAsset<Mesh>("SM_Torus_Offset", "Assets\\Mesh\\Torus_Offset.obj");
-	torusOffsetMesh->SetMaterial(0, m_ColorCheckerMaterial);
 
 	auto& loadedAssets = assetManager.GetLoadedAssets();
 
-	Entity cubeEntity = entityManager.addEntity("Cube");
-	Entity monkeyEntity = entityManager.addEntity("Monkey");
-	Entity monkeyHatEntity = entityManager.addEntity("Monkey_Hat");
-	Entity groundEntity = entityManager.addEntity("Ground");
-	Entity torusOffset = entityManager.addEntity("Torus Offset");
+	Entity monkeyHatEntity = m_World->CreateEntity("Monkey_Hat");
+	Entity groundEntity = m_World->CreateEntity("Ground");
 
-	Entity directionalLight = entityManager.addEntity("Directional Light");
-	entityManager.addComponent<LightComponent>(directionalLight);
+	Entity directionalLight = m_World->CreateEntity("Directional Light");
+	m_World->AddComponent<LightComponent>(directionalLight);
 
-	auto& dirLightTransform = entityManager.getComponent<TransformComponent>(directionalLight);
+	auto& dirLightTransform = m_World->GetComponent<TransformComponent>(directionalLight);
 	dirLightTransform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
 
-	auto& dirLightComponent = entityManager.getComponent<LightComponent>(directionalLight);
+	auto& dirLightComponent = m_World->GetComponent<LightComponent>(directionalLight);
 	dirLightComponent.m_Type = LightType::DIRECTIONAL;
 
-	auto& groundTransform = entityManager.getComponent<TransformComponent>(groundEntity);
+	auto& groundTransform = m_World->GetComponent<TransformComponent>(groundEntity);
 	groundTransform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
 	groundTransform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
-
-	MeshComponent& monkeyMeshComponent = entityManager.addComponent<MeshComponent>(monkeyEntity);
-	monkeyMeshComponent.m_Mesh = monkeyMesh;	
 	
-	MeshComponent& monkeyHatMeshComponent = entityManager.addComponent<MeshComponent>(monkeyHatEntity);
+	MeshComponent& monkeyHatMeshComponent = m_World->AddComponent<MeshComponent>(monkeyHatEntity);
 	monkeyHatMeshComponent.m_Mesh = monkeyHat;
 
-	MeshComponent& groundMeshComponent = entityManager.addComponent<MeshComponent>(groundEntity);
+	MeshComponent& groundMeshComponent = m_World->AddComponent<MeshComponent>(groundEntity);
 	groundMeshComponent.m_Mesh = planeMesh;
-
-	MeshComponent& cubeMeshComponent = entityManager.addComponent<MeshComponent>(cubeEntity);
-	cubeMeshComponent.m_Mesh = cubeMesh;
-
-	MeshComponent& torusMeshComponent = entityManager.addComponent<MeshComponent>(torusOffset);
-	torusMeshComponent.m_Mesh = torusOffsetMesh;
 }
 
 void RenderLayer::onDetach(){}
@@ -97,7 +81,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	RenderCommand::Clear();
 	m_RenderBuffer->ClearAttachment(1, -1);
 
-	RenderSystem::Run(m_EditorCamera);
+	RenderSystem::Run(m_EditorCamera, m_World);
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= m_ViewportBounds[0].x;
@@ -152,10 +136,10 @@ void RenderLayer::onImGuiRender()
 
 
 	// Gizmo
-	size_t selectedEntity = Moongoose::EntityManager::Get().getSelectedEntity();
+	size_t selectedEntity = m_World->GetSelectedEntity();
 	if (selectedEntity != -1)
 	{
-		auto& entityTransform = Moongoose::EntityManager::Get().getComponent<Moongoose::TransformComponent>(selectedEntity);
+		auto& entityTransform = m_World->GetComponent<Moongoose::TransformComponent>(selectedEntity);
 
 		ImGuizmo::AllowAxisFlip(false);
 		ImGuizmo::SetOrthographic(false);
@@ -196,6 +180,10 @@ void RenderLayer::onImGuiRender()
 	ImGui::Text("Mouse: X: %f Y: %f", m_WindowMousePos.x, m_WindowMousePos.y);
 	ImGui::Text("Is mouse inside window: %s", isMouseInWindow() ? "True" : "False");
 	ImGui::End();
+
+	ImGui::Begin("Preview");
+	ImGui::Text("Preview");
+	ImGui::End();
 }
 
 void RenderLayer::createRenderBuffer()
@@ -210,6 +198,20 @@ void RenderLayer::createRenderBuffer()
 	};
 	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 	m_RenderBuffer = CreateScope<Framebuffer>(specs);
+}
+
+void RenderLayer::createPreviewRenderBuffer()
+{
+	Moongoose::FramebufferSpecs specs;
+	specs.Width = m_WindowSize.x;
+	specs.Height = m_WindowSize.y;
+	specs.Attachments = {
+		FramebufferTextureFormat::RGBA8,
+		FramebufferTextureFormat::RED_INTEGER,
+		FramebufferTextureFormat::DEPTH24STENCIL8
+	};
+	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	m_PreviewRenderBuffer = CreateScope<Framebuffer>(specs);
 }
 
 void RenderLayer::createCamera()
@@ -245,7 +247,7 @@ bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
 
 	if (event.getKeyCode() == MG_KEY_ESCAPE)
 	{
-		EntityManager::Get().setSelectedEntity(-1);
+		m_World->SetSelectedEntity(-1);
 		return false;
 	}
 }
@@ -254,7 +256,7 @@ bool RenderLayer::onMouseButtonPresed(Moongoose::MousePressedEvent& event)
 {
 	if (m_HoveredEntityId != -1 && Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT))
 	{
-		EntityManager::Get().setSelectedEntity(m_HoveredEntityId);
+		m_World->SetSelectedEntity(m_HoveredEntityId);
 	}
 	return false;
 }

@@ -24,7 +24,7 @@ public:
 		PushLayer(new OutlinerLayer());
 		PushLayer(new AssetBrowserLayer());
 		PushLayer(new AssetInspectorLayer());
-		PushLayer(new ImGuiDemoLayer());
+		//PushLayer(new ImGuiDemoLayer());
 	}
 	virtual ~EditorApp() {}
 };

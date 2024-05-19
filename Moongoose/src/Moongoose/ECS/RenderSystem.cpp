@@ -33,13 +33,12 @@ namespace Moongoose {
 		}
 	}
 
-	void RenderSystem::Run(const Ref<PerspectiveCamera>& camera)
+	void RenderSystem::Run(const Ref<PerspectiveCamera>& camera, Ref<World> world)
 	{
-		auto& entites = EntityManager::Get().getEntities();
 		LightComponent directionalLightComponent;
 		TransformComponent directionalLightTransformComponent;
 
-		auto& lightComponents = EntityManager::Get().getComponents<LightComponent>();
+		auto& lightComponents = world->GetComponents<LightComponent>();
 		for (size_t i = 0; i < lightComponents.size(); i++)
 		{
 			auto& cLight = lightComponents[i];
@@ -48,17 +47,17 @@ namespace Moongoose {
 			if (cLight.m_Type == LightType::DIRECTIONAL)
 			{
 				directionalLightComponent = cLight;
-				directionalLightTransformComponent = EntityManager::Get().getComponent<TransformComponent>(i);
+				directionalLightTransformComponent = world->GetComponent<TransformComponent>(i);
 			}
 		}
 
-		auto& meshComponents = EntityManager::Get().getComponents<MeshComponent>();
+		auto& meshComponents = world->GetComponents<MeshComponent>();
 		for (size_t i = 0; i < meshComponents.size(); i++)
 		{
 			MeshComponent& cMesh = meshComponents[i];
 			if (!cMesh.m_Active || !cMesh.m_Mesh) continue;
 
-			TransformComponent& cTransform = EntityManager::Get().getComponent<TransformComponent>(i);
+			TransformComponent& cTransform = world->GetComponent<TransformComponent>(i);
 			std::vector<Ref<Material>> materials = cMesh.m_Mesh->GetMaterials();
 
 			for (auto& mat : materials)

@@ -138,6 +138,4 @@ namespace Moongoose {
 		float m_Intensity = 1.0f;
 	};
 
-
-
 }

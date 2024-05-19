@@ -15,9 +15,7 @@ static inline void DrawTextureAssetGUI(Ref<Moongoose::Texture2D> texture)
 	std::vector<std::string> textureFilterOptions = {"None", "Linear", "Nearest", "Cubic"};
 
 	GuiWidgets::DrawSingleSelectDropdown("Texture Wrap", textureWrapOptions, to_underlying(texture->getTextureWrap()), [&](int selected) {});
-
 	GuiWidgets::DrawSingleSelectDropdown("Texture Filter", textureFilterOptions, to_underlying(texture->getTextureFilter()), [&](int selected) {});
-
 
 	GuiWidgets::DrawTextureImage(texture->getPointerToData(), ImVec2{ 128.0f, 128.0f });
 }

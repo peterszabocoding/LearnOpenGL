@@ -35,7 +35,7 @@
 #include "Moongoose/Renderer/Transform.h"
 #include "Moongoose/Asset/AssetManager.h"
 
-#include "Moongoose/ECS/SceneManager.h"
+#include "Moongoose/ECS/WorldManager.h"
 #include "Moongoose/ECS/Entity.h"
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/ECS/RenderSystem.h"

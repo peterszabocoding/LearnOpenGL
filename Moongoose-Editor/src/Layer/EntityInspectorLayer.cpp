@@ -12,7 +12,14 @@ void EntityInspectorLayer::onImGuiRender()
 {
 	ImGui::Begin("Entity Inspector");
 
-	auto selectedEntity = EntityManager::Get().getSelectedEntity();
+	auto& loadedWorld = WorldManager::Get().GetLoadedWorld();
+	if (!loadedWorld)
+	{
+		ImGui::End();
+		return;
+	}
+
+	auto selectedEntity = loadedWorld->GetSelectedEntity();
 	if (selectedEntity == -1) {
 		ImGui::End();
 		return;
@@ -27,19 +34,17 @@ void EntityInspectorLayer::onImGuiRender()
 	{
 		DisplayAddComponentEntry<LightComponent>("Light Component", selectedEntity);
 		DisplayAddComponentEntry<MeshComponent>("Mesh Component", selectedEntity);
-
 		ImGui::EndPopup();
 	}
 
-	bool hasTransformComponent = EntityManager::Get().hasComponent<TransformComponent>(EntityManager::Get().getEntities()[selectedEntity]);
-	bool hasMeshComponent = EntityManager::Get().hasComponent<MeshComponent>(EntityManager::Get().getEntities()[selectedEntity]);
-	bool hasLightComponent = EntityManager::Get().hasComponent<LightComponent>(EntityManager::Get().getEntities()[selectedEntity]);
+	bool hasTransformComponent = loadedWorld->HasComponent<TransformComponent>(selectedEntity);
+	bool hasMeshComponent = loadedWorld->HasComponent<MeshComponent>(selectedEntity);
+	bool hasLightComponent = loadedWorld->HasComponent<LightComponent>(selectedEntity);
 
-	
 	if (hasTransformComponent)
 	{
-		auto& tag = EntityMemoryPool::Get().getTag(selectedEntity);
-		auto& cTransform = EntityManager::Get().getComponent<TransformComponent>(selectedEntity);
+		auto& tag = loadedWorld->GetTag(selectedEntity);
+		auto& cTransform = loadedWorld->GetComponent<TransformComponent>(selectedEntity);
 
 		auto windowSize = ImGui::GetWindowSize();
 
@@ -50,7 +55,7 @@ void EntityInspectorLayer::onImGuiRender()
 		ImGui::InputText("##label", tagArray, IM_ARRAYSIZE(tagArray));
 
 		std::string newTag = std::string(tagArray);
-		if (newTag != tag) EntityManager::Get().setTag(selectedEntity, std::string(tagArray));
+		if (newTag != tag) loadedWorld->SetTag(selectedEntity, std::string(tagArray));
 
 		ImGui::Dummy({ windowSize.x , 5.0f });
 		ImGui::Separator();
@@ -68,7 +73,7 @@ void EntityInspectorLayer::onImGuiRender()
 
 	if (hasMeshComponent)
 	{
-		auto& cMesh = EntityManager::Get().getComponent<MeshComponent>(selectedEntity);
+		auto& cMesh = loadedWorld->GetComponent<MeshComponent>(selectedEntity);
 
 		if (ImGui::TreeNode("Mesh Renderer")) {
 			
@@ -102,7 +107,7 @@ void EntityInspectorLayer::onImGuiRender()
 
 	if (hasLightComponent)
 	{
-		auto& cLight = EntityManager::Get().getComponent<LightComponent>(selectedEntity);
+		auto& cLight = loadedWorld->GetComponent<LightComponent>(selectedEntity);
 		auto windowSize = ImGui::GetWindowSize();
 		GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
 		GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);

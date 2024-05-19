@@ -20,11 +20,8 @@ namespace Moongoose {
 	{
 	public:
 
-		static EntityMemoryPool& Get()
-		{
-			static EntityMemoryPool pool(MAX_ENTITIES);
-			return pool;
-		}
+		EntityMemoryPool();
+		~EntityMemoryPool() = default;
 
 		template<typename T>
 		T& addComponent(size_t entityID)
@@ -55,13 +52,14 @@ namespace Moongoose {
 
 		const std::string& getTag(size_t entityID) const;
 		void setTag(size_t entityID, const std::string& newTag);
-		bool isTagReserved(const std::string& tag) const;
 
+		bool isTagReserved(const std::string& tag) const;
 		bool isEntityActive(size_t entityID) const;
 
-	private:
-		EntityMemoryPool(size_t maxEntities);
+		const std::vector<bool>& GetActiveList() const { return m_Active; }
 
+	private:
+	
 		size_t getNextEntityIndex();
 
 	private:

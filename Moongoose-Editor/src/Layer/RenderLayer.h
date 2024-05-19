@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Moongoose.h>
+#include <Moongoose/ECS/World.h>
 
 class RenderLayer: public Moongoose::Layer
 {
@@ -17,6 +18,7 @@ public:
 
 private:
 	void createRenderBuffer();
+	void createPreviewRenderBuffer();
 	void createCamera();
 
 	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
@@ -25,8 +27,11 @@ private:
 
 private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
+
+	Ref<Moongoose::World> m_World;
 	
 	Scope<Moongoose::Framebuffer> m_RenderBuffer;
+	Scope<Moongoose::Framebuffer> m_PreviewRenderBuffer;
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
 
 	Ref<Moongoose::RenderSystem> m_RenderSystem;

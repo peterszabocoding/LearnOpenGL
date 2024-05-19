@@ -1,6 +1,6 @@
 #pragma once
 #include <Moongoose.h>
-#include "Moongoose/ECS/EntityManager.h"
+#include "Moongoose/ECS/WorldManager.h"
 
 class EntityInspectorLayer : public Moongoose::Layer
 {
@@ -19,13 +19,13 @@ private:
 
 	template<typename T>
 	void DisplayAddComponentEntry(const std::string& entryName, size_t entityId) {
-		bool hasComponent = EntityManager::Get().hasComponent<T>(entityId);
+		bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<T>(entityId);
 
 		if (!hasComponent)
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
-				T& component = EntityMemoryPool::Get().addComponent<T>(entityId);
+				T& component = WorldManager::Get().GetLoadedWorld()->AddComponent<T>(entityId);
 				ImGui::CloseCurrentPopup();
 			}
 		}
