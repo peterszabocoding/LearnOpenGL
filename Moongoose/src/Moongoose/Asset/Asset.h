@@ -1,6 +1,7 @@
 #pragma once
 #include "UUID.h"
 #include "AssetTypes.h"
+#include <filesystem>
 
 namespace Moongoose {
 
@@ -22,7 +23,7 @@ namespace Moongoose {
 	{
 		UUID ID = 0;
 		std::string Name = "";
-		AssetType Type;
+		AssetType Type = AssetType::None;
 
 		std::filesystem::path FilePath;
 		bool IsDataLoaded = false;

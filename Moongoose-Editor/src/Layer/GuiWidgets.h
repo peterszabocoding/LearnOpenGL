@@ -8,6 +8,8 @@
 
 #include <functional>
 
+#include "Moongoose/Renderer/Texture.h"
+
 #include "glm/glm.hpp"
 
 class GuiWidgets {
@@ -31,5 +33,83 @@ public:
 	static void DrawCheckBox(const char* title, bool* isChecked);
 
 	static void DrawTextureImage(void* data, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));
+
+	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal, const Ref<Moongoose::Texture2D>& imageHovered, const Ref<Moongoose::Texture2D>& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax)
+	{
+		auto* drawList = ImGui::GetWindowDrawList();
+		if (ImGui::IsItemActive())
+			drawList->AddImage(
+				imagePressed->getPointerToData(), 
+				rectMin, rectMax, 
+				ImVec2(0, 0), ImVec2(1, 1), 
+				tintPressed);
+		else if (ImGui::IsItemHovered())
+			drawList->AddImage(
+				imageHovered->getPointerToData(), 
+				rectMin, rectMax, 
+				ImVec2(0, 0), ImVec2(1, 1),
+				tintHovered);
+		else
+			drawList->AddImage(
+				imageNormal->getPointerToData(),
+				rectMin, rectMax, 
+				ImVec2(0, 0), ImVec2(1, 1), 
+				tintNormal);
+	};
+
+	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal, const Ref<Moongoose::Texture2D>& imageHovered, const Ref<Moongoose::Texture2D>& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle)
+	{
+		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
+	};
+
+	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax)
+	{
+		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectMin, rectMax);
+	};
+
+	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle)
+	{
+		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
+	};
+
+	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal, const Ref<Moongoose::Texture2D>& imageHovered, const Ref<Moongoose::Texture2D>& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
+	{
+		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	};
+
+	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
+	{
+		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	};
+
+	static void ImageButtonWithText(const Ref<Moongoose::Texture2D>& icon, const std::string& text, ImVec2 buttonPos, ImVec2 buttonSize)
+	{
+		ImGui::PushID(text.c_str());
+
+		ImGui::SetCursorPos(buttonPos);
+		ImGui::Button("", buttonSize);
+
+		ImVec2 imgPadding = ImVec2{ 20.0f, 20.0f };
+		ImVec2 imgSize = { buttonSize.x - 4 * imgPadding.x, buttonSize.x - 4 * imgPadding.y };
+
+		ImGui::SetCursorPos({ buttonPos.x + 2 * imgPadding.x, buttonPos.y + 2 * imgPadding.y });
+		ImGui::Image(icon->getPointerToData(), imgSize);
+
+		ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+		ImGui::SetCursorPos({ buttonPos.x + (buttonSize.x - text_size.x) * 0.5f, buttonPos.y + buttonSize.y - 1.5f * imgPadding.y });
+		ImGui::Text(text.c_str());
+
+		ImGui::PopID();
+	}
 };
 

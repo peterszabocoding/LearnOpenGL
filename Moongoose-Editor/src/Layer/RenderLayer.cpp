@@ -23,8 +23,8 @@ void RenderLayer::onAttach()
 
 	shaderManager.AssignShaderToType(ShaderType::STATIC, "Shader\\shader.vert", "Shader\\shader.frag");
 
-	m_CheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_C", "Assets\\Texture\\checker_2k_c.png");
-	m_ColorCheckerTexture = assetManager.LoadAsset<Texture2D>("T_Checker_01_B", "Assets\\Texture\\checker_2k_b.png");
+	m_CheckerTexture = assetManager.LoadAsset<Moongoose::Texture2D>("T_Checker_01_C", "Assets\\Texture\\checker_2k_c.png");
+	m_ColorCheckerTexture = assetManager.LoadAsset<Moongoose::Texture2D>("T_Checker_01_B", "Assets\\Texture\\checker_2k_b.png");
 
 	Ref<Moongoose::Material> m_CheckerMaterial = assetManager.LoadAsset<Moongoose::Material>("M_Checker", "Assets\\Material\\");
 	Ref<Moongoose::Material> m_ColorCheckerMaterial = assetManager.LoadAsset<Moongoose::Material>("M_Color_Checker", "Assets\\Material\\");

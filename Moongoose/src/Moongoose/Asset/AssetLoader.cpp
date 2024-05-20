@@ -166,7 +166,7 @@ namespace Moongoose {
 	{
 		int width, height, bitDepth;
 		uint8_t* textureData = nullptr;
-		textureData = stbi_load((decl.FilePath.string()).c_str(), &width, &height, &bitDepth, 0);
+		textureData = stbi_load(decl.FilePath.string().c_str(), &width, &height, &bitDepth, 0);
 
 		if (!textureData) {
 			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", decl.FilePath.string());

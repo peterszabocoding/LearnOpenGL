@@ -20,12 +20,14 @@ namespace Moongoose {
 	};
 
 	class TextureAssetLoader : public AssetLoader {
+	public:
 		virtual Ref<Asset> CreateAsset(AssetDeclaration& decl) override;
 		virtual Ref<Asset> LoadAsset(AssetDeclaration& decl) override;
 		virtual void SaveAsset(AssetDeclaration& decl, Ref<Asset> asset) override;
 	};
 
 	class MaterialAssetLoader : public AssetLoader {
+	public:
 		virtual Ref<Asset> CreateAsset(AssetDeclaration& decl) override;
 		virtual Ref<Asset> LoadAsset(AssetDeclaration& decl) override;
 		virtual void SaveAsset(AssetDeclaration& decl, Ref<Asset> asset) override;

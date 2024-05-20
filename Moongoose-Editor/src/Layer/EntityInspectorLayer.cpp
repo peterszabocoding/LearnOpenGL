@@ -126,12 +126,6 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> materia
 
 	ImGui::Text("Material: %s", matName.c_str());
 
-	if (albedo) {
-		ImGui::Text("Albedo Map: ");
-		ImGui::SameLine();
-		GuiWidgets::DrawTextureImage(albedo->getPointerToData(), ImVec2{ 128.0f, 128.0f });
-	}
-
 	ImGui::PopID();
 	ImGui::Separator();
 }
