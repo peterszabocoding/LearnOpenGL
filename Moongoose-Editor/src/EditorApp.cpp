@@ -18,13 +18,13 @@ public:
 	EditorApp(): Application()
 	{
 		PushLayer(new ImGuiConfigLayer());
-		PushLayer(new RenderLayer());
 		PushLayer(new PerformanceLayer());
 		PushLayer(new EntityInspectorLayer());
 		PushLayer(new OutlinerLayer());
 		PushLayer(new AssetBrowserLayer());
 		PushLayer(new AssetInspectorLayer());
 		PushLayer(new ImGuiDemoLayer());
+		PushLayer(new RenderLayer());
 	}
 	virtual ~EditorApp() {}
 };

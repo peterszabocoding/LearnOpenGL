@@ -39,4 +39,4 @@
 #include "Moongoose/ECS/Entity.h"
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/ECS/RenderSystem.h"
-#include "Moongoose/ECS/EntityManager.h"
+#include "Moongoose/ECS/Systems/EntityListSystem.h"

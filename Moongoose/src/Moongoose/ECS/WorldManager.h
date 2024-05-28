@@ -20,6 +20,8 @@ namespace Moongoose {
 			if (m_LoadedWorld) CloseWorld(m_LoadedWorld);
 
 			m_LoadedWorld = CreateRef<World>();
+			m_LoadedWorld->Init();
+
 			m_LoadedWorld->m_ID = UUID();
 			m_LoadedWorld->m_Name = name;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <bitset>
 #include <glm/glm.hpp>
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -15,14 +16,20 @@
 
 namespace Moongoose {
 
-	enum class ComponentType
+	using ComponentType = std::uint8_t;
+	const ComponentType MAX_COMPONENTS = 32;
+	using Signature = std::bitset<MAX_COMPONENTS>;
+
+	/*
+	enum class ComponentType: uint8_t
 	{
 		Transform = 0,
 		Mesh,
 		Camera
 	};
+	*/
 
-	enum class LightType
+	enum class LightType: uint8_t
 	{
 		DIRECTIONAL = 0,
 		POINT,
@@ -34,11 +41,37 @@ namespace Moongoose {
 		bool m_Active = false;
 	};
 
+	struct IDComponent : public Component
+	{
+		UUID m_ID = 0;
+
+		IDComponent(UUID id = UUID()) : m_ID(id) {}
+	};
+
+	struct TagComponent: public Component
+	{
+		std::string Tag;
+
+		TagComponent() = default;
+		TagComponent(const TagComponent& other) = default;
+		TagComponent(const std::string& tag)
+			: Tag(tag) {}
+
+		operator std::string& () { return Tag; }
+		operator const std::string& () const { return Tag; }
+	};
+
 	struct TransformComponent: public Component
 	{
 		glm::vec3 m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+		TransformComponent() = default;
+		TransformComponent(
+			glm::vec3 position, 
+			glm::vec3 rotation, 
+			glm::vec3 scale): m_Position(position), m_Rotation(rotation), m_Scale(scale) {}
 
 		glm::mat4 getTransform() const {
 			return glm::translate(glm::mat4(1.0f), m_Position)
@@ -128,7 +161,10 @@ namespace Moongoose {
 
 	struct MeshComponent: public Component
 	{
-		Ref<Mesh> m_Mesh = Ref<Mesh>();
+		Ref<Mesh> m_Mesh;
+
+		MeshComponent() {};
+		MeshComponent(Ref<Mesh> mesh) : m_Mesh(mesh) {}
 	};
 
 	struct LightComponent : public Component

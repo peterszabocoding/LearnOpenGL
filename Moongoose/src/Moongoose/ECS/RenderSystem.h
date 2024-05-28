@@ -1,14 +1,17 @@
 #pragma once
 
 #include "WorldManager.h"
+#include "SystemManager.h"
 #include "Moongoose/Renderer/PerspectiveCamera.h"
 
 namespace Moongoose {
 
-	class RenderSystem
+	class RenderSystem: public System
 	{
 	public:
-		static void Run(const Ref<PerspectiveCamera>& camera, Ref<World> world);
+		virtual Signature GetSystemSignature(World* world);
+
+		void Run(const Ref<PerspectiveCamera>& camera, Ref<World> world);
 
 	};
 }

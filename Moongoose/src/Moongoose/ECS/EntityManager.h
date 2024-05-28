@@ -1,61 +1,33 @@
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
+#include <tuple>
+#include <queue>
+#include "Moongoose/Core.h"
 #include "Entity.h"
-#include "EntityMemoryPool.h"
+#include "Components.h"
 
 namespace Moongoose {
 
 	class EntityManager
 	{
 	public:
-		static EntityManager& Get()
-		{
-			static EntityManager manager;
-			return manager;
-		}
+		EntityManager();
+		~EntityManager() = default;
 
-		Entity addEntity(std::string tag);
+		Entity CreateEntity();
 
-		template<typename T>
-		T& addComponent(size_t entity)
-		{
-			return m_Pool.addComponent<T>(entity);
-		}
+		void DestroyEntity(Entity entity);
 
-		template<typename T>
-		bool hasComponent(size_t entity) {
-			return m_Pool.hasComponent<T>(entity);
-		}
+		void SetSignature(Entity entity, Signature signature);
 
-		template<typename T>
-		T& getComponent(size_t entity) {
-			return m_Pool.getComponent<T>(entity);
-		}
-
-		template<typename T>
-		std::vector<T>& getComponents() {
-			return m_Pool.getComponents<T>();
-		}
-
-		std::vector<size_t> getEntities() const;
-
-		const std::string& getTag(size_t e) const;
-
-		void setTag(size_t entityID, const std::string& newTag);
-
-		void setSelectedEntity(size_t entity);
-
-		const size_t getSelectedEntity() const;
+		Signature GetSignature(Entity entity);
 
 	private:
-		EntityManager() {};
-
-	private:
-		size_t m_SelectedEntity = -1;
-		std::vector<size_t> m_Entities;
-		EntityMemoryPool m_Pool;
+		std::queue<Entity> m_AvailableEntities{};
+		uint32_t m_LivingEntityCount{};
+		std::array<Signature, MAX_ENTITIES> m_Signatures{};
 	};
 
 }

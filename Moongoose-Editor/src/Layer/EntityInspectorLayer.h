@@ -25,7 +25,7 @@ private:
 		{
 			if (ImGui::MenuItem(entryName.c_str()))
 			{
-				T& component = WorldManager::Get().GetLoadedWorld()->AddComponent<T>(entityId);
+				//WorldManager::Get().GetLoadedWorld()->AddComponent<T>(entityId);
 				ImGui::CloseCurrentPopup();
 			}
 		}

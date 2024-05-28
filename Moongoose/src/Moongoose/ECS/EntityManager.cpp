@@ -1,54 +1,47 @@
 #include "mgpch.h"
 #include "EntityManager.h"
 
-#include "EntityMemoryPool.h"
-
 namespace Moongoose {
-
-	Entity EntityManager::addEntity(std::string tag)
+	
+	EntityManager::EntityManager()
 	{
-		bool isTagReserved = m_Pool.isTagReserved(tag);
-
-		Entity e = m_Pool.addEntity(tag);
-
-		if (isTagReserved)
+		for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
 		{
-			m_Pool.setTag(e, tag + std::to_string(e));
+			m_AvailableEntities.push(entity);
 		}
-
-		m_Pool.addComponent<TransformComponent>(e);
-		return m_Entities.emplace_back(e);
 	}
 
-	std::vector<size_t> EntityManager::getEntities() const
+	Entity EntityManager::CreateEntity()
 	{
-		std::vector<Entity> m_ActiveEntities;
-		for (auto& e : m_Entities)
-		{
-			if (m_Pool.isEntityActive(e))
-				m_ActiveEntities.push_back(e);
-		}
-		return m_ActiveEntities;
+		MG_ASSERT(m_LivingEntityCount < MAX_ENTITIES, "Max number of entities exceeded!");
+
+		Entity e = m_AvailableEntities.front();
+		m_AvailableEntities.pop();
+		++m_LivingEntityCount;
+		return e;
 	}
 
-	const std::string& EntityManager::getTag(size_t e) const
+	void EntityManager::DestroyEntity(Entity entity)
 	{
-		return m_Pool.getTag(e);
+		MG_ASSERT(entity < MAX_ENTITIES, "Entity out of range");
+
+		m_Signatures[entity].reset();
+		m_AvailableEntities.push(entity);
+		--m_LivingEntityCount;
 	}
 
-	void EntityManager::setTag(size_t e, const std::string& newTag)
+	void EntityManager::SetSignature(Entity entity, Signature signature)
 	{
-		return m_Pool.setTag(e, newTag);
+		MG_ASSERT(entity < MAX_ENTITIES, "Entity out of range");
+
+		m_Signatures[entity] = signature;
 	}
 
-	void EntityManager::setSelectedEntity(size_t entity)
+	Signature EntityManager::GetSignature(Entity entity)
 	{
-		m_SelectedEntity = entity;
-	}
+		MG_ASSERT(entity < MAX_ENTITIES, "Entity out of range");
 
-	const size_t EntityManager::getSelectedEntity() const
-	{
-		return m_SelectedEntity;
+		return m_Signatures[entity];
 	}
 
 }

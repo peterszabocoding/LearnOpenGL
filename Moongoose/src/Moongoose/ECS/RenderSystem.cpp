@@ -9,7 +9,6 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "Moongoose/Renderer/Renderer.h"
-#include "Moongoose/ECS/EntityManager.h"
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/ShaderManager.h"
@@ -33,17 +32,24 @@ namespace Moongoose {
 		}
 	}
 
+	Signature RenderSystem::GetSystemSignature(Moongoose::World* world)
+	{
+		Signature signature;
+		signature.set(world->GetComponentType<TransformComponent>());
+		signature.set(world->GetComponentType<MeshComponent>());
+
+		return signature;
+	}
+
 	void RenderSystem::Run(const Ref<PerspectiveCamera>& camera, Ref<World> world)
 	{
 		LightComponent directionalLightComponent;
 		TransformComponent directionalLightTransformComponent;
 
-		auto& lightComponents = world->GetComponents<LightComponent>();
+		std::vector<LightComponent> lightComponents = world->GetComponentsByType<LightComponent>();
 		for (size_t i = 0; i < lightComponents.size(); i++)
 		{
-			auto& cLight = lightComponents[i];
-			if (!cLight.m_Active) continue;
-
+			LightComponent cLight = lightComponents[i];
 			if (cLight.m_Type == LightType::DIRECTIONAL)
 			{
 				directionalLightComponent = cLight;
@@ -51,18 +57,17 @@ namespace Moongoose {
 			}
 		}
 
-		auto& meshComponents = world->GetComponents<MeshComponent>();
-		for (size_t i = 0; i < meshComponents.size(); i++)
+		for (auto const& entity : m_Entities)
 		{
-			MeshComponent& cMesh = meshComponents[i];
-			if (!cMesh.m_Active || !cMesh.m_Mesh) continue;
+			TransformComponent transformComponent = world->GetComponent<TransformComponent>(entity);
+			MeshComponent meshComponent = world->GetComponent<MeshComponent>(entity);
 
-			TransformComponent& cTransform = world->GetComponent<TransformComponent>(i);
-			std::vector<Ref<Material>> materials = cMesh.m_Mesh->GetMaterials();
+			if (!meshComponent.m_Mesh) continue;
 
+			std::vector<Ref<Material>> materials = meshComponent.m_Mesh->GetMaterials();
 			for (auto& mat : materials)
 			{
-				auto& shader = ShaderManager::Get().GetShaderByType(mat->getShaderType());
+				Ref<Shader> shader = ShaderManager::Get().GetShaderByType(mat->getShaderType());
 				shader->Bind();
 				shader->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
 				shader->SetDirectionalLight(
@@ -70,44 +75,21 @@ namespace Moongoose {
 					directionalLightComponent.m_Color,
 					directionalLightComponent.m_Intensity);
 
-				shader->SetModelTransform(TransformComponent::GetModelMatrix(cTransform));
-				shader->SetEntityID(i);
+				shader->SetModelTransform(TransformComponent::GetModelMatrix(transformComponent));
+				shader->SetEntityID(entity);
 				shader->Unbind();
 			}
 
-			for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
+			for (const Ref<SubMesh>& submesh : meshComponent.m_Mesh->GetSubmeshes())
 			{
-				auto& mat = materials[submesh->materialIndex];
-				auto& shader = ShaderManager::Get().GetShaderByType(mat->getShaderType());
-				
+				Ref<Material> material = materials[submesh->materialIndex];
+				Ref<Shader> shader = ShaderManager::Get().GetShaderByType(material->getShaderType());
+
 				shader->Bind();
-				mat->bind();
+				material->bind();
 				Renderer::RenderMesh(submesh->vertexArray);
 				shader->Unbind();
 			}
-
-			/*
-			if (cMesh.m_DebugShader)
-			{
-				cMesh.m_DebugShader->Bind();
-				cMesh.m_DebugShader->SetCamera(
-					m_RenderCamera->getCameraPosition(),
-					m_RenderCamera->getViewMatrix(),
-					m_RenderCamera->getProjection()
-				);
-
-				TransformComponent& cTransform = EntityManager::Get().getComponent<TransformComponent>(i);
-				cMesh.m_DebugShader->SetModelTransform(getModelMatrix(cTransform));
-
-				Renderer::RenderMesh(BoundingBox(
-					cMesh.m_Mesh->GetBounds().pMin,
-					cMesh.m_Mesh->GetBounds().pMax)->GetVertexArray());
-
-				cMesh.m_DebugShader->Unbind();
-			}
-			
-			*/
-			
 		}
 	}
 }
