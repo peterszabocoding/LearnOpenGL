@@ -43,6 +43,11 @@ namespace Moongoose {
 			m_SystemManager->EntityDestroyed(entity);
 		}
 
+		uint32_t GetEntityCount() const
+		{
+			return m_EntityManager->GetLivingEntityCount();
+		}
+
 		void SetSelectedEntity(Entity entity)
 		{
 			m_SelectedEntity = entity;

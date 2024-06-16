@@ -151,27 +151,38 @@ namespace Moongoose {
 
 	class Texture2D : public Texture {
 	public:
-		static Ref<Texture2D> Create(TextureSpecs specs);
+		static Ref<Texture2D> Create();
 
 		virtual AssetType getAssetType() const override { return AssetType::Texture; }
 		static AssetType GetStaticAssetType() { return AssetType::Texture; }
 
-		virtual void resize(const glm::uvec2& size) = 0;
-		virtual void resize(const uint32_t width, const uint32_t height) = 0;
+		virtual void Resize(const glm::uvec2& size) = 0;
+		virtual void Resize(const uint32_t width, const uint32_t height) = 0;
 
-		virtual void loadData(void* data, uint32_t width, uint32_t height, uint8_t bitDepth) = 0;
+		virtual void LoadData(TextureSpecs specs, void* data) = 0;
+		virtual void UnloadData() = 0;
 
-		virtual bool isLoaded() const = 0;
-		virtual const std::string& getPath() const = 0;
+		virtual bool IsLoaded() const = 0;
+		virtual const std::string& GetPath() const = 0;
 
-		virtual void* getPointerToData() = 0;
-		virtual Buffer getBuffer() = 0;
+		virtual void* GetPointerToData() = 0;
+		virtual Buffer GetBuffer() = 0;
 
 		virtual TextureType getType() const override { return TextureType::Texture2D; }
 
-		TextureWrap getTextureWrap() const { return m_TextureSpecs.TextureWrap; }
-		TextureFilter getTextureFilter() const { return m_TextureSpecs.TextureFilter; }
-		TextureFormat getTextureFormat() const { return m_TextureFormat; }
+		TextureWrap GetTextureWrap() const { return m_TextureSpecs.TextureWrap; }
+		void SetTextureWrap(const TextureWrap textureWrap)
+		{
+			m_TextureSpecs.TextureWrap = textureWrap;
+		} 
+
+		TextureFilter GetTextureFilter() const { return m_TextureSpecs.TextureFilter; }
+		void SetTextureFilter(const TextureFilter textureFilter)
+		{
+			m_TextureSpecs.TextureFilter = textureFilter;
+		}
+
+		TextureFormat GetTextureFormat() const { return m_TextureFormat; }
 
 	protected:
 		TextureSpecs m_TextureSpecs;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Moongoose/Core.h"
-#include "Entity.h"
 #include "World.h"
 
 namespace Moongoose {
@@ -15,38 +14,15 @@ namespace Moongoose {
 			return manager;
 		}
 
-		Ref<World> CreateWorld(const std::string& name)
-		{
-			if (m_LoadedWorld) CloseWorld(m_LoadedWorld);
-
-			m_LoadedWorld = CreateRef<World>();
-			m_LoadedWorld->Init();
-
-			m_LoadedWorld->m_ID = UUID();
-			m_LoadedWorld->m_Name = name;
-
-			return m_LoadedWorld;
-		}
-
-		void CloseWorld(Ref<World> world)
-		{
-
-		}
-
-		Ref<World> LoadWorld(const std::string& sceneFile)
-		{
-
-		}
-
-		void SaveWorld(const std::string& sceneFile, Ref<World> scene)
-		{
-
-		}
+		Ref<World> CreateWorld(const std::string& name);
+		Ref<World> LoadWorld(const std::string& sceneFile);
+		void SaveWorld(const std::string& sceneFile) const;
+		void CloseWorld(Ref<World> world);
 
 		const Ref<World>& GetLoadedWorld() const { return m_LoadedWorld; }
 
 	private:
-		WorldManager() {};
+		WorldManager() {}
 		~WorldManager() = default;
 
 	private:

@@ -4,13 +4,15 @@
 #include "Moongoose/Asset/AssetManager.h"
 #include "Moongoose/Asset/AssetLoader.h"
 
+#define BIND_FUNC(x) std::bind(&x, this, std::placeholders::_1)
+
 void AssetBrowserLayer::onAttach()
 {
     auto& assetManager = Moongoose::AssetManager::Get();
-    m_IconAssetUnknown = assetManager.LoadAsset<Moongoose::Texture2D>("iconAssetUnknown", "Resource\\icon\\icon_asset_unknown.png");
-    m_IconAssetMesh = assetManager.LoadAsset<Moongoose::Texture2D>("iconAssetMesh", "Resource\\icon\\icon_asset_mesh.png");
-    m_IconAssetTexture = assetManager.LoadAsset<Moongoose::Texture2D>("iconAssetTexture", "Resource\\icon\\icon_asset_texture.png");
-    m_IconAssetMaterial = assetManager.LoadAsset<Moongoose::Texture2D>("iconAssetMaterial", "Resource\\icon\\icon_asset_material.png");
+    m_IconAssetUnknown = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetUnknown", "res\\icon\\icon_asset_unknown.png");
+    m_IconAssetMesh = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetMesh", "res\\icon\\icon_asset_mesh.png");
+    m_IconAssetTexture = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetTexture", "res\\icon\\icon_asset_texture.png");
+    m_IconAssetMaterial = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetMaterial", "res\\icon\\icon_asset_material.png");
 }
 
 void AssetBrowserLayer::onImGuiRender()
@@ -21,12 +23,12 @@ void AssetBrowserLayer::onImGuiRender()
 	static size_t item_current_idx = 0;
 
 	std::vector<std::string> listItems;
-	std::vector<Ref<Moongoose::Asset>> assets;
+	std::vector<Moongoose::AssetDeclaration> decls;
 
-	for (const auto& e : Moongoose::AssetManager::Get().GetLoadedAssets()) {
-		auto& [id, asset] = e;
-		listItems.push_back(asset->m_Name);
-		assets.push_back(asset);
+	for (const auto& e : Moongoose::AssetManager::Get().GetAssetRegistry()) {
+		auto& [id, decl] = e;
+		listItems.push_back(decl.Name);
+        decls.push_back(decl);
 	}
 
     ImVec2 windowSize = ImGui::GetWindowSize();
@@ -38,7 +40,7 @@ void AssetBrowserLayer::onImGuiRender()
         return;
     }
 
-    for (int n = 0; n < assets.size(); n++)
+    for (int n = 0; n < decls.size(); n++)
     {
         float buttonPosX = padding.x + (n % lineLength) * buttonSize.x + (n % lineLength) * padding.x;
         float buttonPosY = 25.0f + padding.y + (n / lineLength) * padding.y + (n / lineLength) * buttonSize.y;
@@ -48,22 +50,26 @@ void AssetBrowserLayer::onImGuiRender()
         ImGui::PushID(n);
         if ((n % lineLength) != 0) ImGui::SameLine();
 
+        std::string buttonId = std::to_string(decls[n].ID);
+
         Ref<Moongoose::Texture2D> icon;
-        switch (assets[n]->getAssetType())
+        switch (decls[n].Type)
         {
-            case Moongoose::AssetType::Mesh:
-                GuiWidgets::ImageButtonWithText(m_IconAssetMesh, assets[n]->m_Name, buttonPos, buttonSize);
+			case Moongoose::AssetType::Mesh:
+				icon = m_IconAssetMesh;
                 break;
             case Moongoose::AssetType::Texture:
-                GuiWidgets::ImageButtonWithText(m_IconAssetTexture, assets[n]->m_Name, buttonPos, buttonSize);
+                icon = m_IconAssetTexture;
                 break;
             case Moongoose::AssetType::Material:
-                GuiWidgets::ImageButtonWithText(m_IconAssetMaterial, assets[n]->m_Name, buttonPos, buttonSize);
+                icon = m_IconAssetMaterial;
                 break;
             default:
-                GuiWidgets::ImageButtonWithText(m_IconAssetUnknown, assets[n]->m_Name, buttonPos, buttonSize);
+                icon = m_IconAssetUnknown;
                 break;
         }
+
+        GuiWidgets::ImageButtonWithText(buttonId.c_str(), icon, decls[n].Name, buttonPos, buttonSize, BIND_FUNC(AssetBrowserLayer::OnButtonClicked));
 
         /*
         // Our buttons are both drag sources and drag targets here!
@@ -94,4 +100,9 @@ void AssetBrowserLayer::onImGuiRender()
     }
 
 	ImGui::End();
+}
+
+void AssetBrowserLayer::OnButtonClicked(const char* id)
+{
+    Moongoose::AssetManager::Get().SetSelectedAsset(Moongoose::AssetManager::Get().GetAssetById(Moongoose::UUID(std::stoull(std::string(id)))));
 }

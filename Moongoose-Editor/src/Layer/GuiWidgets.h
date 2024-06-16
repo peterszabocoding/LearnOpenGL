@@ -15,9 +15,11 @@
 class GuiWidgets {
 private:
 	GuiWidgets() {}
-	~GuiWidgets() {}
+	~GuiWidgets() = default;
 
 public:
+	static void DrawButton(const std::string& label, const std::function<void()>& onButtonClicked);
+
 	static void DrawFloatControl(const std::string& label, float& values, float min, float max, float steps = 0.1f, float resetValue = 0.0f, float columnWidth = 100.0f);
 
 	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
@@ -36,28 +38,7 @@ public:
 
 	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal, const Ref<Moongoose::Texture2D>& imageHovered, const Ref<Moongoose::Texture2D>& imagePressed,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-		ImVec2 rectMin, ImVec2 rectMax)
-	{
-		auto* drawList = ImGui::GetWindowDrawList();
-		if (ImGui::IsItemActive())
-			drawList->AddImage(
-				imagePressed->getPointerToData(), 
-				rectMin, rectMax, 
-				ImVec2(0, 0), ImVec2(1, 1), 
-				tintPressed);
-		else if (ImGui::IsItemHovered())
-			drawList->AddImage(
-				imageHovered->getPointerToData(), 
-				rectMin, rectMax, 
-				ImVec2(0, 0), ImVec2(1, 1),
-				tintHovered);
-		else
-			drawList->AddImage(
-				imageNormal->getPointerToData(),
-				rectMin, rectMax, 
-				ImVec2(0, 0), ImVec2(1, 1), 
-				tintNormal);
-	};
+		ImVec2 rectMin, ImVec2 rectMax);
 
 	static void DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal, const Ref<Moongoose::Texture2D>& imageHovered, const Ref<Moongoose::Texture2D>& imagePressed,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
@@ -92,24 +73,6 @@ public:
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
 
-	static void ImageButtonWithText(const Ref<Moongoose::Texture2D>& icon, const std::string& text, ImVec2 buttonPos, ImVec2 buttonSize)
-	{
-		ImGui::PushID(text.c_str());
-
-		ImGui::SetCursorPos(buttonPos);
-		ImGui::Button("", buttonSize);
-
-		ImVec2 imgPadding = ImVec2{ 20.0f, 20.0f };
-		ImVec2 imgSize = { buttonSize.x - 4 * imgPadding.x, buttonSize.x - 4 * imgPadding.y };
-
-		ImGui::SetCursorPos({ buttonPos.x + 2 * imgPadding.x, buttonPos.y + 2 * imgPadding.y });
-		ImGui::Image(icon->getPointerToData(), imgSize);
-
-		ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
-		ImGui::SetCursorPos({ buttonPos.x + (buttonSize.x - text_size.x) * 0.5f, buttonPos.y + buttonSize.y - 1.5f * imgPadding.y });
-		ImGui::Text(text.c_str());
-
-		ImGui::PopID();
-	}
+	static void ImageButtonWithText(const char* id, const Ref<Moongoose::Texture2D>& icon, const std::string& text, ImVec2 buttonPos, ImVec2 buttonSize, const std::function<void(const char*)>& onButtonClicked);
 };
 

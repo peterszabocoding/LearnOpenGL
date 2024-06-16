@@ -24,6 +24,8 @@ namespace Moongoose {
 
 		Signature GetSignature(Entity entity);
 
+		uint32_t GetLivingEntityCount() const { return m_LivingEntityCount; }
+
 	private:
 		std::queue<Entity> m_AvailableEntities{};
 		uint32_t m_LivingEntityCount{};

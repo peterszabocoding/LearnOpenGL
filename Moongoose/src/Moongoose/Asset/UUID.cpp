@@ -10,6 +10,7 @@ namespace Moongoose {
 
 	UUID::UUID(): m_UUID(s_UniformDistribution(s_Engine)) {}
 	UUID::UUID(uint64_t uuid): m_UUID(uuid) {}
+	UUID::UUID(std::string stringId): m_UUID(std::stoull(stringId)) {}
 	UUID::UUID(const UUID& other): m_UUID(other.m_UUID) {}
 
 }

@@ -7,25 +7,26 @@ namespace Moongoose {
 	class OpenGLTexture2D : public Texture2D
 	{
 	public:
-		OpenGLTexture2D(TextureSpecs specs);
+		OpenGLTexture2D();
 		virtual ~OpenGLTexture2D();
 
 		virtual void bind(uint32_t textureUnit = 0) const override;
 
-		virtual void resize(const glm::uvec2& size) override;
-		virtual void resize(const uint32_t width, const uint32_t height) override;
+		virtual void Resize(const glm::uvec2& size) override;
+		virtual void Resize(const uint32_t width, const uint32_t height) override;
 
-		virtual void loadData(void* data, uint32_t width, uint32_t height, uint8_t bitDepth) override;
+		virtual void LoadData(TextureSpecs specs, void* data) override;
+		virtual void UnloadData() override;
 
-		virtual bool isLoaded() const override;
+		virtual bool IsLoaded() const override;
 
-		virtual const std::string& getPath() const override { return m_TextureSpecs.FileLocation; };
+		virtual const std::string& GetPath() const override { return m_TextureSpecs.FileLocation; };
 		virtual TextureFormat getFormat() const override { return m_TextureFormat; }
 		virtual uint32_t getWidth() const override { return m_TextureSpecs.Width; }
 		virtual uint32_t getHeight() const override { return m_TextureSpecs.Height; }
 		virtual glm::uvec2 getSize() const override { return { m_TextureSpecs.Width, m_TextureSpecs.Height }; }
-		virtual Buffer getBuffer() override { return m_TextureData; }
-		virtual void* getPointerToData() { return (void*) m_TextureID; }
+		virtual Buffer GetBuffer() override { return m_TextureData; }
+		virtual void* GetPointerToData() { return (void*) m_TextureID; }
 
 	private:
 		GLuint m_TextureID;

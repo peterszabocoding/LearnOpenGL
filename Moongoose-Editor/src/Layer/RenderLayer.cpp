@@ -16,86 +16,19 @@ void RenderLayer::onAttach()
 	createCamera();
 
 	AssetManager& assetManager = AssetManager::Get();
-	ShaderManager& shaderManager = ShaderManager::Get();
 	WorldManager& worldManager = WorldManager::Get();
+	assetManager.BuildAssetRegistry();
 
 	// Load assets
-	shaderManager.AssignShaderToType(ShaderType::STATIC, "Shader\\shader.vert", "Shader\\shader.frag");
-
-	m_CheckerTexture = assetManager.LoadAsset<Moongoose::Texture2D>("T_Checker_01_C", "Assets\\Texture\\checker_2k_c.png");
-	m_ColorCheckerTexture = assetManager.LoadAsset<Moongoose::Texture2D>("T_Checker_01_B", "Assets\\Texture\\checker_2k_b.png");
-
-	Ref<Moongoose::Material> m_CheckerMaterial = assetManager.LoadAsset<Moongoose::Material>("M_Checker", "Assets\\Material\\");
-	Ref<Moongoose::Material> m_ColorCheckerMaterial = assetManager.LoadAsset<Moongoose::Material>("M_Color_Checker", "Assets\\Material\\");
-
-	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
-	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
-
-	assetManager.SaveAsset<Moongoose::Material>(m_CheckerMaterial);
-	assetManager.SaveAsset<Moongoose::Material>(m_ColorCheckerMaterial);
-
-	auto& loadedAssets = assetManager.GetLoadedAssets();
+	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
 
 	// Create World
-	m_World = worldManager.CreateWorld("Main_Scene");
+	m_World = worldManager.LoadWorld("Content\\Worlds\\Main_Scene.mgworld");
 
-	// Register Components
-	{
-		m_World->RegisterComponent<IDComponent>();
-		m_World->RegisterComponent<TagComponent>();
-		m_World->RegisterComponent<TransformComponent>();
-		m_World->RegisterComponent<MeshComponent>();
-		m_World->RegisterComponent<LightComponent>();
-	}
+	//m_World = worldManager.CreateWorld("Main_Scene");
+	m_RenderSystem = m_World->GetSystem<RenderSystem>();
 
-	// Register Systems
-	{
-		m_World->RegisterSystem<EntityListSystem>();
-		m_RenderSystem = m_World->RegisterSystem<RenderSystem>();
-	}
-
-	// Directional Light
-	{
-		Entity directionalLight = m_World->CreateEntity("Directional Light");
-
-		TransformComponent& transform = m_World->GetComponent<TransformComponent>(directionalLight);
-		transform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
-
-		LightComponent directionalLightComponent;
-		directionalLightComponent.m_Type = LightType::DIRECTIONAL;
-
-		m_World->AddComponent<LightComponent>(directionalLight, directionalLightComponent);
-	}
-
-	// Ground Plane
-	{
-		Entity groundEntity = m_World->CreateEntity("Ground");
-
-		Ref<Mesh> planeMesh = assetManager.LoadAsset<Mesh>("SM_Plane", "Assets\\Mesh\\Plane.obj");
-		planeMesh->SetMaterial(0, m_CheckerMaterial);
-
-		TransformComponent& transform = m_World->GetComponent<TransformComponent>(groundEntity);
-		transform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
-		transform.m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-		transform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
-
-		m_World->AddComponent<MeshComponent>(groundEntity, MeshComponent(planeMesh));
-	}
-	
-	// Monkey hat
-	{
-		Entity monkeyHatEntity = m_World->CreateEntity("Monkey_Hat");
-
-		Ref<Mesh> monkeyHat = assetManager.LoadAsset<Mesh>("SM_Monkey_Hat", "Assets\\Mesh\\Monkey_Hat.fbx");
-		monkeyHat->GetMaterial(0)->setAlbedo(m_ColorCheckerTexture);
-		monkeyHat->GetMaterial(1)->setAlbedo(m_CheckerTexture);
-
-		assetManager.SaveAsset(monkeyHat->GetMaterial(0));
-		assetManager.SaveAsset(monkeyHat->GetMaterial(1));
-
-		m_World->AddComponent<MeshComponent>(monkeyHatEntity, MeshComponent(monkeyHat));
-	}
-
+	//buildWorld();
 }
 
 void RenderLayer::onDetach(){}
@@ -130,12 +63,12 @@ void RenderLayer::onUpdate(float deltaTime)
 	m_RenderBuffer->Unbind();
 }
 
-void RenderLayer::onEvent(Moongoose::Event& event)
+void RenderLayer::onEvent(Event& event)
 {
 	m_EditorCamera->onEvent(event);
-	Moongoose::EventDispatcher dispatcher(event);
-	dispatcher.Dispatch<Moongoose::MousePressedEvent>(BIND_EVENT_FUNC(RenderLayer::onMouseButtonPresed));
-	dispatcher.Dispatch<Moongoose::KeyPressedEvent>(BIND_EVENT_FUNC(RenderLayer::onKeyPressed));
+	EventDispatcher dispatcher(event);
+	dispatcher.Dispatch<MousePressedEvent>(BIND_EVENT_FUNC(RenderLayer::onMouseButtonPresed));
+	dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNC(RenderLayer::onKeyPressed));
 }
 
 void RenderLayer::onImGuiRender()
@@ -168,7 +101,7 @@ void RenderLayer::onImGuiRender()
 	Entity selectedEntity = m_World->GetSelectedEntity();
 	if (selectedEntity != -1)
 	{
-		auto& entityTransform = m_World->GetComponent<Moongoose::TransformComponent>(selectedEntity);
+		auto& entityTransform = m_World->GetComponent<TransformComponent>(selectedEntity);
 
 		ImGuizmo::AllowAxisFlip(false);
 		ImGuizmo::SetOrthographic(false);
@@ -179,7 +112,7 @@ void RenderLayer::onImGuiRender()
 			m_ViewportBounds[1].x - m_ViewportBounds[0].x, 
 			m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
-		auto& transform = entityTransform.getTransform();
+		auto transform = entityTransform.getTransform();
 
 		ImGuizmo::Manipulate(
 			glm::value_ptr(m_EditorCamera->getViewMatrix()),
@@ -294,4 +227,67 @@ bool RenderLayer::isMouseInWindow() const
 {
 	glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < (int)viewportSize.x && m_WindowMousePos.y < (int)viewportSize.y;
+}
+
+void RenderLayer::buildWorld()
+{
+	WorldManager& worldManager = WorldManager::Get();
+	AssetManager& assetManager = AssetManager::Get();
+
+	const Ref<Texture2D>& m_CheckerTexture = assetManager.CreateAsset<Texture2D>("T_Checker_01_C", "Content\\Texture\\checker_2k_c.png");
+	const Ref<Texture2D>& m_ColorCheckerTexture = assetManager.CreateAsset<Texture2D>("T_Checker_01_B", "Content\\Texture\\checker_2k_b.png");
+
+	const Ref<Material>& m_CheckerMaterial = assetManager.CreateAsset<Material>("M_Checker", "Content\\Material\\");
+	const Ref<Material>& m_ColorCheckerMaterial = assetManager.CreateAsset<Material>("M_Color_Checker", "Content\\Material\\");
+
+	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
+	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
+
+	assetManager.SaveAsset<Material>(m_CheckerMaterial);
+	assetManager.SaveAsset<Material>(m_ColorCheckerMaterial);
+
+	// Directional Light
+	{
+		Entity directionalLight = m_World->CreateEntity("Directional Light");
+
+		TransformComponent& transform = m_World->GetComponent<TransformComponent>(directionalLight);
+		transform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
+
+		LightComponent directionalLightComponent;
+		directionalLightComponent.m_Type = LightType::DIRECTIONAL;
+
+		m_World->AddComponent<LightComponent>(directionalLight, directionalLightComponent);
+	}
+
+	// Ground Plane
+	{
+		Entity groundEntity = m_World->CreateEntity("Ground");
+
+		Ref<Mesh> planeMesh = assetManager.CreateAsset<Mesh>("SM_Plane", "Content\\Mesh\\Plane.obj");
+		planeMesh->SetMaterial(0, m_CheckerMaterial);
+
+		TransformComponent& transform = m_World->GetComponent<TransformComponent>(groundEntity);
+		transform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
+		transform.m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+		transform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
+
+		m_World->AddComponent<MeshComponent>(groundEntity, MeshComponent(planeMesh));
+	}
+
+	// Monkey hat
+	{
+		Entity monkeyHatEntity = m_World->CreateEntity("Monkey_Hat");
+
+		Ref<Mesh> monkeyHat = assetManager.CreateAsset<Mesh>("SM_Monkey_Hat", "Content\\Mesh\\Monkey_Hat.fbx");
+		monkeyHat->GetMaterial(0)->setAlbedo(m_ColorCheckerTexture);
+		monkeyHat->GetMaterial(1)->setAlbedo(m_CheckerTexture);
+
+		assetManager.SaveAsset(monkeyHat);
+		assetManager.SaveAsset(monkeyHat->GetMaterial(0));
+		assetManager.SaveAsset(monkeyHat->GetMaterial(1));
+
+		m_World->AddComponent<MeshComponent>(monkeyHatEntity, MeshComponent(monkeyHat));
+	}
+
+	worldManager.SaveWorld("Content\\Worlds\\demo_world.mgworld");
 }

@@ -25,6 +25,8 @@ private:
 	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override;
 	bool isMouseInWindow() const;
 
+	void buildWorld();
+
 private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
 
@@ -33,11 +35,7 @@ private:
 	Scope<Moongoose::Framebuffer> m_RenderBuffer;
 	Scope<Moongoose::Framebuffer> m_PreviewRenderBuffer;
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
-
 	Ref<Moongoose::RenderSystem> m_RenderSystem;
-
-	Ref<Moongoose::Texture2D> m_CheckerTexture = nullptr;
-	Ref<Moongoose::Texture2D> m_ColorCheckerTexture = nullptr;
 
 	size_t m_GizmoMode = 7;
 	int m_HoveredEntityId = -1;

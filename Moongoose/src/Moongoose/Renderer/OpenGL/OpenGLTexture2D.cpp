@@ -1,13 +1,13 @@
 #include "mgpch.h"
 #include "OpenGLTexture2D.h"
+
 #include "Moongoose/Log.h"
 
 namespace Moongoose {
 
-	OpenGLTexture2D::OpenGLTexture2D(TextureSpecs specs)
+	OpenGLTexture2D::OpenGLTexture2D()
 	{
-		m_TextureSpecs = specs;
-		m_TextureFormat = specs.TextureFormat;
+		
 	}
 
 	OpenGLTexture2D::~OpenGLTexture2D()
@@ -22,18 +22,21 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_2D, m_TextureID);
 	}
 
-	void OpenGLTexture2D::resize(const glm::uvec2& size)
+	void OpenGLTexture2D::Resize(const glm::uvec2& size)
 	{
 	}
 
-	void OpenGLTexture2D::resize(const uint32_t width, const uint32_t height)
+	void OpenGLTexture2D::Resize(const uint32_t width, const uint32_t height)
 	{
 	}
 
-	void OpenGLTexture2D::loadData(void* data, uint32_t width, uint32_t height, uint8_t bitDepth)
+	void OpenGLTexture2D::LoadData(TextureSpecs specs, void* data)
 	{
+		m_TextureSpecs = specs;
+		m_TextureFormat = specs.TextureFormat;
+
 		m_TextureData.Data = data;
-		m_TextureData.Size = width * height * bitDepth;
+		m_TextureData.Size = m_TextureSpecs.Width * m_TextureSpecs.Height * m_TextureSpecs.BitDepth;
 
 		GLenum internalFormat = 0, dataFormat = 0;
 
@@ -64,7 +67,16 @@ namespace Moongoose {
 		glTextureParameteri(m_TextureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
-	bool OpenGLTexture2D::isLoaded() const
+	void OpenGLTexture2D::UnloadData()
+	{
+		glDeleteTextures(1, &m_TextureID);
+
+		m_TextureID = 0;
+		m_TextureData.Data = nullptr;
+		m_TextureData.Size = 0;
+	}
+
+	bool OpenGLTexture2D::IsLoaded() const
 	{
 		return m_TextureData;
 	}

@@ -13,7 +13,7 @@ namespace Moongoose {
 
 	Entity EntityManager::CreateEntity()
 	{
-		MG_ASSERT(m_LivingEntityCount < MAX_ENTITIES, "Max number of entities exceeded!");
+		MG_ASSERT(m_LivingEntityCount < MAX_ENTITIES, "Max number of entities exceeded!")
 
 		Entity e = m_AvailableEntities.front();
 		m_AvailableEntities.pop();

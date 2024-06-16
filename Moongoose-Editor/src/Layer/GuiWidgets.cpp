@@ -1,5 +1,14 @@
 #include "GuiWidgets.h"
 
+void GuiWidgets::DrawButton(const std::string& label, const std::function<void()>& onButtonClicked)
+{
+	ImVec2 labelSize = ImGui::CalcTextSize(label.c_str());
+	labelSize.x += 15.0f;
+	labelSize.y += 15.0f;
+
+	if (ImGui::Button(label.c_str(), labelSize)) onButtonClicked();
+}
+
 void GuiWidgets::DrawFloatControl(const std::string& label, float& values, float min, float max, float steps, float resetValue, float columnWidth)
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -239,4 +248,59 @@ void GuiWidgets::DrawCheckBox(const char* title, bool* isChecked)
 void GuiWidgets::DrawTextureImage(void* data, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
 {
 	ImGui::Image(data, size, uv0, uv1, tint_col, border_col);
+}
+
+void GuiWidgets::DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal,
+	const Ref<Moongoose::Texture2D>& imageHovered, const Ref<Moongoose::Texture2D>& imagePressed, ImU32 tintNormal,
+	ImU32 tintHovered, ImU32 tintPressed, ImVec2 rectMin, ImVec2 rectMax)
+{
+	auto* drawList = ImGui::GetWindowDrawList();
+	if (ImGui::IsItemActive())
+	{
+		drawList->AddImage(
+			imagePressed->GetPointerToData(),
+			rectMin, rectMax,
+			ImVec2(0, 0), ImVec2(1, 1),
+			tintPressed);
+	}
+	else if (ImGui::IsItemHovered())
+	{
+		drawList->AddImage(
+			imageHovered->GetPointerToData(),
+			rectMin, rectMax,
+			ImVec2(0, 0), ImVec2(1, 1),
+			tintHovered);
+	}
+	else
+	{
+		drawList->AddImage(
+			imageNormal->GetPointerToData(),
+			rectMin, rectMax,
+			ImVec2(0, 0), ImVec2(1, 1),
+			tintNormal);
+	}
+}
+
+void GuiWidgets::ImageButtonWithText(const char* id, const Ref<Moongoose::Texture2D>& icon, const std::string& text,
+	ImVec2 buttonPos, ImVec2 buttonSize, const std::function<void(const char*)>& onButtonClicked)
+{
+	ImGui::PushID(id);
+	ImGui::SetCursorPos(buttonPos);
+
+	if (ImGui::Button("", buttonSize))
+	{
+		onButtonClicked(id);
+	}
+
+	constexpr ImVec2 imgPadding = ImVec2{ 20.0f, 20.0f };
+	const ImVec2 imgSize = { buttonSize.x - 4 * imgPadding.x, buttonSize.x - 4 * imgPadding.y };
+	const ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+
+	ImGui::SetCursorPos({ buttonPos.x + 2 * imgPadding.x, buttonPos.y + 2 * imgPadding.y });
+	ImGui::Image(icon->GetPointerToData(), imgSize);
+
+	ImGui::SetCursorPos({ buttonPos.x + (buttonSize.x - textSize.x) * 0.5f, buttonPos.y + buttonSize.y - 1.5f * imgPadding.y });
+	ImGui::Text(text.c_str());
+
+	ImGui::PopID();
 }

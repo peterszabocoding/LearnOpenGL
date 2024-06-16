@@ -14,6 +14,9 @@ public:
 	virtual void onImGuiRender() override;
 
 private:
+	void OnButtonClicked(const char* id);
+
+private:
 	Ref<Moongoose::Texture2D> m_IconAssetUnknown;
 	Ref<Moongoose::Texture2D> m_IconAssetMesh;
 	Ref<Moongoose::Texture2D> m_IconAssetTexture;

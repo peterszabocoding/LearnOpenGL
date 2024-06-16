@@ -1,22 +1,159 @@
 #include "mgpch.h"
 #include "FileSystem.h"
 
-bool Moongoose::FileSystem::IsFileExist(const std::filesystem::path& path)
-{
-	return std::filesystem::exists(path);;
-}
+#include <iostream>
+#include <fstream>
 
-bool Moongoose::FileSystem::IsFileExist(const std::string& path)
+namespace Moongoose
 {
-	return std::filesystem::exists(std::filesystem::path(path));
-}
+	std::string FileSystem::ReadFile(const std::filesystem::path& filepath)
+	{
+		std::ifstream file(filepath);
+		std::string str;
+		std::string content;
+		while (std::getline(file, str))
+		{
+			content += str;
+			content.push_back('\n');
+		}
 
-bool Moongoose::FileSystem::MakeDir(const std::filesystem::path& directory)
-{
-	return std::filesystem::create_directories(directory);
-}
+		return content;
+	}
 
-bool Moongoose::FileSystem::MakeDir(const std::string& directory)
-{
-	return MakeDir(std::filesystem::path(directory));
+	bool FileSystem::IsFileExist(const std::filesystem::path& path)
+	{
+		return std::filesystem::exists(path);
+	}
+
+	bool FileSystem::IsFileExist(const std::string& path)
+	{
+		return std::filesystem::exists(std::filesystem::path(path));
+	}
+
+	bool FileSystem::MakeDirectory(const std::filesystem::path& directory)
+	{
+		return std::filesystem::create_directories(directory);
+	}
+
+	bool FileSystem::MakeDirectory(const std::string& directory)
+	{
+		return MakeDirectory(std::filesystem::path(directory));
+	}
+
+	bool FileSystem::IsDirectory(const std::filesystem::path& filepath)
+	{
+		return std::filesystem::is_directory(filepath);
+	}
+
+	bool FileSystem::DeleteSingleFile(const std::filesystem::path& filepath)
+	{
+		if (!IsFileExist(filepath)) return false;
+		if (std::filesystem::is_directory(filepath)) return std::filesystem::remove_all(filepath) > 0;
+			
+		return std::filesystem::remove(filepath);
+	}
+
+	bool FileSystem::MoveSingleFile(const std::filesystem::path& filepath, const std::filesystem::path& dest)
+	{
+		if (IsFileExist(dest)) return false;
+
+		std::filesystem::rename(filepath, dest);
+		return true;
+	}
+
+	bool FileSystem::CopySingleFile(const std::filesystem::path& filepath, const std::filesystem::path& dest)
+	{
+		if (IsFileExist(dest))
+			return false;
+
+		std::filesystem::copy(filepath, dest);
+		return true;
+	}
+
+	bool FileSystem::RenameSingleFile(const std::filesystem::path& filepath, const std::string& newName)
+	{
+		return MoveSingleFile(filepath, newName);
+	}
+
+	std::vector<std::filesystem::path> FileSystem::GetFilesFromDirectory(const std::filesystem::path& directoryPath)
+	{
+		std::vector<std::filesystem::path> files;
+		for (const auto& entry : std::filesystem::directory_iterator(directoryPath))
+		{
+			if (entry.is_directory()) continue;
+			files.push_back(entry.path());
+		}
+		return files;
+	}
+
+	std::vector<std::filesystem::path> FileSystem::GetFilesFromDirectoryDeep(const std::filesystem::path& directoryPath)
+	{
+		std::stack<std::filesystem::path> directories;
+		std::vector<std::filesystem::path> files;
+
+		directories.push(directoryPath);
+
+		while (!directories.empty())
+		{
+			const std::filesystem::path dir = directories.top();
+			directories.pop();
+			for (const auto& entry : std::filesystem::directory_iterator(dir))
+			{
+				if (entry.is_directory())
+				{
+					directories.push(entry);
+					GetFilesFromDirectoryDeepInner(entry, files, directories);
+				}
+				else
+				{
+					files.push_back(entry.path());
+				}
+			}
+		}
+		return files;
+	}
+
+	std::vector<std::filesystem::path> FileSystem::GetFilesFromDirectoryDeep(const std::filesystem::path& directoryPath,
+		const std::string& extensionFilter)
+	{
+		std::vector<std::filesystem::path> files = GetFilesFromDirectoryDeep(directoryPath);
+		std::vector<std::filesystem::path> filteredFiles;
+
+		std::copy_if(files.begin(), files.end(), std::back_inserter(filteredFiles), [&](const std::filesystem::path& file) 
+			{ return file.extension() == extensionFilter; }
+		);
+
+		return filteredFiles;
+	}
+
+	std::vector<std::filesystem::path> FileSystem::GetFilesByExtension(const std::filesystem::path& directoryPath, const std::string& extension)
+	{
+		std::vector<std::filesystem::path> files;
+		for (const auto& entry : std::filesystem::directory_iterator(directoryPath))
+		{
+			if (entry.is_directory()) continue;
+			if (entry.path().extension() != extension) continue;
+			files.push_back(entry.path());
+		}
+		return files;
+	}
+
+	void FileSystem::GetFilesFromDirectoryDeepInner(
+		const std::filesystem::path& directoryPath, std::vector<std::filesystem::path> files,
+		std::stack<std::filesystem::path> directories)
+	{
+		while (!directories.empty())
+		{
+			const std::filesystem::path dir = directories.top();
+			directories.pop();
+			for (const auto& entry : std::filesystem::directory_iterator(dir))
+			{
+				if (entry.is_directory())
+					GetFilesFromDirectoryDeepInner(dir, files, directories);
+				else
+					files.push_back(entry.path());
+			}
+		}
+	}
+
 }

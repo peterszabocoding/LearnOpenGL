@@ -34,11 +34,11 @@ namespace Moongoose {
 			if (m_Albedo) m_Albedo->bind(0);
 		}
 
-		void setAlbedo(Ref<Texture2D> albedo) {
+		void setAlbedo(const Ref<Texture2D>& albedo) {
 			m_Albedo = albedo;
 		}
 
-		const Ref<Texture2D> getAlbedo() const { return m_Albedo; }
+		const Ref<Texture2D>& getAlbedo() const { return m_Albedo; }
 
 	private:
 		Ref<Texture2D> m_Albedo;

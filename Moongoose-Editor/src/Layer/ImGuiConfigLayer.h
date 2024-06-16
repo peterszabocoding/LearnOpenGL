@@ -9,8 +9,8 @@ public:
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		float fontSize = 18.0f;// *2.0f;
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("Fonts/opensans/OpenSans-Regular.ttf", fontSize);
-		io.Fonts->AddFontFromFileTTF("Fonts/opensans/OpenSans-ExtraBold.ttf", fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("fonts/opensans/OpenSans-Regular.ttf", fontSize);
+		io.Fonts->AddFontFromFileTTF("fonts/opensans/OpenSans-ExtraBold.ttf", fontSize);
 	}
 	virtual ~ImGuiConfigLayer() {}
 

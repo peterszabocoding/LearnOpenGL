@@ -4,9 +4,9 @@
 
 namespace Moongoose{
 
-	Ref<Texture2D> Texture2D::Create(TextureSpecs specs)
+	Ref<Texture2D> Texture2D::Create()
 	{
-		return CreateRef<OpenGLTexture2D>(specs);
+		return CreateRef<OpenGLTexture2D>();
 	}
 
 }

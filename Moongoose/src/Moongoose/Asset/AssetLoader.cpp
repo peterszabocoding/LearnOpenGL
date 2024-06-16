@@ -34,7 +34,7 @@ namespace Moongoose {
 
 	namespace Utils {
 
-		static inline void LoadSubmesh(aiMesh* mesh, Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
+		static void LoadSubmesh(const aiMesh* mesh, const Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
 		{
 			std::vector<float> vertices;
 			std::vector<unsigned int> indices;
@@ -77,24 +77,29 @@ namespace Moongoose {
 				indices.size());
 		}
 
-		static inline void LoadComplexMesh(aiNode* node, const aiScene* scene, Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
+		static void LoadComplexMesh(aiNode* node, const aiScene* scene, Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
 		{
 			for (size_t i = 0; i < node->mNumMeshes; i++) LoadSubmesh(scene->mMeshes[node->mMeshes[i]], meshAsset, boundsMin, boundsMax);
 			for (size_t i = 0; i < node->mNumChildren; i++) LoadComplexMesh(node->mChildren[i], scene, meshAsset, boundsMin, boundsMax);
 		}
 
-		static inline void LoadMeshMaterials(const aiScene* scene, Ref<Mesh>& meshAsset)
+		static void LoadMeshMaterials(const aiScene* scene, const Ref<Mesh>& meshAsset)
 		{
 			for (size_t i = 0; i < scene->mNumMaterials; i++)
 			{
-				aiMaterial* mat = scene->mMaterials[i];
+				const aiMaterial* mat = scene->mMaterials[i];
 				aiString materialName = mat->GetName();
-				Ref<Material> newMaterial = AssetManager::Get().LoadAsset<Material>(materialName.C_Str(), "Assets\\Material\\");
+				const Ref<Material> newMaterial = AssetManager::Get().CreateAsset<Material>(materialName.C_Str(), "Content\\Material\\");
 				meshAsset->AddMaterial(newMaterial);
 			}
 		}
-	}
 
+		static uint8_t* LoadImageTexture(const std::string& filePath, int& width, int& height, int& bitDepth)
+		{
+			return stbi_load(filePath.c_str(), &width, &height, &bitDepth, 0);
+		}
+		
+	}
 	
 	/* #################### MeshAssetLoader ############################*/
 
@@ -122,35 +127,76 @@ namespace Moongoose {
 		meshAsset->SetModelSource(decl.FilePath.string());
 		meshAsset->SetBounds(Bounds3(boundsMin, boundsMax));
 
-		Utils::LoadMeshMaterials(scene, meshAsset);
+		//Utils::LoadMeshMaterials(scene, meshAsset);
 
 		return meshAsset;
 	}
 
-	void MeshAssetLoader::SaveAsset(AssetDeclaration& decl, Ref<Asset> asset)
+	Ref<Asset> MeshAssetLoader::LoadAssetFromFile(AssetDeclaration& decl)
 	{
-		Ref<Mesh> meshAsset = std::static_pointer_cast<Mesh>(asset);
-		auto& filepath = std::filesystem::path(decl.FilePath);
-		auto& filename = filepath.filename().string();
-		auto& fileDir = filepath.parent_path().string();
+		std::string assetJsonString = FileSystem::ReadFile(decl.DeclFilePath);
+		auto assetJson = nlohmann::json::parse(assetJsonString);
+		std::vector <Ref<Material>> materials;
+		auto materialListJson = assetJson["materials"];
+
+		if (!materialListJson.empty())
+		{
+			for (auto materialJson : materialListJson)
+			{
+				UUID materialId = materialJson[0].get<std::string>();
+				auto& materialDecl = AssetManager::Get().GetDeclByID(materialId);
+
+				if (materialDecl.Type == AssetType::None) continue;
+				if (!materialDecl.IsDataLoaded) AssetManager::Get().LoadAssetById<Material>(materialId);
+
+				materials.push_back(AssetManager::Get().GetAssetById<Material>(materialId));
+			}
+				
+		}
+
+		Ref<Mesh> meshAsset = std::static_pointer_cast<Mesh>(LoadAsset(decl));
+		for (const auto& material : materials) meshAsset->AddMaterial(material);
+
+		return meshAsset;
+	}
+
+	Ref<Asset> MeshAssetLoader::ReloadAsset(AssetDeclaration& decl)
+	{
+		return AssetManager::Get().GetAssetById(decl.ID);
+	}
+
+	void MeshAssetLoader::SaveAsset(const Ref<Asset> asset)
+	{
+		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
+		const Ref<Mesh> meshAsset = std::static_pointer_cast<Mesh>(asset);
+
+		const auto& filepath = std::filesystem::path(decl.FilePath);
+		auto filename = filepath.filename().string();
+		const auto& fileDir = filepath.parent_path().string();
 
 		nlohmann::json j;
-		j["id"] = (uint64_t)decl.ID;
+		j["id"] = std::to_string(decl.ID);
 		j["name"] = decl.Name;
 		j["source"] = decl.FilePath;
 		j["type"] = Utils::AssetTypeToString(decl.Type);
 
-		auto& materials = meshAsset->GetMaterials();
-		if (materials.size() > 0)
+		if (auto& materials = meshAsset->GetMaterials(); !materials.empty())
 		{
-			std::vector<std::tuple<uint64_t, std::string>> materialNamesAndIds;
-			for (auto& mat : materials) materialNamesAndIds.push_back(std::tuple{ (uint64_t)mat->m_ID, mat->m_Name });
+			std::vector<std::tuple<std::string, std::string>> materialNamesAndIds;
+			materialNamesAndIds.reserve(materials.size());
+
+			for (auto& mat : materials)
+			{
+				materialNamesAndIds.emplace_back(std::to_string(mat->m_ID), mat->m_Name);
+			}
 			j["materials"] = materialNamesAndIds;
 		}
 
-		auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
+		std::string outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
 		std::ofstream o(outputFilename);
-		o << std::setw(4) << j << std::endl;
+		o << std::setw(4) << j << '\n';
+
+		decl.DeclFilePath = outputFilename;
 	}
 
 	/* #################################################################*/
@@ -165,52 +211,91 @@ namespace Moongoose {
 	Ref<Asset> TextureAssetLoader::LoadAsset(AssetDeclaration& decl)
 	{
 		int width, height, bitDepth;
-		uint8_t* textureData = nullptr;
-		textureData = stbi_load(decl.FilePath.string().c_str(), &width, &height, &bitDepth, 0);
+		uint8_t* textureData = Utils::LoadImageTexture(decl.FilePath.string(), width, height, bitDepth);
 
 		if (!textureData) {
 			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", decl.FilePath.string());
 			return nullptr;
 		}
-		else {
-			TextureSpecs specs;
-			specs.Width = width;
-			specs.Height = height;
-			specs.BitDepth = bitDepth;
-			specs.FileLocation = decl.FilePath.string();
-			specs.TextureFormat = TextureFormat::RGB;
 
-			Ref<Texture2D> texture = Texture2D::Create(specs);
-			texture->loadData(textureData, width, height, bitDepth);
+		TextureSpecs specs;
+		specs.Width = width;
+		specs.Height = height;
+		specs.BitDepth = bitDepth;
+		specs.FileLocation = decl.FilePath.string();
+		specs.TextureFormat = TextureFormat::RGB;
 
-			stbi_image_free(textureData);
+		Ref<Texture2D> texture = Texture2D::Create();
+		texture->m_ID = decl.ID;
+		texture->LoadData(specs, textureData);
 
-			texture->m_ID = decl.ID;
-			return texture;
-		}
+		stbi_image_free(textureData);
+		return texture;
 	}
 
-	void TextureAssetLoader::SaveAsset(AssetDeclaration& decl, Ref<Asset> asset)
+	Ref<Asset> TextureAssetLoader::LoadAssetFromFile(AssetDeclaration& decl)
 	{
-		Ref<Texture2D> textureAsset = std::static_pointer_cast<Texture2D>(asset);
-		auto& filepath = std::filesystem::path(decl.FilePath);
-		auto& filename = filepath.filename().string();
-		auto& fileDir = filepath.parent_path().string();
+		std::string assetJsonString = FileSystem::ReadFile(decl.DeclFilePath);
+		auto assetJson = nlohmann::json::parse(assetJsonString);
+
+		Ref<Texture2D> textureAsset = std::static_pointer_cast<Texture2D>(LoadAsset(decl));
+		textureAsset->SetTextureFilter(Utils::TextureFilterFromString(assetJson["texture_filter"]));
+		textureAsset->SetTextureWrap(Utils::TextureWrapFromString(assetJson["texture_wrap"]));
+
+		return textureAsset;
+	}
+
+	Ref<Asset> TextureAssetLoader::ReloadAsset(AssetDeclaration& decl)
+	{
+		Ref<Texture2D> texture = std::static_pointer_cast<Texture2D>(AssetManager::Get().GetAssetById(decl.ID));
+		texture->UnloadData();
+
+		int width, height, bitDepth;
+		uint8_t* textureData = Utils::LoadImageTexture(decl.FilePath.string(), width, height, bitDepth);
+
+		if (!textureData) {
+			LOG_CORE_ERROR("AssetManager.cpp | Failed to find: {0}", decl.FilePath.string());
+			return nullptr;
+		}
+
+		TextureSpecs specs;
+		specs.Width = width;
+		specs.Height = height;
+		specs.BitDepth = bitDepth;
+		specs.FileLocation = decl.FilePath.string();
+		specs.TextureFormat = TextureFormat::RGB;
+
+		texture->LoadData(specs, textureData);
+
+		stbi_image_free(textureData);
+		return texture;
+	}
+
+	void TextureAssetLoader::SaveAsset(const Ref<Asset> asset)
+	{
+		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
+		const Ref<Texture2D> textureAsset = std::static_pointer_cast<Texture2D>(asset);
+
+		const auto& filepath = std::filesystem::path(decl.FilePath);
+		auto filename = filepath.filename().string();
+		const auto& fileDir = filepath.parent_path().string();
 
 		nlohmann::json j;
-		j["id"] = (uint64_t)decl.ID;
+		j["id"] = std::to_string(decl.ID);
 		j["name"] = decl.Name;
-		j["filepath"] = decl.FilePath;
+		j["source"] = decl.FilePath;
 		j["type"] = Utils::AssetTypeToString(decl.Type);
 		j["texture_type"] = Utils::TextureTypeToString(textureAsset->getType());
-		j["texture_wrap"] = Utils::TextureWrapToString(textureAsset->getTextureWrap());
-		j["texture_filter"] = Utils::TextureFilterToString(textureAsset->getTextureFilter());
+		j["texture_wrap"] = Utils::TextureWrapToString(textureAsset->GetTextureWrap());
+		j["texture_filter"] = Utils::TextureFilterToString(textureAsset->GetTextureFilter());
 
-		auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
-		if (!FileSystem::IsFileExist(fileDir)) FileSystem::MakeDir(fileDir);
+		const auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
+		if (!FileSystem::IsFileExist(fileDir)) FileSystem::MakeDirectory(fileDir);
 
 		std::ofstream o(outputFilename);
-		o << std::setw(4) << j << std::endl;
+		o << std::setw(4) << j << '\n';
+
+		decl.DeclFilePath = outputFilename;
 	}
 
 	/* ##################################################################*/
@@ -224,35 +309,70 @@ namespace Moongoose {
 
 	Ref<Asset> MaterialAssetLoader::LoadAsset(AssetDeclaration& decl)
 	{
-		return CreateRef<Material>(decl.Name);
+		return LoadAssetFromFile(decl);
 	}
 
-	void MaterialAssetLoader::SaveAsset(AssetDeclaration& decl, Ref<Asset> asset)
+	Ref<Asset> MaterialAssetLoader::LoadAssetFromFile(AssetDeclaration& decl)
 	{
-		Ref<Material> materialAsset = std::static_pointer_cast<Material>(asset);
-		auto& filepath = std::filesystem::path(decl.FilePath);
-		auto& filename = filepath.filename().string();
-		auto& fileDir = filepath.parent_path().string();
+		std::string assetJsonString = FileSystem::ReadFile(decl.DeclFilePath);
+		auto assetJson = nlohmann::json::parse(assetJsonString);
+
+		Ref<Material> materialAsset = std::static_pointer_cast<Material>(CreateAsset(decl));
+		auto albedoJson = assetJson["albedo"];
+
+		if (!albedoJson.empty())
+		{ 
+			UUID albedoTextureId = albedoJson["ID"].get<std::string>();
+			AssetDeclaration albedoTextureDecl = AssetManager::Get().GetDeclByID(albedoTextureId);
+			Ref<Texture2D> albedoTexture;
+
+			if (!albedoTextureDecl.IsDataLoaded)
+				albedoTexture = AssetManager::Get().LoadAssetById<Texture2D>(albedoTextureId);
+			else
+				albedoTexture = AssetManager::Get().GetAssetById<Texture2D>(albedoTextureId);
+			
+			materialAsset->setAlbedo(albedoTexture);
+		}
+
+		return materialAsset;
+	}
+
+	Ref<Asset> MaterialAssetLoader::ReloadAsset(AssetDeclaration& decl)
+	{
+		return AssetManager::Get().GetAssetById(decl.ID);
+	}
+
+	void MaterialAssetLoader::SaveAsset(const Ref<Asset> asset)
+	{
+		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
+		const Ref<Material> materialAsset = std::static_pointer_cast<Material>(asset);
+
+		const auto filepath = std::filesystem::path(decl.FilePath);
+		auto filename = filepath.filename().string();
+		const auto fileDir = filepath.parent_path().string();
 
 		nlohmann::json j;
-		j["id"] = (uint64_t)decl.ID;
-		j["filepath"] = decl.FilePath;
+		j["id"] = std::to_string(decl.ID);
+		j["name"] = decl.Name;
+		j["source"] = decl.FilePath;
 		j["type"] = Utils::AssetTypeToString(decl.Type);
 
 		if (materialAsset->getAlbedo())
 		{
 			auto& albedoTexture = materialAsset->getAlbedo();
 			j["albedo"] = { 
-				{ "ID", std::to_string((uint64_t)albedoTexture->m_ID)},
+				{ "ID", std::to_string(albedoTexture->m_ID)},
 				{ "Name", albedoTexture->m_Name},
 			};
 		}
 
-		auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
-		if (!FileSystem::IsFileExist(fileDir)) FileSystem::MakeDir(fileDir);
+		const auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
+		if (!FileSystem::IsFileExist(fileDir)) FileSystem::MakeDirectory(fileDir);
 
 		std::ofstream o(outputFilename);
-		o << std::setw(4) << j << std::endl;
+		o << std::setw(4) << j << '\n';
+
+		decl.DeclFilePath = outputFilename;
 	}
 
 	/* ##################################################################*/
