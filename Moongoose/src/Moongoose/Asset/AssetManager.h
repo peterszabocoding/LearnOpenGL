@@ -60,7 +60,7 @@ namespace Moongoose {
 			decl.IsDataLoaded = true;
 
 			s_LoadedAssets[decl.ID] = asset;
-			s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
+			//s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
 
 			return asset;
 		}
@@ -77,7 +77,7 @@ namespace Moongoose {
 			s_AssetRegistry[decl.ID] = decl;
 			s_LoadedAssets[decl.ID] = asset;
 
-			s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
+			//s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
 
 			return asset;
 		}
@@ -101,14 +101,35 @@ namespace Moongoose {
 			s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
 		}
 
+		void SaveAsset(const Ref<Asset>& asset)
+		{
+			s_AssetLoaders[asset->getAssetType()]->SaveAsset(asset);
+		}
+
 		const std::unordered_map<UUID, Ref<Asset>>& GetLoadedAssets()
 		{
 			return s_LoadedAssets;
 		}
 
+		template<typename T>
+		std::vector<std::pair<std::string, AssetDeclaration>> GetAssetDeclByType()
+		{
+			std::vector < std::pair<std::string, AssetDeclaration>> list;
+			for (auto& item : s_AssetsByType[T::GetStaticAssetType()])
+			{
+				list.push_back({ item.Name, item });
+			}
+			return list;
+		}
+
 		const std::unordered_map<UUID, AssetDeclaration>& GetAssetRegistry()
 		{
 			return s_AssetRegistry;
+		}
+
+		const std::vector<AssetDeclaration>& GetAssetsByFolder(const std::filesystem::path& folder)
+		{
+			return s_AssetsByFolder[folder];
 		}
 
 		AssetDeclaration& GetDeclByID(const UUID& assetId)
@@ -142,12 +163,16 @@ namespace Moongoose {
 			return m_SelectedAsset;
 		}
 
+
 	private:
 		AssetManager();
 		~AssetManager() = default;
 	
 	private:
 		std::unordered_map<UUID, AssetDeclaration> s_AssetRegistry;
+		std::unordered_map<AssetType, std::vector<AssetDeclaration>> s_AssetsByType;
+		std::unordered_map<std::filesystem::path, std::vector<AssetDeclaration>> s_AssetsByFolder;
+
 		std::unordered_map<UUID, Ref<Asset>> s_LoadedAssets;
 		std::unordered_map<UUID, Ref<Asset>> s_MemoryAssets;
 		std::unordered_map<AssetType, Scope<AssetLoader>> s_AssetLoaders;

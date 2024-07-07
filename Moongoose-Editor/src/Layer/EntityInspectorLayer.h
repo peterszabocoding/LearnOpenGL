@@ -15,7 +15,7 @@ public:
 	virtual void onImGuiRender() override;
 
 private:
-	void DrawMaterialControls(Ref<Moongoose::Material> material);
+	void DrawMaterialControls(Ref<Moongoose::Mesh> mesh, unsigned int materialIndex);
 
 	template<typename T>
 	void DisplayAddComponentEntry(const std::string& entryName, size_t entityId) {

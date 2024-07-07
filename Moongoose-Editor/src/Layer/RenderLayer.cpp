@@ -6,6 +6,7 @@
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/ECS/WorldManager.h"
+#include "Moongoose/Util/FileSystem.h"
 
 using namespace Moongoose;
 
@@ -143,9 +144,6 @@ void RenderLayer::onImGuiRender()
 	ImGui::Text("Is mouse inside window: %s", isMouseInWindow() ? "True" : "False");
 	ImGui::End();
 
-	ImGui::Begin("Preview");
-	ImGui::Text("Preview");
-	ImGui::End();
 }
 
 void RenderLayer::createRenderBuffer()

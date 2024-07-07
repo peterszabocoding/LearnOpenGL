@@ -87,10 +87,12 @@ namespace Moongoose {
 		{
 			for (size_t i = 0; i < scene->mNumMaterials; i++)
 			{
-				const aiMaterial* mat = scene->mMaterials[i];
-				aiString materialName = mat->GetName();
-				const Ref<Material> newMaterial = AssetManager::Get().CreateAsset<Material>(materialName.C_Str(), "Content\\Material\\");
-				meshAsset->AddMaterial(newMaterial);
+
+				Ref<Material> mat = AssetManager::Get().GetAssetById<Material>(AssetManager::Get().GetAssetDeclByType<Material>()[0].second.ID);
+				//const aiMaterial* mat = scene->mMaterials[i];
+				//aiString materialName = mat->GetName();
+				//const Ref<Material> newMaterial = AssetManager::Get().CreateAsset<Material>(materialName.C_Str(), "Content\\Material\\");
+				meshAsset->AddMaterial(mat);
 			}
 		}
 

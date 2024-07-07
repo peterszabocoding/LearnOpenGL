@@ -75,14 +75,31 @@ namespace Moongoose
 		return MoveSingleFile(filepath, newName);
 	}
 
-	std::vector<std::filesystem::path> FileSystem::GetFilesFromDirectory(const std::filesystem::path& directoryPath)
+	std::vector<std::filesystem::path> FileSystem::GetDirectoriesFromDirectory(const std::filesystem::path& directoryPath)
+	{
+		std::vector<std::filesystem::path> dirs;
+		for (const auto& entry : std::filesystem::directory_iterator(directoryPath))
+		{
+			if (!entry.is_directory()) continue;
+			dirs.push_back(entry.path());
+		}
+		return dirs;
+	}
+
+	std::vector<std::filesystem::path> FileSystem::GetFilesFromDirectory(const std::filesystem::path& directoryPath, bool forceUpdate)
 	{
 		std::vector<std::filesystem::path> files;
+
+		const bool isCacheAvailable = s_FolderContentCache.find(directoryPath) != s_FolderContentCache.end();
+		if (isCacheAvailable && !forceUpdate) return s_FolderContentCache[directoryPath];
+
 		for (const auto& entry : std::filesystem::directory_iterator(directoryPath))
 		{
 			if (entry.is_directory()) continue;
 			files.push_back(entry.path());
 		}
+
+		s_FolderContentCache[directoryPath] = files;
 		return files;
 	}
 
@@ -138,6 +155,55 @@ namespace Moongoose
 		return files;
 	}
 
+	FileStructureNode FileSystem::GetFileStructure(const std::filesystem::path& directoryPath)
+	{
+		if (s_FileStructureCache.find(directoryPath) != s_FileStructureCache.end())
+		{
+			return s_FileStructureCache[directoryPath];
+		}
+
+		FileStructureNode root;
+		root.path = directoryPath;
+		root.isDirectory = is_directory(directoryPath);
+		root.hasChildDirectory = false;
+		root.isEmpty = true;
+
+		if (!root.isDirectory) return root;
+
+		const auto directories = GetDirectoriesFromDirectory(directoryPath);
+		const auto files = GetFilesFromDirectory(directoryPath);
+
+		for (auto& dir : directories)
+		{
+			FileStructureNode node = GetFileStructure(dir);
+			node.path = dir;
+			node.isDirectory = true;
+
+			root.hasChildDirectory = true;
+			root.isEmpty = false;
+			root.children.push_back(node);
+		}
+
+		for (auto& file : files)
+		{
+			FileStructureNode node;
+			node.isDirectory = false;
+			node.path = file;
+
+			root.isEmpty = false;
+			root.children.push_back(node);
+		}
+
+		s_FileStructureCache[directoryPath] = root;
+
+		return root;
+	}
+
+	const std::string& FileSystem::GetFileExtension(const std::filesystem::path& filePath)
+	{
+		return filePath.extension().string();
+	}
+
 	void FileSystem::GetFilesFromDirectoryDeepInner(
 		const std::filesystem::path& directoryPath, std::vector<std::filesystem::path> files,
 		std::stack<std::filesystem::path> directories)
@@ -156,4 +222,7 @@ namespace Moongoose
 		}
 	}
 
+
+	std::unordered_map<std::filesystem::path, FileStructureNode> FileSystem::s_FileStructureCache;
+	std::unordered_map<std::filesystem::path, std::vector<std::filesystem::path>> FileSystem::s_FolderContentCache;
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include <Moongoose.h>
 
+#define CAST_TO(type, x) std::static_pointer_cast<type>(x)
+
 class Asset;
 
 class AssetInspectorLayer : public Moongoose::Layer
@@ -14,13 +16,5 @@ public:
 	virtual void onUpdate(float deltaTime) override {};
 	virtual void onEvent(Moongoose::Event& event) override {};
 	virtual void onImGuiRender() override;
-
-private:
-
-	template <typename T>
-	inline Ref<T> CastTo(Ref<Moongoose::Asset> asset)
-	{
-		return std::static_pointer_cast<T>(asset);
-	}
 
 };

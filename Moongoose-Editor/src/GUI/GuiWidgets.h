@@ -73,6 +73,7 @@ public:
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
 
-	static void ImageButtonWithText(const char* id, const Ref<Moongoose::Texture2D>& icon, const std::string& text, ImVec2 buttonPos, ImVec2 buttonSize, const std::function<void(const char*)>& onButtonClicked);
+	static void ImageButtonWithText(const Moongoose::UUID id, const Ref<Moongoose::Texture2D>& icon, const std::string& text,
+		ImVec2 buttonPos, ImVec2 buttonSize, const std::function<void(const Moongoose::UUID)>& onButtonClicked);
 };
 

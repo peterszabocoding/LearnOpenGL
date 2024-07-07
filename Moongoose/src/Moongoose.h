@@ -40,3 +40,5 @@
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/ECS/RenderSystem.h"
 #include "Moongoose/ECS/Systems/EntityListSystem.h"
+
+#include "Moongoose/Util/FileSystem.h"

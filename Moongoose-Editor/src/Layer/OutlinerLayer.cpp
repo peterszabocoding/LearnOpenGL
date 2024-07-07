@@ -1,5 +1,5 @@
 #include "OutlinerLayer.h"
-#include "GuiWidgets.h"
+#include "GUI/GuiWidgets.h"
 #include "Moongoose/ECS/WorldManager.h"
 #include <imgui/imgui.h>
 

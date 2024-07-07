@@ -281,9 +281,10 @@ void GuiWidgets::DrawButtonImage(const Ref<Moongoose::Texture2D>& imageNormal,
 	}
 }
 
-void GuiWidgets::ImageButtonWithText(const char* id, const Ref<Moongoose::Texture2D>& icon, const std::string& text,
-	ImVec2 buttonPos, ImVec2 buttonSize, const std::function<void(const char*)>& onButtonClicked)
+void GuiWidgets::ImageButtonWithText(const Moongoose::UUID id, const Ref<Moongoose::Texture2D>& icon, const std::string& text,
+	ImVec2 buttonPos, ImVec2 buttonSize, const std::function<void(const Moongoose::UUID)>& onButtonClicked)
 {
+	ImGui::BeginGroup();
 	ImGui::PushID(id);
 	ImGui::SetCursorPos(buttonPos);
 
@@ -303,4 +304,5 @@ void GuiWidgets::ImageButtonWithText(const char* id, const Ref<Moongoose::Textur
 	ImGui::Text(text.c_str());
 
 	ImGui::PopID();
+	ImGui::EndGroup();
 }

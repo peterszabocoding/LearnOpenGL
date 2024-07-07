@@ -1,0 +1,96 @@
+{
+    "entities": [
+        {
+            "IDComponent": {
+                "id": "145469254014649494"
+            },
+            "LightComponent": {
+                "color": {
+                    "b": 1.0,
+                    "g": 1.0,
+                    "r": 1.0
+                },
+                "intensity": 1.0,
+                "type": 0
+            },
+            "TagComponent": {
+                "tag": "Directional Light"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "rotation": {
+                    "x": 45.0,
+                    "y": -135.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "13710566356387886902"
+            },
+            "MeshComponent": {
+                "asset": "3958687728367986779",
+                "assetDecl": "Content\\Mesh\\SM_Plane.mgasset"
+            },
+            "TagComponent": {
+                "tag": "Ground"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 0.0,
+                    "y": -5.0,
+                    "z": 0.0
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 15.0,
+                    "y": 1.0,
+                    "z": 15.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "8674266848372596043"
+            },
+            "MeshComponent": {
+                "asset": "13241884457052698686",
+                "assetDecl": "Content\\Mesh\\SM_Monkey_Hat.mgasset"
+            },
+            "TagComponent": {
+                "tag": "Monkey_Hat"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            }
+        }
+    ]
+}

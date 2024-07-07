@@ -1,6 +1,6 @@
 #include "EntityInspectorLayer.h"
 #include <imgui/imgui.h>
-#include "GuiWidgets.h"
+#include "GUI/GuiWidgets.h"
 
 #include "Platform/PlatformUtils.h"
 #include "Moongoose/Renderer/Material.h"
@@ -98,6 +98,16 @@ void EntityInspectorLayer::onImGuiRender()
 					if (cMesh.m_Mesh)
 					{
 						ImGui::Text(cMesh.m_Mesh->GetModelSource().c_str());
+
+						auto list = AssetManager::Get().GetAssetDeclByType<Mesh>();
+						std::vector<std::string> listNames;
+
+						for (const auto& [assetName, decl] : list) listNames.push_back(assetName);
+
+						GuiWidgets::DrawSingleSelectDropdown("Mesh Asset:", listNames, 0, [&](int selected)
+						{
+								cMesh.m_Mesh = std::static_pointer_cast<Mesh>(AssetManager::Get().GetAssetById(list[selected].second.ID));
+						});
 					}
 					else
 					{
@@ -110,9 +120,10 @@ void EntityInspectorLayer::onImGuiRender()
 				{
 					if (ImGui::TreeNode("Materials")) {
 						auto& materials = cMesh.m_Mesh->GetMaterials();
-						for (auto& mat : materials)
+
+						for (size_t i = 0; i < materials.size(); i++)
 						{
-							DrawMaterialControls(mat);
+							DrawMaterialControls(cMesh.m_Mesh, i);
 						}
 						ImGui::TreePop();
 					}
@@ -136,15 +147,27 @@ void EntityInspectorLayer::onImGuiRender()
 	ImGui::End();
 }
 
-void EntityInspectorLayer::DrawMaterialControls(Ref<Moongoose::Material> material)
+void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int materialIndex)
 {
+	const auto material = mesh->GetMaterial(materialIndex);
+
 	if (!material) return;
 
 	auto albedo = material->getAlbedo();
 	auto& matName = material->GetName();
-	ImGui::PushID("Material");
-
+	ImGui::PushID("Material" + materialIndex);
 	ImGui::Text("Material: %s", matName.c_str());
+
+	auto list = AssetManager::Get().GetAssetDeclByType<Material>();
+	std::vector<std::string> listNames;
+
+	for (const auto& [assetName, decl] : list) listNames.push_back(assetName);
+
+	GuiWidgets::DrawSingleSelectDropdown("Material Asset:", listNames, 0, [&](int selected)
+		{
+			const auto selectedMatAsset = std::static_pointer_cast<Material>(AssetManager::Get().GetAssetById(list[selected].second.ID));
+			mesh->SetMaterial(materialIndex, selectedMatAsset);
+		});
 
 	ImGui::PopID();
 	ImGui::Separator();

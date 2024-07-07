@@ -1,17 +1,18 @@
 #include "AssetInspectorLayer.h"
 #include <imgui/imgui.h>
-#include "GuiWidgets.h"
+#include "GUI/GuiWidgets.h"
 #include "Moongoose/Asset/AssetTypes.h"
 #include "Moongoose/Asset/AssetManager.h"
 #include "Platform/PlatformUtils.h"
 
-static inline void DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture)
+static void DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture)
 {
 	ImGui::SeparatorText("Texture Parameters");
 	ImGui::Text("Texture ID: %s", std::to_string(texture->m_ID).c_str());
 	ImGui::Text("Texture Name: %s", texture->m_Name.c_str());
 	ImGui::Text("Texture Type: %s", Moongoose::Utils::TextureTypeToString(texture->getType()));
 
+	ImGui::AlignTextToFramePadding();
 	ImGui::Text("Texture File:");
 	ImGui::SameLine();
 	GuiWidgets::DrawButton(decl.FilePath.string(), [&]()
@@ -29,7 +30,7 @@ static inline void DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Mo
 	GuiWidgets::DrawTextureImage(texture->GetPointerToData(), ImVec2{ 256.0f, 256.0f });
 }
 
-static inline void DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Material> material)
+static void DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Material> material)
 {
 	Ref<Moongoose::Texture2D> albedoTexture = material->getAlbedo();
 
@@ -37,6 +38,27 @@ static inline void DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<M
 	ImGui::Text("Shader Type: %s", Moongoose::Utils::GetShaderTypeString(material->getShaderType()).c_str());
 
 	ImGui::Separator();
+}
+
+static void DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Mesh> mesh)
+{
+	ImGui::SeparatorText("Mesh Parameters");
+
+	ImGui::AlignTextToFramePadding();
+	ImGui::Text("Mesh File:");
+	ImGui::SameLine();
+	GuiWidgets::DrawButton(decl.FilePath.string(), [&]()
+		{
+			decl.FilePath = Moongoose::FileDialogs::OpenFile(".fbx");
+			Moongoose::AssetManager::Get().ReloadAsset(decl);
+		}
+	);
+
+	ImGui::Text("Materials:");
+	for (auto& material : mesh->GetMaterials())
+	{
+		ImGui::Text(material->GetName().c_str());
+	}
 }
 
 void AssetInspectorLayer::onImGuiRender()
@@ -49,9 +71,10 @@ void AssetInspectorLayer::onImGuiRender()
 		auto& assetId = selectedAsset->m_ID;
 		auto& assetDecl = Moongoose::AssetManager::Get().GetDeclByID(assetId);
 
-		GuiWidgets::DrawButton("Save Asset", []()
+		GuiWidgets::DrawButton("Save Asset", [&]()
 		{
 			LOG_APP_INFO("Asset save button clicked");
+			Moongoose::AssetManager::Get().SaveAsset(selectedAsset);
 		});
 
 		ImGui::SeparatorText("Asset Parameters");
@@ -62,11 +85,14 @@ void AssetInspectorLayer::onImGuiRender()
 
 		switch (assetDecl.Type)
 		{
+			case Moongoose::AssetType::Mesh:
+				DrawMeshAssetGUI(assetDecl, CAST_TO(Moongoose::Mesh, selectedAsset));
+				break;
 			case Moongoose::AssetType::Material:
-				DrawMaterialAssetGUI(assetDecl, CastTo<Moongoose::Material>(selectedAsset));
+				DrawMaterialAssetGUI(assetDecl, CAST_TO(Moongoose::Material, selectedAsset));
 				break;
 			case Moongoose::AssetType::Texture:
-				DrawTextureAssetGUI(assetDecl, CastTo<Moongoose::Texture2D>(selectedAsset));
+				DrawTextureAssetGUI(assetDecl, CAST_TO(Moongoose::Texture2D, selectedAsset));
 				break;
 		}
 

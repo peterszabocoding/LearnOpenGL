@@ -7,7 +7,6 @@
 #include "Moongoose/Log.h"
 
 #include <nlohmann/json.hpp>
-
 #include "Moongoose/Util/FileSystem.h"
 
 namespace Moongoose {
@@ -20,11 +19,25 @@ namespace Moongoose {
 
 	void AssetManager::BuildAssetRegistry()
 	{
+		s_AssetRegistry.clear();
+		s_AssetsByFolder.clear();
+		s_AssetsByType.clear();
+
 		const auto files = FileSystem::GetFilesFromDirectoryDeep("Content\\", ".mgasset");
 		for (auto& file : files)
 		{
 			AssetDeclaration decl = ReadDeclarationFromFile(file);
 			s_AssetRegistry[decl.ID] = decl;
+
+			s_AssetsByType[decl.Type].push_back(decl);
+
+			std::filesystem::path fileDir = file.parent_path();
+			if (!is_directory(fileDir)) continue;
+
+			const bool isListAvailable = s_AssetsByFolder.find(fileDir) != s_AssetsByFolder.end();
+			if (!isListAvailable) s_AssetsByFolder[fileDir] = std::vector<AssetDeclaration>();
+
+			s_AssetsByFolder[fileDir].push_back(decl);
 		}
 	}
 
