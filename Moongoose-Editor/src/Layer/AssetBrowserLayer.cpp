@@ -2,6 +2,7 @@
 #include "GUI/GuiWidgets.h"
 #include <imgui/imgui.h>
 #include "Platform/PlatformUtils.h"
+#include "Resource/ResourceManager.h"
 
 #define BIND_FUNC(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -9,12 +10,6 @@ using namespace Moongoose;
 
 void AssetBrowserLayer::onAttach()
 {
-    auto& assetManager = AssetManager::Get();
-
-    m_AssetTypeTextures[AssetType::None] = assetManager.CreateAsset<Texture2D>("iconAssetUnknown", "res\\icon\\icon_asset_unknown.png");
-    m_AssetTypeTextures[AssetType::Mesh] = assetManager.CreateAsset<Texture2D>("iconAssetMesh", "res\\icon\\icon_asset_mesh.png");
-    m_AssetTypeTextures[AssetType::Texture] = assetManager.CreateAsset<Texture2D>("iconAssetTexture", "res\\icon\\icon_asset_texture.png");
-	m_AssetTypeTextures[AssetType::Material] = assetManager.CreateAsset<Texture2D>("iconAssetMaterial", "res\\icon\\icon_asset_material.png");
 }
 
 void AssetBrowserLayer::onImGuiRender()
@@ -81,7 +76,16 @@ void AssetBrowserLayer::onImGuiRender()
                 if (ImGui::BeginTable("CardTable", columns, ImGuiTableFlags_SizingStretchSame)) {
                     for (const auto& decl : decls) {
                         ImGui::TableNextColumn();
+                        ImGui::PushID(decl.ID);
                         RenderAssetCard(decl, BIND_FUNC(AssetBrowserLayer::OnButtonClicked));
+
+                        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+                            ImGui::SetDragDropPayload("ASSET", &decl, sizeof(AssetDeclaration));
+                            ImGui::Text("Dragging %s", decl.Name.c_str());
+                            ImGui::EndDragDropSource();
+                        }
+
+                        ImGui::PopID();
                         ImGui::Spacing();
                     }
                     ImGui::EndTable();
@@ -102,14 +106,13 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
 {
     constexpr auto cardSize = ImVec2{ 120.0f, 150.0f };
     ImGui::BeginGroup();
-    ImGui::PushID(decl.ID);
-
+   
     auto& originalCursorPos = ImGui::GetCursorPos();
     constexpr ImVec2 imgPadding = ImVec2{ 20.0f, 20.0f };
 
     // Render card image
     const ImVec2 imgSize = { cardSize.x - 4 * imgPadding.x, cardSize.x - 4 * imgPadding.y };
-    Ref<Texture2D> icon = m_AssetTypeTextures[decl.Type];
+    Ref<Texture2D> icon = ResourceManager::GetIcon(Icon(decl.Type));
     ImVec2 imgCursorPos = { originalCursorPos.x + 2 * imgPadding.x, originalCursorPos.y + 2 * imgPadding.y };
     ImGui::SetCursorPos(imgCursorPos);
     ImGui::Image(icon->GetPointerToData(), imgSize);
@@ -126,8 +129,6 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
     {
         onButtonClicked(decl.ID);
     }
-
-    ImGui::PopID();
     ImGui::EndGroup();
 }
 

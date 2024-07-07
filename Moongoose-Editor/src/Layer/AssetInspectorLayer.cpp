@@ -5,7 +5,7 @@
 #include "Moongoose/Asset/AssetManager.h"
 #include "Platform/PlatformUtils.h"
 
-static void DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture)
+void AssetInspectorLayer::DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture)
 {
 	ImGui::SeparatorText("Texture Parameters");
 	ImGui::Text("Texture ID: %s", std::to_string(texture->m_ID).c_str());
@@ -30,7 +30,7 @@ static void DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose
 	GuiWidgets::DrawTextureImage(texture->GetPointerToData(), ImVec2{ 256.0f, 256.0f });
 }
 
-static void DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Material> material)
+void AssetInspectorLayer::DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Material> material)
 {
 	Ref<Moongoose::Texture2D> albedoTexture = material->getAlbedo();
 
@@ -38,9 +38,24 @@ static void DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoos
 	ImGui::Text("Shader Type: %s", Moongoose::Utils::GetShaderTypeString(material->getShaderType()).c_str());
 
 	ImGui::Separator();
+
+	ImVec2 imgSize = { 50.0f, 50.0f };
+	ImGui::PushID(albedoTexture->m_ID);
+	RenderImageTextButton(imgSize, albedoTexture, albedoTexture->m_Name);
+
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+			Moongoose::UUID textureId = ((const Moongoose::AssetDeclaration*)payload->Data)->ID;
+			material->setAlbedo(Moongoose::AssetManager::Get().GetAssetById<Moongoose::Texture2D>(textureId));
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::PopID();
 }
 
-static void DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Mesh> mesh)
+void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Mesh> mesh)
 {
 	ImGui::SeparatorText("Mesh Parameters");
 
@@ -67,6 +82,34 @@ static void DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::M
 
 		ImGui::EndGroup();
 	}
+}
+
+void AssetInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Moongoose::Texture2D> icon, std::string text)
+{
+	ImGui::BeginGroup();
+
+	auto availSpace = ImGui::GetContentRegionAvail();
+	auto& ogPos = ImGui::GetCursorPos();
+
+	ImGui::Image(icon->GetPointerToData(), ImVec2{ 50.0f, 50.0f });
+	ImGui::SameLine();
+	ImGui::Spacing();
+	ImGui::SameLine();
+
+	auto& pos = ImGui::GetCursorPos();
+
+	ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+	pos.y = ogPos.y + textSize.y;
+
+	float text_offset_y = (imageSize.y - textSize.y) * 0.5f;
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + text_offset_y);
+
+	ImGui::Text(text.c_str());
+
+	ImGui::SetCursorPos(ogPos);
+	ImGui::Button("", ImVec2(availSpace.x, 50.0f));
+
+	ImGui::EndGroup();
 }
 
 void AssetInspectorLayer::onImGuiRender()

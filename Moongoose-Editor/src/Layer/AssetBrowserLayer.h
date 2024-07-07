@@ -21,5 +21,4 @@ private:
 
 private:
 	std::filesystem::path m_SelectedFolder;
-	std::unordered_map<Moongoose::AssetType, Ref<Moongoose::Texture2D>> m_AssetTypeTextures;
 };

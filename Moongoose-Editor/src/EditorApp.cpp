@@ -3,6 +3,7 @@
 #include <Moongoose.h>
 #include "Moongoose/EntryPoint.h"
 
+#include "Resource/ResourceManager.h"
 #include "Layer/ImGuiConfigLayer.h"
 #include "Layer/RenderLayer.h"
 #include "Layer/PerformanceLayer.h"
@@ -17,6 +18,8 @@ class EditorApp : public Moongoose::Application
 public:
 	EditorApp(): Application()
 	{
+		ResourceManager::LoadResources();
+
 		PushLayer(new ImGuiConfigLayer());
 		PushLayer(new PerformanceLayer());
 		PushLayer(new EntityInspectorLayer());

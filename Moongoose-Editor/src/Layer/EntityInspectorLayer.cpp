@@ -2,6 +2,7 @@
 #include <imgui/imgui.h>
 #include "GUI/GuiWidgets.h"
 
+#include "Resource/ResourceManager.h"
 #include "Platform/PlatformUtils.h"
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/OpenGL/OpenGLTexture2D.h"
@@ -90,42 +91,28 @@ void EntityInspectorLayer::onImGuiRender()
 
 			if (ImGui::TreeNode("Mesh Renderer")) {
 
-				if (ImGui::TreeNode("Mesh"))
+				ImGui::SeparatorText("Mesh");
+
+				if (cMesh.m_Mesh)
 				{
-					ImGui::Text("Mesh: ");
-					ImGui::SameLine();
-
-					if (cMesh.m_Mesh)
-					{
-						ImGui::Text(cMesh.m_Mesh->GetModelSource().c_str());
-
-						auto list = AssetManager::Get().GetAssetDeclByType<Mesh>();
-						std::vector<std::string> listNames;
-
-						for (const auto& [assetName, decl] : list) listNames.push_back(assetName);
-
-						GuiWidgets::DrawSingleSelectDropdown("Mesh Asset:", listNames, 0, [&](int selected)
-						{
-								cMesh.m_Mesh = std::static_pointer_cast<Mesh>(AssetManager::Get().GetAssetById(list[selected].second.ID));
-						});
-					}
-					else
-					{
-						ImGui::Text("Empty");
-					}
-					ImGui::TreePop();
+					RenderImageTextButton(
+						ImVec2(50.0f, 50.0f), 
+						ResourceManager::GetIcon(Icon::Mesh), 
+						cMesh.m_Mesh->GetModelSource());
+				}
+				else
+				{
+					ImGui::Text("Empty");
 				}
 
 				if (cMesh.m_Mesh)
 				{
-					if (ImGui::TreeNode("Materials")) {
-						auto& materials = cMesh.m_Mesh->GetMaterials();
+					ImGui::SeparatorText("Materials");
+					auto& materials = cMesh.m_Mesh->GetMaterials();
 
-						for (size_t i = 0; i < materials.size(); i++)
-						{
-							DrawMaterialControls(cMesh.m_Mesh, i);
-						}
-						ImGui::TreePop();
+					for (size_t i = 0; i < materials.size(); i++)
+					{
+						DrawMaterialControls(cMesh.m_Mesh, i);
 					}
 				}
 				ImGui::TreePop();
@@ -158,20 +145,50 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 	Ref<Texture2D> albedo = material->getAlbedo();
 	const std::string& matName = material->GetName();
 
-	ImGui::PushID("Material" + materialIndex);
+	ImGui::PushID(material->m_ID);
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
-	auto list = AssetManager::Get().GetAssetDeclByType<Material>();
-	std::vector<std::string> listNames;
-
-	for (const auto& [assetName, decl] : list) listNames.push_back(assetName);
-
-	GuiWidgets::DrawSingleSelectDropdown("Material Asset:", listNames, 0, [&](int selected)
-		{
-			Ref<Material> selectedMaterial = std::static_pointer_cast<Material>(AssetManager::Get().GetAssetById(list[selected].second.ID));
-			mesh->SetMaterial(materialIndex, selectedMaterial);
-		});
+	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+			UUID materialId = ((const AssetDeclaration*)payload->Data)->ID;
+			mesh->SetMaterial(
+				materialIndex,
+				AssetManager::Get().GetAssetById<Material>(materialId)
+			);
+		}
+		ImGui::EndDragDropTarget();
+	}
 
 	ImGui::PopID();
 	ImGui::Separator();
+}
+
+void EntityInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Texture2D> icon, std::string text)
+{
+	ImGui::BeginGroup();
+
+	auto availSpace = ImGui::GetContentRegionAvail();
+	auto& ogPos = ImGui::GetCursorPos();
+
+	ImGui::Image(icon->GetPointerToData(), ImVec2{ 50.0f, 50.0f });
+	ImGui::SameLine();
+	ImGui::Spacing();
+	ImGui::SameLine();
+
+	auto& pos = ImGui::GetCursorPos();
+
+	ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+	pos.y = ogPos.y + textSize.y;
+
+	float text_offset_y = (imageSize.y - textSize.y) * 0.5f;
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + text_offset_y);
+
+	ImGui::Text(text.c_str());
+
+	ImGui::SetCursorPos(ogPos);
+	ImGui::Button("", ImVec2(availSpace.x, 50.0f));
+
+	ImGui::EndGroup();
 }
