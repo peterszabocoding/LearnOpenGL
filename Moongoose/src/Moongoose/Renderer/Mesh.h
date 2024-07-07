@@ -13,6 +13,12 @@
 
 namespace Moongoose {
 
+	struct MaterialSlot
+	{
+		std::string name;
+		Ref<Material> material;
+	};
+
 	class Mesh: public Asset
 	{
 
@@ -52,11 +58,30 @@ namespace Moongoose {
 
 		const std::vector<Ref<SubMesh>>& GetSubmeshes() const { return m_Submeshes; }
 
-		void AddMaterial(const Ref<Material> material) { m_Materials.push_back(material); }
-		void SetMaterial(unsigned int index, const Ref<Material>& material) { m_Materials[index] = material; }
+		void AddMaterial(unsigned int index, const Ref<Material> material, std::string slotName = "")
+		{
+			if (slotName == "") slotName = "Element " + std::to_string(m_Materials.size());
 
-		const std::vector<Ref<Material>>& GetMaterials() const { return m_Materials; }
-		Ref<Material> GetMaterial(unsigned int index) const { return m_Materials[index]; }
+			if (m_Materials.size() <= index)
+			{
+				m_Materials.push_back({ slotName, material });
+			}
+			else 
+			{
+				m_Materials[index].name = slotName;
+				m_Materials[index].material = material;
+			}
+
+		}
+
+		void AddMaterial(const Ref<Material> material, std::string slotName = "") {
+			if (slotName == "") slotName = "Element " + std::to_string(m_Materials.size());
+			m_Materials.push_back({slotName, material}); 
+		}
+		void SetMaterial(unsigned int index, const Ref<Material>& material) { m_Materials[index].material = material; }
+
+		const std::vector<MaterialSlot>& GetMaterials() const { return m_Materials; }
+		Ref<Material> GetMaterial(unsigned int index) const { return m_Materials[index].material; }
 
 		const Bounds3& GetBounds() const;
 		void SetBounds(const Bounds3& bounds);
@@ -64,7 +89,7 @@ namespace Moongoose {
 	private:
 		std::string modelSource = "";
 		std::vector<Ref<SubMesh>> m_Submeshes;
-		std::vector<Ref<Material>> m_Materials;
+		std::vector<MaterialSlot> m_Materials;
 		Bounds3 m_Bounds;
 	};
 

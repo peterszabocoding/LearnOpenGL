@@ -34,7 +34,7 @@ namespace Moongoose {
 
 	namespace Utils {
 
-		static void LoadSubmesh(const aiMesh* mesh, const Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
+		static void LoadSubmesh(const aiScene* scene, const aiMesh* mesh, const Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
 		{
 			std::vector<float> vertices;
 			std::vector<unsigned int> indices;
@@ -79,7 +79,7 @@ namespace Moongoose {
 
 		static void LoadComplexMesh(aiNode* node, const aiScene* scene, Ref<Mesh>& meshAsset, glm::vec3& boundsMin, glm::vec3& boundsMax)
 		{
-			for (size_t i = 0; i < node->mNumMeshes; i++) LoadSubmesh(scene->mMeshes[node->mMeshes[i]], meshAsset, boundsMin, boundsMax);
+			for (size_t i = 0; i < node->mNumMeshes; i++) LoadSubmesh(scene, scene->mMeshes[node->mMeshes[i]], meshAsset, boundsMin, boundsMax);
 			for (size_t i = 0; i < node->mNumChildren; i++) LoadComplexMesh(node->mChildren[i], scene, meshAsset, boundsMin, boundsMax);
 		}
 
@@ -139,6 +139,7 @@ namespace Moongoose {
 		std::string assetJsonString = FileSystem::ReadFile(decl.DeclFilePath);
 		auto assetJson = nlohmann::json::parse(assetJsonString);
 		std::vector <Ref<Material>> materials;
+		std::vector<MaterialSlot> materialSlots;
 		auto materialListJson = assetJson["materials"];
 
 		if (!materialListJson.empty())
@@ -146,19 +147,26 @@ namespace Moongoose {
 			for (auto materialJson : materialListJson)
 			{
 				UUID materialId = materialJson[0].get<std::string>();
+				std::string materialSlotName = materialJson[1].get<std::string>();
+
 				auto& materialDecl = AssetManager::Get().GetDeclByID(materialId);
 
 				if (materialDecl.Type == AssetType::None) continue;
 				if (!materialDecl.IsDataLoaded) AssetManager::Get().LoadAssetById<Material>(materialId);
 
-				materials.push_back(AssetManager::Get().GetAssetById<Material>(materialId));
+				auto mat = AssetManager::Get().GetAssetById<Material>(materialId);
+
+				materials.push_back(mat);
+				materialSlots.push_back({ materialSlotName, mat });
 			}
 				
 		}
 
 		Ref<Mesh> meshAsset = std::static_pointer_cast<Mesh>(LoadAsset(decl));
-		for (const auto& material : materials) meshAsset->AddMaterial(material);
-
+		for (size_t i = 0; i < materialSlots.size(); i++)
+		{
+			meshAsset->AddMaterial(i, materialSlots[i].material, materialSlots[i].name);
+		}
 		return meshAsset;
 	}
 
@@ -189,7 +197,7 @@ namespace Moongoose {
 
 			for (auto& mat : materials)
 			{
-				materialNamesAndIds.emplace_back(std::to_string(mat->m_ID), mat->m_Name);
+				materialNamesAndIds.emplace_back(std::to_string(mat.material->m_ID), mat.name);
 			}
 			j["materials"] = materialNamesAndIds;
 		}

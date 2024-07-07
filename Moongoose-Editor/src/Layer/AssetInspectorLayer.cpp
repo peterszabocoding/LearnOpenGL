@@ -57,7 +57,15 @@ static void DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::M
 	ImGui::Text("Materials:");
 	for (auto& material : mesh->GetMaterials())
 	{
-		ImGui::Text(material->GetName().c_str());
+		ImGui::BeginGroup();
+
+		ImGui::Text(material.name.c_str());
+		ImGui::SameLine();
+		ImGui::Spacing();
+		ImGui::SameLine();
+		ImGui::Text(material.material->GetName().c_str());
+
+		ImGui::EndGroup();
 	}
 }
 

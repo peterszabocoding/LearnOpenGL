@@ -12,14 +12,14 @@ void EntityInspectorLayer::onImGuiRender()
 {
 	ImGui::Begin("Entity Inspector");
 
-	auto& world = WorldManager::Get().GetLoadedWorld();
+	Ref<World> world = WorldManager::Get().GetLoadedWorld();
 	if (!world)
 	{
 		ImGui::End();
 		return;
 	}
 
-	auto selectedEntity = world->GetSelectedEntity();
+	Entity selectedEntity = world->GetSelectedEntity();
 	if (selectedEntity == -1) {
 		ImGui::End();
 		return;
@@ -37,7 +37,7 @@ void EntityInspectorLayer::onImGuiRender()
 		ImGui::EndPopup();
 	}
 
-	auto windowSize = ImGui::GetWindowSize();
+	ImVec2 windowSize = ImGui::GetWindowSize();
 
 	IDComponent& cID = world->GetComponent<IDComponent>(selectedEntity);
 	TagComponent& cTag = world->GetComponent<TagComponent>(selectedEntity);
@@ -149,14 +149,17 @@ void EntityInspectorLayer::onImGuiRender()
 
 void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int materialIndex)
 {
-	const auto material = mesh->GetMaterial(materialIndex);
+	const auto& materialSlots = mesh->GetMaterials();
+	const auto& materialSlot = materialSlots[materialIndex];
+	const auto& material = mesh->GetMaterial(materialIndex);
 
 	if (!material) return;
 
-	auto albedo = material->getAlbedo();
-	auto& matName = material->GetName();
+	Ref<Texture2D> albedo = material->getAlbedo();
+	const std::string& matName = material->GetName();
+
 	ImGui::PushID("Material" + materialIndex);
-	ImGui::Text("Material: %s", matName.c_str());
+	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
 	auto list = AssetManager::Get().GetAssetDeclByType<Material>();
 	std::vector<std::string> listNames;
@@ -165,8 +168,8 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 
 	GuiWidgets::DrawSingleSelectDropdown("Material Asset:", listNames, 0, [&](int selected)
 		{
-			const auto selectedMatAsset = std::static_pointer_cast<Material>(AssetManager::Get().GetAssetById(list[selected].second.ID));
-			mesh->SetMaterial(materialIndex, selectedMatAsset);
+			Ref<Material> selectedMaterial = std::static_pointer_cast<Material>(AssetManager::Get().GetAssetById(list[selected].second.ID));
+			mesh->SetMaterial(materialIndex, selectedMaterial);
 		});
 
 	ImGui::PopID();

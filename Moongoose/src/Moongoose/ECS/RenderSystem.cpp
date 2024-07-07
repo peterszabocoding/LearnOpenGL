@@ -64,10 +64,10 @@ namespace Moongoose {
 
 			if (!meshComponent.m_Mesh) continue;
 
-			std::vector<Ref<Material>> materials = meshComponent.m_Mesh->GetMaterials();
+			std::vector<MaterialSlot> materials = meshComponent.m_Mesh->GetMaterials();
 			for (auto& mat : materials)
 			{
-				Ref<Shader> shader = ShaderManager::GetShaderByType(mat->getShaderType());
+				Ref<Shader> shader = ShaderManager::GetShaderByType(mat.material->getShaderType());
 				shader->Bind();
 				shader->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
 				shader->SetDirectionalLight(
@@ -82,7 +82,7 @@ namespace Moongoose {
 
 			for (const Ref<SubMesh>& submesh : meshComponent.m_Mesh->GetSubmeshes())
 			{
-				Ref<Material> material = materials[submesh->materialIndex];
+				Ref<Material> material = materials[submesh->materialIndex].material;
 				Ref<Shader> shader = ShaderManager::GetShaderByType(material->getShaderType());
 
 				shader->Bind();
