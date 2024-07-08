@@ -14,8 +14,7 @@ public:
 	virtual void onImGuiRender() override;
 
 private:
-	void RenderFolderHierarchy(Moongoose::FileStructureNode root);
-	void RenderFolder(Moongoose::FileStructureNode folder);
+	void RenderFolder(Moongoose::FileStructureNode folder, bool openOnStart = false);
 	void OnButtonClicked(const Moongoose::UUID id);
 	void RenderAssetCard(const Moongoose::AssetDeclaration& decl, const std::function<void(const Moongoose::UUID)>& OnButtonClicked);
 

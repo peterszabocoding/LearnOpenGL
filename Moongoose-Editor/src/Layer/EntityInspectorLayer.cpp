@@ -69,10 +69,9 @@ void EntityInspectorLayer::onImGuiRender()
 	{
 		if (world->HasComponent<TransformComponent>(selectedEntity))
 		{
-			TransformComponent& cTransform = world->GetComponent<TransformComponent>(selectedEntity);
-
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			if (ImGui::TreeNode("Transform")) {
+				TransformComponent& cTransform = world->GetComponent<TransformComponent>(selectedEntity);
 				GuiWidgets::DrawVec3Control("Position", cTransform.m_Position, 0.0f, windowSize.x / 4);
 				GuiWidgets::DrawVec3Control("Rotation", cTransform.m_Rotation, 0.0f, windowSize.x / 4);
 				GuiWidgets::DrawVec3Control("Scale", cTransform.m_Scale, 1.0f, windowSize.x / 4);
@@ -88,33 +87,25 @@ void EntityInspectorLayer::onImGuiRender()
 		if (world->HasComponent<MeshComponent>(selectedEntity))
 		{
 			auto& cMesh = world->GetComponent<MeshComponent>(selectedEntity);
-
-			if (ImGui::TreeNode("Mesh Renderer")) {
-
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+			if (cMesh.m_Mesh && ImGui::TreeNode("Mesh Renderer")) {
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 				ImGui::SeparatorText("Mesh");
 
-				if (cMesh.m_Mesh)
+				RenderImageTextButton(
+					ImVec2(50.0f, 50.0f),
+					ResourceManager::GetIcon(Icon::Mesh),
+					cMesh.m_Mesh->GetModelSource());
+
+				ImGui::SeparatorText("Materials");
+				auto& materials = cMesh.m_Mesh->GetMaterials();
+
+				for (size_t i = 0; i < materials.size(); i++)
 				{
-					RenderImageTextButton(
-						ImVec2(50.0f, 50.0f), 
-						ResourceManager::GetIcon(Icon::Mesh), 
-						cMesh.m_Mesh->GetModelSource());
-				}
-				else
-				{
-					ImGui::Text("Empty");
+					DrawMaterialControls(cMesh.m_Mesh, i);
+					ImGui::Spacing();
 				}
 
-				if (cMesh.m_Mesh)
-				{
-					ImGui::SeparatorText("Materials");
-					auto& materials = cMesh.m_Mesh->GetMaterials();
-
-					for (size_t i = 0; i < materials.size(); i++)
-					{
-						DrawMaterialControls(cMesh.m_Mesh, i);
-					}
-				}
 				ImGui::TreePop();
 			}
 		}
@@ -122,12 +113,15 @@ void EntityInspectorLayer::onImGuiRender()
 
 	// Light Component
 	{
-		if (world->HasComponent<LightComponent>(selectedEntity))
+		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+		if (world->HasComponent<LightComponent>(selectedEntity) && ImGui::TreeNode("Light"))
 		{
 			auto& cLight = world->GetComponent<LightComponent>(selectedEntity);
 			auto windowSize = ImGui::GetWindowSize();
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
+
+			ImGui::TreePop();
 		}
 	}
 
@@ -149,6 +143,8 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
 	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+
+	/*
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
@@ -160,9 +156,9 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 		}
 		ImGui::EndDragDropTarget();
 	}
+	*/
 
 	ImGui::PopID();
-	ImGui::Separator();
 }
 
 void EntityInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Texture2D> icon, std::string text)

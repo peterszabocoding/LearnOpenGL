@@ -69,18 +69,34 @@ void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Re
 		}
 	);
 
-	ImGui::Text("Materials:");
-	for (auto& material : mesh->GetMaterials())
+	std::vector<Moongoose::MaterialSlot> materialSlots = mesh->GetMaterials();
+
+	ImGui::SeparatorText("Materials");
+	for (size_t i = 0; i < materialSlots.size(); i++)
 	{
-		ImGui::BeginGroup();
+		Moongoose::MaterialSlot& materialSlot = materialSlots[i];
 
-		ImGui::Text(material.name.c_str());
-		ImGui::SameLine();
-		ImGui::Spacing();
-		ImGui::SameLine();
-		ImGui::Text(material.material->GetName().c_str());
+		Ref<Moongoose::Texture2D> albedo = materialSlot.material->getAlbedo();
+		const std::string& matName = materialSlot.material->GetName();
 
-		ImGui::EndGroup();
+		ImGui::PushID(materialSlot.material->m_ID);
+		ImGui::Text("%s:", materialSlot.name.c_str());
+
+		RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+				Moongoose::UUID materialId = ((const Moongoose::AssetDeclaration*)payload->Data)->ID;
+				mesh->SetMaterial(
+					i,
+					Moongoose::AssetManager::Get().GetAssetById<Moongoose::Material>(materialId)
+				);
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::PopID();
 	}
 }
 

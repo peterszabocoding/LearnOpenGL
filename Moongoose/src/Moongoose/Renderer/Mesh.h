@@ -60,7 +60,7 @@ namespace Moongoose {
 
 		void AddMaterial(unsigned int index, const Ref<Material> material, std::string slotName = "")
 		{
-			if (slotName == "") slotName = "Element " + std::to_string(m_Materials.size());
+			if (slotName == "") slotName = "Material " + std::to_string(m_Materials.size());
 
 			if (m_Materials.size() <= index)
 			{
@@ -75,7 +75,7 @@ namespace Moongoose {
 		}
 
 		void AddMaterial(const Ref<Material> material, std::string slotName = "") {
-			if (slotName == "") slotName = "Element " + std::to_string(m_Materials.size());
+			if (slotName == "") slotName = "Material " + std::to_string(m_Materials.size());
 			m_Materials.push_back({slotName, material}); 
 		}
 		void SetMaterial(unsigned int index, const Ref<Material>& material) { m_Materials[index].material = material; }

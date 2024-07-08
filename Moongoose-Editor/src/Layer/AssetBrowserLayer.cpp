@@ -49,7 +49,7 @@ void AssetBrowserLayer::onImGuiRender()
 	{
         const ImVec2 availableSpace = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("ChildL", ImVec2(std::max(250.0f, availableSpace.x * 0.15f), availableSpace.y),true);
-        RenderFolderHierarchy(Moongoose::FileSystem::GetFileStructure("Content\\"));
+        RenderFolder(Moongoose::FileSystem::GetFileStructure("Content\\"), true);
         ImGui::EndChild();
 	}
 
@@ -73,6 +73,7 @@ void AssetBrowserLayer::onImGuiRender()
                 int columns = availableSpace.x / (cardSize.x + cardPadding.x);
                 if (columns < 1) columns = 1;
 
+                
                 if (ImGui::BeginTable("CardTable", columns, ImGuiTableFlags_SizingStretchSame)) {
                     for (const auto& decl : decls) {
                         ImGui::TableNextColumn();
@@ -132,18 +133,14 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
     ImGui::EndGroup();
 }
 
-void AssetBrowserLayer::RenderFolderHierarchy(Moongoose::FileStructureNode root)
-{
-    RenderFolder(root);
-}
-
-void AssetBrowserLayer::RenderFolder(Moongoose::FileStructureNode folder)
+void AssetBrowserLayer::RenderFolder(Moongoose::FileStructureNode folder, bool openOnStart)
 {
     if (!folder.isDirectory) return;
 
     ImGuiTreeNodeFlags flags = (folder.path == m_SelectedFolder) ? ImGuiTreeNodeFlags_Selected : 0;
     flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
+    ImGui::SetNextItemOpen(openOnStart, ImGuiCond_Once);
     bool opened = ImGui::TreeNodeEx(folder.path.string().c_str(), flags);
     if (ImGui::IsItemClicked())
     {
