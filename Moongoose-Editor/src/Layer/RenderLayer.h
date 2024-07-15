@@ -7,11 +7,11 @@ class RenderLayer: public Moongoose::Layer
 {
 
 public:
-	RenderLayer() {};
+	RenderLayer() = default;
 	virtual ~RenderLayer() {};
 
 	virtual void onAttach() override;
-	virtual void onDetach() override;
+	virtual void onDetach() override {};
 	virtual void onUpdate(float deltaTime) override;
 	virtual void onEvent(Moongoose::Event& event) override;
 	virtual void onImGuiRender() override;
@@ -21,18 +21,16 @@ private:
 	void createPreviewRenderBuffer();
 	void createCamera();
 
-	void showMainMenu();
+	void renderToolbarMenu();
+	void renderGizmo();
+	void renderDebugInfo(float posX, float posY);
 
 	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
-	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override;
 	bool isMouseInWindow() const;
-
-	void buildWorld();
+	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override;
 
 private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
-
-	Ref<Moongoose::World> m_World;
 	
 	Scope<Moongoose::Framebuffer> m_RenderBuffer;
 	Scope<Moongoose::Framebuffer> m_PreviewRenderBuffer;

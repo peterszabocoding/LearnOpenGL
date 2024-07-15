@@ -12,7 +12,7 @@
 
 namespace Moongoose {
 
-	Ref<World> WorldManager::CreateWorld(const std::string& name)
+	Ref<World> WorldManager::createWorld(const std::string& name)
 	{
 		if (m_LoadedWorld) CloseWorld(m_LoadedWorld);
 
@@ -34,7 +34,7 @@ namespace Moongoose {
 		return m_LoadedWorld;
 	}
 
-	Ref<World> WorldManager::LoadWorld(const std::string& sceneFile)
+	Ref<World> WorldManager::loadWorld(const std::string& sceneFile)
 	{
 		Ref<World> world = CreateWorld("New_World");
 		std::string worldJsonString = FileSystem::ReadFile(sceneFile);
@@ -90,7 +90,7 @@ namespace Moongoose {
 		return world;
 	}
 
-	void WorldManager::SaveWorld(const std::string& sceneFile) const
+	void WorldManager::saveWorld(const std::string& sceneFile) const
 	{
 		if (!m_LoadedWorld) return;
 
@@ -176,8 +176,9 @@ namespace Moongoose {
 		LOG_APP_INFO("Save World");
 	}
 
-	void WorldManager::CloseWorld(Ref<World> world)
+	void WorldManager::closeWorld(Ref<World> world)
 	{
+		world.reset();
 	}
 
 }

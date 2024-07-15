@@ -68,8 +68,7 @@ namespace Moongoose {
 			}
 			else 
 			{
-				m_Materials[index].name = slotName;
-				m_Materials[index].material = material;
+				m_Materials[index] = { slotName, material };
 			}
 
 		}
@@ -78,6 +77,7 @@ namespace Moongoose {
 			if (slotName == "") slotName = "Material " + std::to_string(m_Materials.size());
 			m_Materials.push_back({slotName, material}); 
 		}
+
 		void SetMaterial(unsigned int index, const Ref<Material>& material) { m_Materials[index].material = material; }
 
 		const std::vector<MaterialSlot>& GetMaterials() const { return m_Materials; }

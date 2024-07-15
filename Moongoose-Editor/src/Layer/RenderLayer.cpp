@@ -17,19 +17,13 @@ void RenderLayer::onAttach()
 	createPreviewRenderBuffer();
 	createCamera();
 
-	AssetManager& assetManager = AssetManager::Get();
-	WorldManager& worldManager = WorldManager::Get();
-	assetManager.BuildAssetRegistry();
-
-	// Load assets
+	AssetManager::Get().BuildAssetRegistry();
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
 }
 
-void RenderLayer::onDetach(){}
-
 void RenderLayer::onUpdate(float deltaTime)
 {
-	if (!m_World) return;
+	if (!WorldManager::Get().isWorldOpened()) return;
 
 	m_EditorCamera->setCameraActive(isMouseInWindow());
 	m_EditorCamera->onUpdate(deltaTime);
@@ -39,7 +33,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	RenderCommand::Clear();
 	m_RenderBuffer->ClearAttachment(1, -1);
 
-	m_RenderSystem->Run(m_EditorCamera, m_World);
+	m_RenderSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= m_ViewportBounds[0].x;
@@ -50,10 +44,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	m_WindowMousePos = { (int)mx, (int)my };
 	if (isMouseInWindow())
 	{
-		int pixelData = m_RenderBuffer->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
-		m_HoveredEntityId = pixelData;
-		//EntityManager::Get().setSelectedEntity(pixelData);
-		//m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+		m_HoveredEntityId = m_RenderBuffer->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
 	}
 
 	m_RenderBuffer->Unbind();
@@ -62,6 +53,7 @@ void RenderLayer::onUpdate(float deltaTime)
 void RenderLayer::onEvent(Event& event)
 {
 	m_EditorCamera->onEvent(event);
+
 	EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<MousePressedEvent>(BIND_EVENT_FUNC(RenderLayer::onMouseButtonPresed));
 	dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNC(RenderLayer::onKeyPressed));
@@ -69,10 +61,16 @@ void RenderLayer::onEvent(Event& event)
 
 void RenderLayer::onImGuiRender()
 {
-	showMainMenu();
+	renderToolbarMenu();
 
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
+
+	if (!WorldManager::IsWorldOpened())
+	{
+		ImGui::End();
+		return;
+	}
 
 	ImVec2 windowSize = ImGui::GetContentRegionAvail();
 	if (windowSize.x != m_WindowSize.x || windowSize.y != m_WindowSize.y)
@@ -94,58 +92,10 @@ void RenderLayer::onImGuiRender()
 		ImVec2(0, 1),
 		ImVec2(1, 0));
 
-	if (!m_World)
-	{
-		ImGui::End();
-		return;
-	}
-
-	// Gizmo
-	Entity selectedEntity = m_World->GetSelectedEntity();
-	if (selectedEntity != -1)
-	{
-		auto& entityTransform = m_World->GetComponent<TransformComponent>(selectedEntity);
-
-		ImGuizmo::AllowAxisFlip(false);
-		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetRect(
-			m_ViewportBounds[0].x, 
-			m_ViewportBounds[0].y, 
-			m_ViewportBounds[1].x - m_ViewportBounds[0].x, 
-			m_ViewportBounds[1].y - m_ViewportBounds[0].y);
-
-		auto transform = entityTransform.getTransform();
-
-		ImGuizmo::Manipulate(
-			glm::value_ptr(m_EditorCamera->getViewMatrix()),
-			glm::value_ptr(m_EditorCamera->getProjection()),
-			ImGuizmo::OPERATION(m_GizmoMode),
-			ImGuizmo::LOCAL, 
-			glm::value_ptr(transform),
-		nullptr, 
-			nullptr);
-
-		if (ImGuizmo::IsUsing())
-		{
-			glm::vec3 translation, rotation, scale;
-			TransformComponent::DecomposeTransform(transform,translation,rotation,scale);
-			glm::vec3 deltaRotation = glm::degrees(rotation) - entityTransform.m_Rotation;
-
-			entityTransform.m_Position = translation;
-			entityTransform.m_Rotation += deltaRotation;
-			entityTransform.m_Scale = scale;
-		}
-	}
+	renderGizmo();
+	renderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
 
 	ImGui::End();
-
-	ImGui::Begin("Render Debug");
-	ImGui::Text("Hovered entity: %d", m_HoveredEntityId);
-	ImGui::Text("Mouse: X: %f Y: %f", m_WindowMousePos.x, m_WindowMousePos.y);
-	ImGui::Text("Is mouse inside window: %s", isMouseInWindow() ? "True" : "False");
-	ImGui::End();
-
 }
 
 void RenderLayer::createRenderBuffer()
@@ -185,7 +135,7 @@ void RenderLayer::createCamera()
 	m_EditorCamera = CreateRef<PerspectiveCamera>(params);
 }
 
-void RenderLayer::showMainMenu()
+void RenderLayer::renderToolbarMenu()
 {
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -193,7 +143,7 @@ void RenderLayer::showMainMenu()
 		{
 			if (ImGui::MenuItem("New World"))
 			{
-				WorldManager::Get().CreateWorld("New World");
+				WorldManager::CreateWorld("New World");
 			}
 			if (ImGui::MenuItem("Open World"))
 			{
@@ -201,14 +151,14 @@ void RenderLayer::showMainMenu()
 
 				if (!worldFilePath.empty())
 				{
-					m_World = WorldManager::Get().LoadWorld(worldFilePath);
-					m_RenderSystem = m_World->GetSystem<RenderSystem>();
+					WorldManager::LoadWorld(worldFilePath);
+					m_RenderSystem = WorldManager::GetLoadedWorld()->GetSystem<RenderSystem>();
 				}
 			}
 
 			if (ImGui::MenuItem("Save World"))
 			{
-				WorldManager::Get().SaveWorld("Content\\Worlds\\Main_Scene.mgworld");
+				WorldManager::SaveWorld("Content\\Worlds\\Main_Scene.mgworld");
 			}
 			if (ImGui::MenuItem("Save World As..")) {}
 
@@ -218,6 +168,59 @@ void RenderLayer::showMainMenu()
 		}
 		ImGui::EndMainMenuBar();
 	}
+}
+
+void RenderLayer::renderGizmo()
+{
+	Entity selectedEntity = WorldManager::GetLoadedWorld()->GetSelectedEntity();
+	if (selectedEntity != -1)
+	{
+		auto& entityTransform = WorldManager::GetLoadedWorld()->GetComponent<TransformComponent>(selectedEntity);
+
+		ImGuizmo::AllowAxisFlip(false);
+		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetRect(
+			m_ViewportBounds[0].x,
+			m_ViewportBounds[0].y,
+			m_ViewportBounds[1].x - m_ViewportBounds[0].x,
+			m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+
+		auto transform = entityTransform.getTransform();
+
+		ImGuizmo::Manipulate(
+			glm::value_ptr(m_EditorCamera->getViewMatrix()),
+			glm::value_ptr(m_EditorCamera->getProjection()),
+			ImGuizmo::OPERATION(m_GizmoMode),
+			ImGuizmo::LOCAL,
+			glm::value_ptr(transform),
+			nullptr,
+			nullptr);
+
+		if (ImGuizmo::IsUsing())
+		{
+			glm::vec3 translation, rotation, scale;
+			TransformComponent::DecomposeTransform(transform, translation, rotation, scale);
+			glm::vec3 deltaRotation = glm::degrees(rotation) - entityTransform.m_Rotation;
+
+			entityTransform.m_Position = translation;
+			entityTransform.m_Rotation += deltaRotation;
+			entityTransform.m_Scale = scale;
+		}
+	}
+}
+
+void RenderLayer::renderDebugInfo(float posX, float posY)
+{
+	float debugMargin = 15.0f;
+	ImGui::SetCursorPos({ posX + debugMargin, posY + debugMargin });
+
+	ImGui::SetCursorPos(ImGui::GetCursorPos());
+	ImGui::Text("Hovered entity: %d", m_HoveredEntityId);
+	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
+	ImGui::Text("Mouse: X: %f Y: %f", m_WindowMousePos.x, m_WindowMousePos.y);
+	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
+	ImGui::Text("Is mouse inside window: %s", isMouseInWindow() ? "True" : "False");
 }
 
 bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
@@ -244,17 +247,18 @@ bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
 
 	if (event.getKeyCode() == MG_KEY_ESCAPE)
 	{
-		m_World->SetSelectedEntity(-1);
+		WorldManager::Get().GetLoadedWorld()->SetSelectedEntity(-1);
 		return false;
 	}
 }
 
 bool RenderLayer::onMouseButtonPresed(Moongoose::MousePressedEvent& event)
 {
-	if (m_HoveredEntityId != -1 && Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT))
-	{
-		m_World->SetSelectedEntity(m_HoveredEntityId);
-	}
+	bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
+	bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && !Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
+
+	if (mouseHoveredOverEntity && entitySelectButtonsPressed) WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
+
 	return false;
 }
 
@@ -262,67 +266,4 @@ bool RenderLayer::isMouseInWindow() const
 {
 	glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < (int)viewportSize.x && m_WindowMousePos.y < (int)viewportSize.y;
-}
-
-void RenderLayer::buildWorld()
-{
-	WorldManager& worldManager = WorldManager::Get();
-	AssetManager& assetManager = AssetManager::Get();
-
-	const Ref<Texture2D>& m_CheckerTexture = assetManager.CreateAsset<Texture2D>("T_Checker_01_C", "Content\\Texture\\checker_2k_c.png");
-	const Ref<Texture2D>& m_ColorCheckerTexture = assetManager.CreateAsset<Texture2D>("T_Checker_01_B", "Content\\Texture\\checker_2k_b.png");
-
-	const Ref<Material>& m_CheckerMaterial = assetManager.CreateAsset<Material>("M_Checker", "Content\\Material\\");
-	const Ref<Material>& m_ColorCheckerMaterial = assetManager.CreateAsset<Material>("M_Color_Checker", "Content\\Material\\");
-
-	m_CheckerMaterial->setAlbedo(m_CheckerTexture);
-	m_ColorCheckerMaterial->setAlbedo(m_ColorCheckerTexture);
-
-	assetManager.SaveAsset<Material>(m_CheckerMaterial);
-	assetManager.SaveAsset<Material>(m_ColorCheckerMaterial);
-
-	// Directional Light
-	{
-		Entity directionalLight = m_World->CreateEntity("Directional Light");
-
-		TransformComponent& transform = m_World->GetComponent<TransformComponent>(directionalLight);
-		transform.m_Rotation += glm::vec3(45.0f, -135.0f, 0.0f);
-
-		LightComponent directionalLightComponent;
-		directionalLightComponent.m_Type = LightType::DIRECTIONAL;
-
-		m_World->AddComponent<LightComponent>(directionalLight, directionalLightComponent);
-	}
-
-	// Ground Plane
-	{
-		Entity groundEntity = m_World->CreateEntity("Ground");
-
-		Ref<Mesh> planeMesh = assetManager.CreateAsset<Mesh>("SM_Plane", "Content\\Mesh\\Plane.obj");
-		planeMesh->SetMaterial(0, m_CheckerMaterial);
-
-		TransformComponent& transform = m_World->GetComponent<TransformComponent>(groundEntity);
-		transform.m_Position = glm::vec3(0.0f, -5.0f, 0.0f);
-		transform.m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-		transform.m_Scale = glm::vec3(15.0f, 1.0f, 15.0f);
-
-		m_World->AddComponent<MeshComponent>(groundEntity, MeshComponent(planeMesh));
-	}
-
-	// Monkey hat
-	{
-		Entity monkeyHatEntity = m_World->CreateEntity("Monkey_Hat");
-
-		Ref<Mesh> monkeyHat = assetManager.CreateAsset<Mesh>("SM_Monkey_Hat", "Content\\Mesh\\Monkey_Hat.fbx");
-		monkeyHat->GetMaterial(0)->setAlbedo(m_ColorCheckerTexture);
-		monkeyHat->GetMaterial(1)->setAlbedo(m_CheckerTexture);
-
-		assetManager.SaveAsset(monkeyHat);
-		assetManager.SaveAsset(monkeyHat->GetMaterial(0));
-		assetManager.SaveAsset(monkeyHat->GetMaterial(1));
-
-		m_World->AddComponent<MeshComponent>(monkeyHatEntity, MeshComponent(monkeyHat));
-	}
-
-	worldManager.SaveWorld("Content\\Worlds\\demo_world.mgworld");
 }
