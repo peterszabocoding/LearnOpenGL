@@ -21,6 +21,8 @@ private:
 	void createPreviewRenderBuffer();
 	void createCamera();
 
+	void showMainMenu();
+
 	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
 	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override;
 	bool isMouseInWindow() const;

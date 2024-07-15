@@ -7,6 +7,7 @@
 #include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/ECS/WorldManager.h"
 #include "Moongoose/Util/FileSystem.h"
+#include "Platform/PlatformUtils.h"
 
 using namespace Moongoose;
 
@@ -22,20 +23,14 @@ void RenderLayer::onAttach()
 
 	// Load assets
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
-
-	// Create World
-	m_World = worldManager.LoadWorld("Content\\Worlds\\Main_Scene.mgworld");
-
-	//m_World = worldManager.CreateWorld("Main_Scene");
-	m_RenderSystem = m_World->GetSystem<RenderSystem>();
-
-	//buildWorld();
 }
 
 void RenderLayer::onDetach(){}
 
 void RenderLayer::onUpdate(float deltaTime)
 {
+	if (!m_World) return;
+
 	m_EditorCamera->setCameraActive(isMouseInWindow());
 	m_EditorCamera->onUpdate(deltaTime);
 	m_RenderBuffer->Bind();
@@ -74,9 +69,11 @@ void RenderLayer::onEvent(Event& event)
 
 void RenderLayer::onImGuiRender()
 {
+	showMainMenu();
+
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
-	
+
 	ImVec2 windowSize = ImGui::GetContentRegionAvail();
 	if (windowSize.x != m_WindowSize.x || windowSize.y != m_WindowSize.y)
 	{
@@ -97,6 +94,11 @@ void RenderLayer::onImGuiRender()
 		ImVec2(0, 1),
 		ImVec2(1, 0));
 
+	if (!m_World)
+	{
+		ImGui::End();
+		return;
+	}
 
 	// Gizmo
 	Entity selectedEntity = m_World->GetSelectedEntity();
@@ -181,6 +183,41 @@ void RenderLayer::createCamera()
 	params.renderHeight = m_WindowSize.y;
 	params.startPosition = { 0.0f, 0.0f, 5.0f };
 	m_EditorCamera = CreateRef<PerspectiveCamera>(params);
+}
+
+void RenderLayer::showMainMenu()
+{
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::MenuItem("New World"))
+			{
+				WorldManager::Get().CreateWorld("New World");
+			}
+			if (ImGui::MenuItem("Open World"))
+			{
+				std::string worldFilePath = Moongoose::FileDialogs::OpenFile(".mgworld");
+
+				if (!worldFilePath.empty())
+				{
+					m_World = WorldManager::Get().LoadWorld(worldFilePath);
+					m_RenderSystem = m_World->GetSystem<RenderSystem>();
+				}
+			}
+
+			if (ImGui::MenuItem("Save World"))
+			{
+				WorldManager::Get().SaveWorld("Content\\Worlds\\Main_Scene.mgworld");
+			}
+			if (ImGui::MenuItem("Save World As..")) {}
+
+			ImGui::Separator();
+			if (ImGui::MenuItem("Quit", false)) {}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
 }
 
 bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
