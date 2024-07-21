@@ -8,6 +8,56 @@
 
 using namespace Moongoose;
 
+void AssetBrowserLayer::ShowPopupMenu()
+{
+    if (ImGui::BeginPopupContextWindow("asset_browser_popup"))
+    {
+        if (ImGui::MenuItem("Import Mesh"))
+        {
+            const std::string filePath = Moongoose::FileDialogs::OpenFile(".fbx");
+            const std::string fileName = std::filesystem::path(filePath).filename().string();
+            const std::string extension = std::filesystem::path(filePath).extension().string();
+            Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
+
+            if (assetType != Moongoose::AssetType::Mesh) return;
+
+            Ref<Moongoose::Mesh> asset = Moongoose::AssetManager::Get().CreateAsset<Moongoose::Mesh>(fileName, filePath);
+            Moongoose::AssetManager::Get().SaveAsset(asset);
+
+            FileSystem::GetFileStructure("Content\\", true);
+            AssetManager::Get().BuildAssetRegistry();
+		}
+        if (ImGui::MenuItem("Import Texture"))
+        {
+            std::string filePath = Moongoose::FileDialogs::OpenFile(".png");
+            const std::string fileName = std::filesystem::path(filePath).filename().string();
+            std::string extension = std::filesystem::path(filePath).extension().string();
+            Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
+
+            if (assetType != Moongoose::AssetType::Mesh) return;
+
+            Ref<Moongoose::Texture2D> asset = Moongoose::AssetManager::Get().CreateAsset<Moongoose::Texture2D>(fileName, filePath);
+            Moongoose::AssetManager::Get().SaveAsset(asset);
+
+            FileSystem::GetFileStructure("Content\\", true);
+            AssetManager::Get().BuildAssetRegistry();
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Create Material"))
+        {
+            auto& material = AssetManager::Get().CreateAsset<Material>("New_Material", m_SelectedFolder.string() + "\\" + "new_material.mgasset");
+            AssetManager::Get().SaveAsset(material);
+
+            FileSystem::GetFileStructure("Content\\", true);
+            AssetManager::Get().BuildAssetRegistry();
+        }
+        
+		ImGui::EndPopup();
+	}
+}
+
 void AssetBrowserLayer::onAttach()
 {
 }
@@ -16,40 +66,15 @@ void AssetBrowserLayer::onImGuiRender()
 {
 	ImGui::Begin("Asset Browser");
 
-    // Import buttons
-	{
-        GuiWidgets::DrawButton("Import Mesh", []()
-            {
-                const std::string filePath = Moongoose::FileDialogs::OpenFile(".fbx");
-                const std::string fileName = std::filesystem::path(filePath).filename().string();
-                const std::string extension = std::filesystem::path(filePath).extension().string();
-                Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
-
-                if (assetType != Moongoose::AssetType::Mesh) return;
-
-                Ref<Moongoose::Mesh> asset = Moongoose::AssetManager::Get().CreateAsset<Moongoose::Mesh>(fileName, filePath);
-                Moongoose::AssetManager::Get().SaveAsset(asset);
-            });
-        ImGui::SameLine();
-        GuiWidgets::DrawButton("Import Texture", []()
-            {
-                std::string filePath = Moongoose::FileDialogs::OpenFile(".png");
-                const std::string fileName = std::filesystem::path(filePath).filename().string();
-                std::string extension = std::filesystem::path(filePath).extension().string();
-                Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
-
-                if (assetType != Moongoose::AssetType::Mesh) return;
-
-                Ref<Moongoose::Texture2D> asset = Moongoose::AssetManager::Get().CreateAsset<Moongoose::Texture2D>(fileName, filePath);
-                Moongoose::AssetManager::Get().SaveAsset(asset);
-            });
-	}
+    ShowPopupMenu();
 
     // Folder structure layout
 	{
         const ImVec2 availableSpace = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("ChildL", ImVec2(std::max(250.0f, availableSpace.x * 0.15f), availableSpace.y),true);
+       
         RenderFolder(Moongoose::FileSystem::GetFileStructure("Content\\"), true);
+
         ImGui::EndChild();
 	}
 
@@ -64,16 +89,11 @@ void AssetBrowserLayer::onImGuiRender()
         ImGui::BeginChild("ChildR", ImVec2(availableSpace.x, availableSpace.y), true);
         if (!m_SelectedFolder.empty() && is_directory(m_SelectedFolder))
         {
-            if (availableSpace.x <= 0) {
-                ImGui::EndChild();
-            }
-            else
-            {
+            if (availableSpace.x > 0) {
                 std::vector<AssetDeclaration> decls = AssetManager::Get().GetAssetsByFolder(m_SelectedFolder);
                 int columns = availableSpace.x / (cardSize.x + cardPadding.x);
                 if (columns < 1) columns = 1;
 
-                
                 if (ImGui::BeginTable("CardTable", columns, ImGuiTableFlags_SizingStretchSame)) {
                     for (const auto& decl : decls) {
                         ImGui::TableNextColumn();
@@ -95,6 +115,7 @@ void AssetBrowserLayer::onImGuiRender()
         }
         ImGui::EndChild();
 	}
+
 	ImGui::End();
 }
 
@@ -130,6 +151,27 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
     {
         onButtonClicked(decl.ID);
     }
+
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_None) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+    {
+        LOG_APP_INFO("Right clicked on asset card");
+        ImGui::OpenPopup("asset_browser_card_popup");
+    }
+
+    if (ImGui::BeginPopupContextWindow("asset_browser_card_popup"))
+    {
+        if (ImGui::MenuItem("Delete Asset"))
+        {
+            LOG_APP_INFO("Delete asset: {0}", decl.Name);
+        }
+        if (ImGui::MenuItem("Rename Asset"))
+        {
+            AssetManager::Get().RenameAsset(decl.ID, "New_Asset_Renamed");
+            FileSystem::GetFileStructure("Content\\", true);
+        }
+        ImGui::EndPopup();
+    }
+    
     ImGui::EndGroup();
 }
 

@@ -24,6 +24,8 @@
 
 #define BIT(x) (1 << x)
 
+#define CAST_REF(T, x) std::static_pointer_cast<T>(x)
+
 template<typename T>
 using Scope = std::unique_ptr<T>;
 

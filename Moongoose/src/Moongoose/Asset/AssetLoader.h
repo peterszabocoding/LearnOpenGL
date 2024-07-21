@@ -12,6 +12,7 @@ namespace Moongoose {
 		virtual Ref<Asset> LoadAsset(AssetDeclaration& decl) = 0;
 		virtual Ref<Asset> LoadAssetFromFile(AssetDeclaration& decl) = 0;
 		virtual Ref<Asset> ReloadAsset(AssetDeclaration& decl) = 0;
+		virtual Ref<Asset> GetDefaultAsset() = 0;
 		virtual void SaveAsset(Ref<Asset> asset) = 0;
 	};
 
@@ -21,6 +22,7 @@ namespace Moongoose {
 		virtual Ref<Asset> LoadAsset(AssetDeclaration& decl) override;
 		virtual Ref<Asset> LoadAssetFromFile(AssetDeclaration& decl) override;
 		virtual Ref<Asset> ReloadAsset(AssetDeclaration& decl) override;
+		virtual Ref<Asset> GetDefaultAsset() override;
 		virtual void SaveAsset(Ref<Asset> asset) override;
 	};
 
@@ -30,6 +32,7 @@ namespace Moongoose {
 		virtual Ref<Asset> LoadAsset(AssetDeclaration& decl) override;
 		virtual Ref<Asset> LoadAssetFromFile(AssetDeclaration& decl) override;
 		virtual Ref<Asset> ReloadAsset(AssetDeclaration& decl) override;
+		virtual Ref<Asset> GetDefaultAsset() override;
 		virtual void SaveAsset(Ref<Asset> asset) override;
 	};
 
@@ -39,6 +42,7 @@ namespace Moongoose {
 		virtual Ref<Asset> LoadAsset(AssetDeclaration& decl) override;
 		virtual Ref<Asset> LoadAssetFromFile(AssetDeclaration& decl) override;
 		virtual Ref<Asset> ReloadAsset(AssetDeclaration& decl) override;
+		virtual Ref<Asset> GetDefaultAsset() override;
 		virtual void SaveAsset(Ref<Asset> asset) override;
 	};
 }

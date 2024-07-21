@@ -17,6 +17,7 @@ private:
 	void RenderFolder(Moongoose::FileStructureNode folder, bool openOnStart = false);
 	void OnButtonClicked(const Moongoose::UUID id);
 	void RenderAssetCard(const Moongoose::AssetDeclaration& decl, const std::function<void(const Moongoose::UUID)>& OnButtonClicked);
+	void ShowPopupMenu();
 
 private:
 	std::filesystem::path m_SelectedFolder;

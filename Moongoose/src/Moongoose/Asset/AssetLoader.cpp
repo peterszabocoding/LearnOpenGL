@@ -87,12 +87,7 @@ namespace Moongoose {
 		{
 			for (size_t i = 0; i < scene->mNumMaterials; i++)
 			{
-
-				Ref<Material> mat = AssetManager::Get().GetAssetById<Material>(AssetManager::Get().GetAssetDeclByType<Material>()[0].second.ID);
-				//const aiMaterial* mat = scene->mMaterials[i];
-				//aiString materialName = mat->GetName();
-				//const Ref<Material> newMaterial = AssetManager::Get().CreateAsset<Material>(materialName.C_Str(), "Content\\Material\\");
-				meshAsset->AddMaterial(mat);
+				meshAsset->AddMaterial(nullptr);
 			}
 		}
 
@@ -129,7 +124,7 @@ namespace Moongoose {
 		meshAsset->SetModelSource(decl.FilePath.string());
 		meshAsset->SetBounds(Bounds3(boundsMin, boundsMax));
 
-		//Utils::LoadMeshMaterials(scene, meshAsset);
+		Utils::LoadMeshMaterials(scene, meshAsset);
 
 		return meshAsset;
 	}
@@ -175,6 +170,11 @@ namespace Moongoose {
 		return AssetManager::Get().GetAssetById(decl.ID);
 	}
 
+	Ref<Asset> MeshAssetLoader::GetDefaultAsset()
+	{
+		return AssetManager::Get().GetAssetById<Mesh>(UUID(17706748999392867240));
+	}
+
 	void MeshAssetLoader::SaveAsset(const Ref<Asset> asset)
 	{
 		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
@@ -197,6 +197,7 @@ namespace Moongoose {
 
 			for (auto& mat : materials)
 			{
+				if (!mat.material) continue;
 				materialNamesAndIds.emplace_back(std::to_string(mat.material->m_ID), mat.name);
 			}
 			j["materials"] = materialNamesAndIds;
@@ -215,7 +216,7 @@ namespace Moongoose {
 
 	Ref<Asset> TextureAssetLoader::CreateAsset(AssetDeclaration& decl)
 	{
-		return Ref<Asset>();
+		return LoadAsset(decl);
 	}
 
 	Ref<Asset> TextureAssetLoader::LoadAsset(AssetDeclaration& decl)
@@ -281,6 +282,11 @@ namespace Moongoose {
 		return texture;
 	}
 
+	Ref<Asset> TextureAssetLoader::GetDefaultAsset()
+	{
+		return AssetManager::Get().GetAssetById<Texture2D>(UUID(8930786947602648694));
+	}
+
 	void TextureAssetLoader::SaveAsset(const Ref<Asset> asset)
 	{
 		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
@@ -314,7 +320,10 @@ namespace Moongoose {
 
 	Ref<Asset> MaterialAssetLoader::CreateAsset(AssetDeclaration& decl)
 	{
-		return CreateRef<Material>(decl.Name);
+		Ref<Material> newMaterial = CreateRef<Material>(decl.Name);
+		newMaterial->m_ID = decl.ID;
+		newMaterial->setAlbedo(AssetManager::Get().GetDefaultAsset<Texture2D>());
+		return newMaterial;
 	}
 
 	Ref<Asset> MaterialAssetLoader::LoadAsset(AssetDeclaration& decl)
@@ -352,14 +361,23 @@ namespace Moongoose {
 		return AssetManager::Get().GetAssetById(decl.ID);
 	}
 
+	Ref<Asset> MaterialAssetLoader::GetDefaultAsset()
+	{
+		return AssetManager::Get().GetAssetById<Material>(UUID(12295842333264798360));
+	}
+
 	void MaterialAssetLoader::SaveAsset(const Ref<Asset> asset)
 	{
 		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
-		const Ref<Material> materialAsset = std::static_pointer_cast<Material>(asset);
+		const Ref<Material> materialAsset = CAST_REF(Material, asset);
 
-		const auto filepath = std::filesystem::path(decl.FilePath);
-		auto filename = filepath.filename().string();
-		const auto fileDir = filepath.parent_path().string();
+		const auto fileDir = std::filesystem::path(decl.FilePath).parent_path();
+		const auto& outputFilename = fileDir.string() + "\\" + decl.Name + ".mgasset";
+
+		if (!FileSystem::IsFileExist(fileDir))
+		{
+			FileSystem::MakeDirectory(fileDir);
+		}
 
 		nlohmann::json j;
 		j["id"] = std::to_string(decl.ID);
@@ -370,19 +388,14 @@ namespace Moongoose {
 		if (materialAsset->getAlbedo())
 		{
 			auto& albedoTexture = materialAsset->getAlbedo();
-			j["albedo"] = { 
+			j["albedo"] = {
 				{ "ID", std::to_string(albedoTexture->m_ID)},
 				{ "Name", albedoTexture->m_Name},
 			};
 		}
 
-		const auto& outputFilename = fileDir + "\\" + decl.Name + ".mgasset";
-		if (!FileSystem::IsFileExist(fileDir)) FileSystem::MakeDirectory(fileDir);
-
 		std::ofstream o(outputFilename);
 		o << std::setw(4) << j << '\n';
-
-		decl.DeclFilePath = outputFilename;
 	}
 
 	/* ##################################################################*/

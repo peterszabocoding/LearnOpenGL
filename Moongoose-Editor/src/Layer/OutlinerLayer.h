@@ -13,4 +13,8 @@ public:
 	virtual void onEvent(Moongoose::Event& event) override {};
 	virtual void onImGuiRender() override;
 
+private:
+
+	static unsigned int m_NewEntityCounter;
+
 };

@@ -3,6 +3,7 @@
 #include "GUI/GuiWidgets.h"
 #include "Moongoose/Asset/AssetTypes.h"
 #include "Moongoose/Asset/AssetManager.h"
+#include "Resource/ResourceManager.h"
 #include "Platform/PlatformUtils.h"
 
 void AssetInspectorLayer::DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture)
@@ -75,14 +76,24 @@ void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Re
 	for (size_t i = 0; i < materialSlots.size(); i++)
 	{
 		Moongoose::MaterialSlot& materialSlot = materialSlots[i];
+		bool isMaterialEmpty = !materialSlot.material;
 
-		Ref<Moongoose::Texture2D> albedo = materialSlot.material->getAlbedo();
-		const std::string& matName = materialSlot.material->GetName();
+		if (isMaterialEmpty)
+		{
+			ImGui::PushID(materialSlot.name.c_str());
+			ImGui::Text("%s:", materialSlot.name.c_str());
+			RenderImageTextButton(ImVec2(50.0f, 50.0f), ResourceManager::GetIcon(Icon::Material), "Empty");
+		}
+		else
+		{
+			Ref<Moongoose::Texture2D> albedo = materialSlot.material->getAlbedo();
+			const std::string& matName = materialSlot.material->GetName();
 
-		ImGui::PushID(materialSlot.material->m_ID);
-		ImGui::Text("%s:", materialSlot.name.c_str());
+			ImGui::PushID(materialSlot.material->m_ID);
+			ImGui::Text("%s:", materialSlot.name.c_str());
 
-		RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+			RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+		}
 
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -107,7 +118,7 @@ void AssetInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Moongoose:
 	auto availSpace = ImGui::GetContentRegionAvail();
 	auto& ogPos = ImGui::GetCursorPos();
 
-	ImGui::Image(icon->GetPointerToData(), ImVec2{ 50.0f, 50.0f });
+	ImGui::Image(icon ? icon->GetPointerToData() : ResourceManager::GetIcon(Icon::Texture)->GetPointerToData(), ImVec2{50.0f, 50.0f});
 	ImGui::SameLine();
 	ImGui::Spacing();
 	ImGui::SameLine();

@@ -34,4 +34,6 @@ private:
 		}
 	}
 
+	void DisplayAddMeshComponentEntry(const std::string& entryName, size_t entityId);
+
 };

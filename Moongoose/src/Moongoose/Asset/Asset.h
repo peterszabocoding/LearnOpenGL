@@ -31,7 +31,10 @@ namespace Moongoose {
 		bool IsDataLoaded = false;
 		bool IsMemoryAsset = false;
 
-		bool IsValid() const { return ID != 0 && !IsMemoryAsset; }
+		bool IsValid() const 
+		{ 
+			return ID != 0 && !IsMemoryAsset; 
+		}
 	};
 
 }

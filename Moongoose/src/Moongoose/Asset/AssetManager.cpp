@@ -41,6 +41,16 @@ namespace Moongoose {
 		}
 	}
 
+	void AssetManager::ReloadAsset(AssetDeclaration& decl)
+	{
+		s_AssetLoaders[decl.Type]->ReloadAsset(decl);
+	}
+
+	void AssetManager::SaveAsset(const Ref<Asset>& asset)
+	{
+		s_AssetLoaders[asset->getAssetType()]->SaveAsset(asset);
+	}
+
 	void AssetManager::LoadAsset(AssetDeclaration& decl)
 	{
 		switch (decl.Type) {
@@ -55,6 +65,27 @@ namespace Moongoose {
 				break;
 			default:;
 		}
+	}
+
+	void AssetManager::LoadAssetFromFile(AssetDeclaration& decl)
+	{
+		switch (decl.Type) {
+		case AssetType::Mesh:
+			LoadAssetFromFile<Mesh>(decl);
+			break;
+		case AssetType::Material:
+			LoadAssetFromFile<Material>(decl);
+			break;
+		case AssetType::Texture:
+			LoadAssetFromFile<Texture2D>(decl);
+			break;
+		default:;
+		}
+	}
+
+	const std::unordered_map<UUID, Ref<Asset>>& AssetManager::GetLoadedAssets()
+	{
+		return s_LoadedAssets;
 	}
 
 	AssetDeclaration AssetManager::ReadDeclarationFromFile(const std::filesystem::path& declFile)

@@ -61,7 +61,7 @@ namespace Moongoose {
 		static std::vector<std::filesystem::path> GetFilesFromDirectoryDeep(const std::filesystem::path& directoryPath);
 		static std::vector<std::filesystem::path> GetFilesFromDirectoryDeep(const std::filesystem::path& directoryPath, const std::string& extensionFilter);
 		static std::vector<std::filesystem::path> GetFilesByExtension(const std::filesystem::path& directoryPath, const std::string& extension);
-		static FileStructureNode GetFileStructure(const std::filesystem::path& directoryPath);
+		static FileStructureNode GetFileStructure(const std::filesystem::path& directoryPath, bool forceUpdate = false);
 
 		static const std::string& GetFileExtension(const std::filesystem::path& filePath);
 	private:

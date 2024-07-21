@@ -155,9 +155,9 @@ namespace Moongoose
 		return files;
 	}
 
-	FileStructureNode FileSystem::GetFileStructure(const std::filesystem::path& directoryPath)
+	FileStructureNode FileSystem::GetFileStructure(const std::filesystem::path& directoryPath, bool forceUpdate)
 	{
-		if (s_FileStructureCache.find(directoryPath) != s_FileStructureCache.end())
+		if (!forceUpdate && s_FileStructureCache.find(directoryPath) != s_FileStructureCache.end())
 		{
 			return s_FileStructureCache[directoryPath];
 		}

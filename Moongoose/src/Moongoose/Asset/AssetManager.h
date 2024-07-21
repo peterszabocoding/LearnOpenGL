@@ -22,21 +22,48 @@ namespace Moongoose {
 		static AssetDeclaration ReadDeclarationFromFile(const std::filesystem::path& declFile);
 
 		void BuildAssetRegistry();
-
 		void LoadAsset(AssetDeclaration& decl);
+		void LoadAssetFromFile(AssetDeclaration& decl);
+		void ReloadAsset(AssetDeclaration& decl);
+		void SaveAsset(const Ref<Asset>& asset);
+		const std::unordered_map<UUID, Ref<Asset>>& GetLoadedAssets();
 
 		template<typename T>
-		Ref<T> CreateAsset(const std::string& assetName, const std::string& filePath)
+		Ref<T> GetDefaultAsset()
+		{
+			return CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->GetDefaultAsset());
+		}
+
+
+		template<typename T>
+		AssetDeclaration CreateAssetDeclaration(const std::string& assetName, const std::string& path)
 		{
 			static_assert(std::is_base_of_v<Asset, T>, "Type must derive from Asset!");
 
 			AssetDeclaration decl;
 			decl.ID = UUID();
 			decl.Name = assetName;
-			decl.FilePath = filePath;
+			decl.FilePath = path;
 			decl.Type = T::GetStaticAssetType();
+			decl.IsDataLoaded = false;
+			decl.IsMemoryAsset = false;
 
-			return LoadAsset<T>(decl);
+			return decl;
+		}
+
+		template<typename T>
+		Ref<T> CreateAsset(const std::string& assetName, const std::string& filePath)
+		{
+			static_assert(std::is_base_of_v<Asset, T>, "Type must derive from Asset!");
+
+			AssetDeclaration decl = CreateAssetDeclaration<T>(assetName, filePath);
+			Ref<T> asset = CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->CreateAsset(decl));	
+
+			decl.IsDataLoaded = true;
+			s_AssetRegistry[decl.ID] = decl;
+			s_LoadedAssets[decl.ID] = asset;
+
+			return asset;
 		}
 
 		template<typename T>
@@ -54,13 +81,12 @@ namespace Moongoose {
 		template<typename T>
 		Ref<T> LoadAssetFromFile(AssetDeclaration& decl)
 		{
-			Ref<T> asset = std::static_pointer_cast<T>(s_AssetLoaders[T::GetStaticAssetType()]->LoadAssetFromFile(decl));
+			Ref<T> asset = CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->LoadAssetFromFile(decl));
 			asset->m_ID = decl.ID;
 			asset->m_Name = decl.Name;
 			decl.IsDataLoaded = true;
 
 			s_LoadedAssets[decl.ID] = asset;
-			//s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
 
 			return asset;
 		}
@@ -69,7 +95,7 @@ namespace Moongoose {
 		Ref<T> LoadAsset(AssetDeclaration& decl)
 		{
 			static_assert(std::is_base_of_v<Asset, T>, "Type must derive from Asset!");
-			Ref<T> asset = std::static_pointer_cast<T>(s_AssetLoaders[T::GetStaticAssetType()]->LoadAsset(decl));
+			Ref<T> asset = CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->LoadAsset(decl));
 			asset->m_ID = decl.ID;
 			asset->m_Name = decl.Name;
 
@@ -77,14 +103,19 @@ namespace Moongoose {
 			s_AssetRegistry[decl.ID] = decl;
 			s_LoadedAssets[decl.ID] = asset;
 
-			//s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
-
 			return asset;
 		}
 
-		void ReloadAsset(AssetDeclaration& decl)
+		void RenameAsset(UUID assetId, const std::string& newName)
 		{
-			s_AssetLoaders[decl.Type]->ReloadAsset(decl);
+			AssetDeclaration& decl = s_AssetRegistry[assetId];
+			decl.Name = newName;
+			decl.DeclFilePath = decl.DeclFilePath.parent_path() / (newName + ".mgasset");
+
+			if (decl.IsDataLoaded)
+			{
+				SaveAsset(s_LoadedAssets[assetId]);
+			}
 		}
 
 		template<typename T>
@@ -99,16 +130,6 @@ namespace Moongoose {
 		{
 			static_assert(std::is_base_of<Asset, T>::value, "Type must derive from Asset!");
 			s_AssetLoaders[T::GetStaticAssetType()]->SaveAsset(asset);
-		}
-
-		void SaveAsset(const Ref<Asset>& asset)
-		{
-			s_AssetLoaders[asset->getAssetType()]->SaveAsset(asset);
-		}
-
-		const std::unordered_map<UUID, Ref<Asset>>& GetLoadedAssets()
-		{
-			return s_LoadedAssets;
 		}
 
 		template<typename T>
@@ -142,7 +163,7 @@ namespace Moongoose {
 			AssetDeclaration decl = GetDeclByID(assetId);
 			if (!decl.IsDataLoaded)
 			{
-				LoadAsset(decl);
+				LoadAssetFromFile(decl);
 			}
 			return s_LoadedAssets[assetId];
 		}

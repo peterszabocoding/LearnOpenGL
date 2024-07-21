@@ -34,7 +34,7 @@ void EntityInspectorLayer::onImGuiRender()
 	if (ImGui::BeginPopup("Add Component"))
 	{
 		DisplayAddComponentEntry<LightComponent>("Light Component", selectedEntity);
-		DisplayAddComponentEntry<MeshComponent>("Mesh Component", selectedEntity);
+		DisplayAddMeshComponentEntry("Mesh Component", selectedEntity);
 		ImGui::EndPopup();
 	}
 
@@ -88,22 +88,34 @@ void EntityInspectorLayer::onImGuiRender()
 		{
 			auto& cMesh = world->GetComponent<MeshComponent>(selectedEntity);
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			if (cMesh.m_Mesh && ImGui::TreeNode("Mesh Renderer")) {
+			if (ImGui::TreeNode("Mesh Renderer")) {
 				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 				ImGui::SeparatorText("Mesh");
 
 				RenderImageTextButton(
 					ImVec2(50.0f, 50.0f),
 					ResourceManager::GetIcon(Icon::Mesh),
-					cMesh.m_Mesh->GetModelSource());
+					cMesh.m_Mesh ? cMesh.m_Mesh->GetModelSource() : "None");
 
-				ImGui::SeparatorText("Materials");
-				auto& materials = cMesh.m_Mesh->GetMaterials();
-
-				for (size_t i = 0; i < materials.size(); i++)
+				if (ImGui::BeginDragDropTarget())
 				{
-					DrawMaterialControls(cMesh.m_Mesh, i);
-					ImGui::Spacing();
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+						UUID meshId = ((const AssetDeclaration*)payload->Data)->ID;
+						cMesh.m_Mesh = AssetManager::Get().GetAssetById<Mesh>(meshId);
+					}
+					ImGui::EndDragDropTarget();
+				}
+
+				if (cMesh.m_Mesh)
+				{
+					ImGui::SeparatorText("Materials");
+					auto& materials = cMesh.m_Mesh->GetMaterials();
+
+					for (size_t i = 0; i < materials.size(); i++)
+					{
+						DrawMaterialControls(cMesh.m_Mesh, i);
+						ImGui::Spacing();
+					}
 				}
 
 				ImGui::TreePop();
@@ -132,7 +144,7 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 {
 	const auto& materialSlots = mesh->GetMaterials();
 	const auto& materialSlot = materialSlots[materialIndex];
-	const auto& material = mesh->GetMaterial(materialIndex);
+	const auto& material = materialSlot.material;
 
 	if (!material) return;
 
@@ -143,20 +155,6 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
 	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
-
-	/*
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
-			UUID materialId = ((const AssetDeclaration*)payload->Data)->ID;
-			mesh->SetMaterial(
-				materialIndex,
-				AssetManager::Get().GetAssetById<Material>(materialId)
-			);
-		}
-		ImGui::EndDragDropTarget();
-	}
-	*/
 
 	ImGui::PopID();
 }
@@ -187,4 +185,18 @@ void EntityInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Texture2D
 	ImGui::Button("", ImVec2(availSpace.x, 50.0f));
 
 	ImGui::EndGroup();
+}
+
+void EntityInspectorLayer::DisplayAddMeshComponentEntry(const std::string& entryName, size_t entityId)
+{
+	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<MeshComponent>(entityId);
+
+	if (!hasComponent)
+	{
+		if (ImGui::MenuItem(entryName.c_str()))
+		{
+			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, MeshComponent());
+			ImGui::CloseCurrentPopup();
+		}
+	}
 }

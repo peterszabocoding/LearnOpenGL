@@ -255,7 +255,7 @@ bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
 bool RenderLayer::onMouseButtonPresed(Moongoose::MousePressedEvent& event)
 {
 	bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
-	bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && !Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
+	bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
 
 	if (mouseHoveredOverEntity && entitySelectButtonsPressed) WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
 
