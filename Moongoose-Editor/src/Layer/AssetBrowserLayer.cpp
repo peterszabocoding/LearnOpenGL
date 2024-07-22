@@ -14,33 +14,39 @@ void AssetBrowserLayer::ShowPopupMenu()
     {
         if (ImGui::MenuItem("Import Mesh"))
         {
-            const std::string filePath = Moongoose::FileDialogs::OpenFile(".fbx");
-            const std::string fileName = std::filesystem::path(filePath).filename().string();
-            const std::string extension = std::filesystem::path(filePath).extension().string();
-            Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
+            Moongoose::FileDialogs::OpenFile(".fbx", [&](const std::string& filePath)
+            {
+                 const std::string fileName = std::filesystem::path(filePath).filename().string();
+                 const std::string extension = std::filesystem::path(filePath).extension().string();
+                 Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
 
-            if (assetType != Moongoose::AssetType::Mesh) return;
+                 if (assetType != Moongoose::AssetType::Mesh) return;
 
-            Ref<Moongoose::Mesh> asset = Moongoose::AssetManager::Get().CreateAsset<Moongoose::Mesh>(fileName, filePath);
-            Moongoose::AssetManager::Get().SaveAsset(asset);
+                 AssetDeclaration decl = Moongoose::AssetManager::Get().CreateAssetDeclaration<Moongoose::Mesh>(fileName, filePath);
+                 Ref<Moongoose::Mesh> asset = Moongoose::AssetManager::Get().LoadAsset<Moongoose::Mesh>(decl);
+                 Moongoose::AssetManager::Get().SaveAsset(asset);
 
-            FileSystem::GetFileStructure("Content\\", true);
-            AssetManager::Get().BuildAssetRegistry();
+                 FileSystem::GetFileStructure("Content\\", true);
+                 AssetManager::Get().BuildAssetRegistry();
+            });
 		}
         if (ImGui::MenuItem("Import Texture"))
         {
-            std::string filePath = Moongoose::FileDialogs::OpenFile(".png");
-            const std::string fileName = std::filesystem::path(filePath).filename().string();
-            std::string extension = std::filesystem::path(filePath).extension().string();
-            Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
+            Moongoose::FileDialogs::OpenFile(".png", [&](const std::string& filePath)
+            {
+                const std::string fileName = std::filesystem::path(filePath).filename().string();
+                std::string extension = std::filesystem::path(filePath).extension().string();
+                Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
 
-            if (assetType != Moongoose::AssetType::Mesh) return;
+                if (assetType != Moongoose::AssetType::Texture) return;
 
-            Ref<Moongoose::Texture2D> asset = Moongoose::AssetManager::Get().CreateAsset<Moongoose::Texture2D>(fileName, filePath);
-            Moongoose::AssetManager::Get().SaveAsset(asset);
+                AssetDeclaration decl = Moongoose::AssetManager::Get().CreateAssetDeclaration<Moongoose::Texture2D>(fileName, filePath);
+                Ref<Moongoose::Texture2D> asset = Moongoose::AssetManager::Get().LoadAsset<Moongoose::Texture2D>(decl);
+                Moongoose::AssetManager::Get().SaveAsset(asset);
 
-            FileSystem::GetFileStructure("Content\\", true);
-            AssetManager::Get().BuildAssetRegistry();
+                FileSystem::GetFileStructure("Content\\", true);
+                AssetManager::Get().BuildAssetRegistry();
+            });
         }
 
         ImGui::Separator();

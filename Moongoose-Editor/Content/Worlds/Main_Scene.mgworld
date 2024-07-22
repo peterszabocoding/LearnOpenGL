@@ -2,7 +2,7 @@
     "entities": [
         {
             "IDComponent": {
-                "id": "145469254014649494"
+                "id": "6729574921224233477"
             },
             "LightComponent": {
                 "color": {
@@ -36,20 +36,20 @@
         },
         {
             "IDComponent": {
-                "id": "13710566356387886902"
+                "id": "2121526297134775750"
             },
             "MeshComponent": {
-                "asset": "3958687728367986779",
-                "assetDecl": "Content\\Mesh\\SM_Plane.mgasset"
+                "asset": "14136211866202430725",
+                "assetDecl": "Content\\EngineContent\\Default_Plane.obj.mgasset"
             },
             "TagComponent": {
                 "tag": "Ground"
             },
             "TransformComponent": {
                 "position": {
-                    "x": 0.0,
+                    "x": 1.1920928955078125e-07,
                     "y": -5.0,
-                    "z": 0.0
+                    "z": 5.960464477539063e-08
                 },
                 "rotation": {
                     "x": 0.0,
@@ -65,19 +65,19 @@
         },
         {
             "IDComponent": {
-                "id": "8674266848372596043"
+                "id": "5286106807443060674"
             },
             "MeshComponent": {
-                "asset": "13241884457052698686",
-                "assetDecl": "Content\\Mesh\\SM_Monkey_Hat.mgasset"
+                "asset": "17706748999392867240",
+                "assetDecl": "Content\\EngineContent\\Default_Cube.mgasset"
             },
             "TagComponent": {
                 "tag": "Monkey_Hat"
             },
             "TransformComponent": {
                 "position": {
-                    "x": 0.0,
-                    "y": 0.0,
+                    "x": -2.9802322387695313e-08,
+                    "y": -0.46653103828430176,
                     "z": 0.0
                 },
                 "rotation": {
@@ -92,5 +92,6 @@
                 }
             }
         }
-    ]
+    ],
+    "name": "Main_Scene"
 }

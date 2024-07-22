@@ -18,30 +18,8 @@ namespace Moongoose {
 		const std::string& GetName() const { return m_Name; }
 
 		// Entites
-		Entity CreateEntity(const std::string& tag) const
-		{
-			Entity entity = m_EntityManager->CreateEntity();
-
-			m_ComponentManager->AddComponent<IDComponent>(entity, IDComponent());
-			m_ComponentManager->AddComponent<TagComponent>(entity, TagComponent(tag));
-			m_ComponentManager->AddComponent<TransformComponent>(entity, TransformComponent());
-
-			Signature signature = m_EntityManager->GetSignature(entity);
-			signature.set(m_ComponentManager->GetComponentType<IDComponent>(), true);
-			signature.set(m_ComponentManager->GetComponentType<TagComponent>(), true);
-			signature.set(m_ComponentManager->GetComponentType<TransformComponent>(), true);
-			m_EntityManager->SetSignature(entity, signature);
-
-			m_SystemManager->EntitySignatureChanged(entity, signature);
-			return entity;
-		}
-
-		void DestroyEntity(Entity entity)
-		{
-			m_EntityManager->DestroyEntity(entity);
-			m_ComponentManager->EntityDestroyed(entity);
-			m_SystemManager->EntityDestroyed(entity);
-		}
+		Entity CreateEntity(const std::string& tag) const;
+		void DestroyEntity(Entity entity);
 
 		uint32_t GetEntityCount() const
 		{
@@ -97,7 +75,6 @@ namespace Moongoose {
 		{
 			return m_ComponentManager->GetComponentType<T>();
 		}
-
 
 		//Systems
 		template<typename T>

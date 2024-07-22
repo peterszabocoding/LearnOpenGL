@@ -158,7 +158,8 @@ void RenderLayer::renderToolbarMenu()
 
 			if (ImGui::MenuItem("Save World"))
 			{
-				WorldManager::SaveWorld("Content\\Worlds\\Main_Scene.mgworld");
+				std::string worldName = WorldManager::GetLoadedWorld()->m_Name;
+				WorldManager::SaveWorld("Content\\Worlds\\" + worldName + ".mgworld");
 			}
 			if (ImGui::MenuItem("Save World As..")) {}
 

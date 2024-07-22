@@ -22,7 +22,11 @@ void OutlinerLayer::onImGuiRender()
 	item_current_idx = world->GetSelectedEntity();
 
 	auto& tags = world->GetSystem<Moongoose::EntityListSystem>()->GetEntityTagList(world);
+
 	if (ImGui::Button("Add Entity")) world->CreateEntity("New Entity " + std::to_string(++m_NewEntityCounter));
+	ImGui::SameLine();
+	if (ImGui::Button("Delete Entity")) world->DestroyEntity(world->GetSelectedEntity());
+
 
 	GuiWidgets::DrawList("##hierarchyList", tags, item_current_idx, [&](int selected) {
 		item_current_idx = selected;

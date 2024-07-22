@@ -32,6 +32,12 @@ namespace Moongoose {
 
 	}
 
+	void FileDialogs::OpenFile(const char* filter, const std::function<void(const std::string& filePath)>& onComplete)
+	{
+		std::string filePath = OpenFile(filter);
+		if (!filePath.empty()) onComplete(filePath);
+	}
+
 	std::string FileDialogs::SaveFile(const char* filter)
 	{
 		OPENFILENAMEA ofn;

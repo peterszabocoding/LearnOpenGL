@@ -36,9 +36,11 @@ namespace Moongoose {
 
 	Ref<World> WorldManager::loadWorld(const std::string& sceneFile)
 	{
-		Ref<World> world = CreateWorld("New_World");
 		std::string worldJsonString = FileSystem::ReadFile(sceneFile);
 		auto worldJson = nlohmann::json::parse(worldJsonString);
+
+		std::string worldName = worldJson["name"];
+		Ref<World> world = CreateWorld(worldName);
 
 		auto entities = worldJson["entities"];
 
@@ -101,6 +103,7 @@ namespace Moongoose {
 		nlohmann::json jsonWorld = nlohmann::json::object();
 		nlohmann::json jsonEntityArray = nlohmann::json::array();
 
+		jsonWorld["name"] = m_LoadedWorld->m_Name;
 		for (Entity entity = 0; entity < m_LoadedWorld->GetEntityCount(); entity++)
 		{
 			nlohmann::json entityObj = nlohmann::json::object();

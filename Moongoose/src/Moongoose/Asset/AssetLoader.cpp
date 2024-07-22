@@ -337,18 +337,15 @@ namespace Moongoose {
 		auto assetJson = nlohmann::json::parse(assetJsonString);
 
 		Ref<Material> materialAsset = std::static_pointer_cast<Material>(CreateAsset(decl));
-		auto albedoJson = assetJson["albedo"];
+		auto& albedoJson = assetJson["albedo"];
 
 		if (!albedoJson.empty())
 		{ 
 			UUID albedoTextureId = albedoJson["ID"].get<std::string>();
 			AssetDeclaration albedoTextureDecl = AssetManager::Get().GetDeclByID(albedoTextureId);
-			Ref<Texture2D> albedoTexture;
-
-			if (!albedoTextureDecl.IsDataLoaded)
-				albedoTexture = AssetManager::Get().LoadAssetById<Texture2D>(albedoTextureId);
-			else
-				albedoTexture = AssetManager::Get().GetAssetById<Texture2D>(albedoTextureId);
+			Ref<Texture2D> albedoTexture = !albedoTextureDecl.IsDataLoaded
+				? AssetManager::Get().LoadAssetById<Texture2D>(albedoTextureId)
+				: AssetManager::Get().GetAssetById<Texture2D>(albedoTextureId);
 			
 			materialAsset->setAlbedo(albedoTexture);
 		}
