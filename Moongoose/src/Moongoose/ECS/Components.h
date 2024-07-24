@@ -13,6 +13,7 @@
 #include "Moongoose/Renderer/Mesh.h"
 #include "Moongoose/Renderer/Shader.h"
 #include "Moongoose/Renderer/Material.h"
+#include "Moongoose/Renderer/Billboard.h"
 
 namespace Moongoose {
 
@@ -172,6 +173,13 @@ namespace Moongoose {
 		LightType m_Type = LightType::POINT;
 		glm::vec3 m_Color = glm::vec3(1.0f);
 		float m_Intensity = 1.0f;
+	};
+
+	struct BillboardComponent : public Component
+	{
+		BillboardComponent() {}
+		BillboardComponent(Ref<Texture2D> texture): m_BillboardTexture(texture) {}
+		Ref<Texture2D> m_BillboardTexture;
 	};
 
 }

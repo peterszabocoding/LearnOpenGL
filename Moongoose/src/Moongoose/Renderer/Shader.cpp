@@ -104,6 +104,12 @@ namespace Moongoose {
 		polygonMode = mode;
 	}
 
+	void Shader::SetDepthTest(bool enabled)
+	{
+		if (enabled) glEnable(GL_DEPTH_TEST);
+		else glDisable(GL_DEPTH_TEST);
+	}
+
 	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);

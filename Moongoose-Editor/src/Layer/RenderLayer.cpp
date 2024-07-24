@@ -19,6 +19,7 @@ void RenderLayer::onAttach()
 
 	AssetManager::Get().BuildAssetRegistry();
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
+	ShaderManager::AssignShaderToType(ShaderType::BILLBOARD, "shader\\billboard.vs", "shader\\billboard.fs");
 }
 
 void RenderLayer::onUpdate(float deltaTime)
@@ -34,6 +35,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	m_RenderBuffer->ClearAttachment(1, -1);
 
 	m_RenderSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
+	m_BillboardSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= m_ViewportBounds[0].x;
@@ -153,6 +155,7 @@ void RenderLayer::renderToolbarMenu()
 				{
 					WorldManager::LoadWorld(worldFilePath);
 					m_RenderSystem = WorldManager::GetLoadedWorld()->GetSystem<RenderSystem>();
+					m_BillboardSystem = WorldManager::GetLoadedWorld()->GetSystem<BillboardSystem>();
 				}
 			}
 

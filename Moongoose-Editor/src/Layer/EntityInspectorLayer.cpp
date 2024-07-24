@@ -35,6 +35,7 @@ void EntityInspectorLayer::onImGuiRender()
 	{
 		DisplayAddComponentEntry<LightComponent>("Light Component", selectedEntity);
 		DisplayAddMeshComponentEntry("Mesh Component", selectedEntity);
+		DisplayAddBillboardComponentEntry("Billboard Component", selectedEntity);
 		ImGui::EndPopup();
 	}
 
@@ -137,6 +138,38 @@ void EntityInspectorLayer::onImGuiRender()
 		}
 	}
 
+	// Billboard Component
+	{
+		if (world->HasComponent<BillboardComponent>(selectedEntity))
+		{
+			auto& cBillboard = world->GetComponent<BillboardComponent>(selectedEntity);
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+			if (ImGui::TreeNode("Billboard")) {
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+				if (world->HasComponent<LightComponent>(selectedEntity))
+				{
+					cBillboard.m_BillboardTexture = ResourceManager::GetIcon(Icon::Directional_Light);
+				}
+
+				RenderImageTextButton(
+					ImVec2(50.0f, 50.0f),
+					cBillboard.m_BillboardTexture ? cBillboard.m_BillboardTexture : ResourceManager::GetIcon(Icon::Texture),
+					cBillboard.m_BillboardTexture ? cBillboard.m_BillboardTexture->m_Name : "None");
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+						UUID textureId = ((const AssetDeclaration*)payload->Data)->ID;
+						cBillboard.m_BillboardTexture = AssetManager::Get().GetAssetById<Texture2D>(textureId);
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::TreePop();
+			}
+		}
+	}
+
 	ImGui::End();
 }
 
@@ -196,6 +229,20 @@ void EntityInspectorLayer::DisplayAddMeshComponentEntry(const std::string& entry
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
 			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, MeshComponent());
+			ImGui::CloseCurrentPopup();
+		}
+	}
+}
+
+void EntityInspectorLayer::DisplayAddBillboardComponentEntry(const std::string& entryName, size_t entityId)
+{
+	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<BillboardComponent>(entityId);
+
+	if (!hasComponent)
+	{
+		if (ImGui::MenuItem(entryName.c_str()))
+		{
+			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, BillboardComponent(NULL));
 			ImGui::CloseCurrentPopup();
 		}
 	}

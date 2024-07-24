@@ -11,21 +11,26 @@
 
 namespace Moongoose {
 
-	static Mesh QuadMesh() {
+	static Mesh QuadMesh(float scale = 1.0f) {
 		// Position - UVs
 		GLfloat vertices[] = {
-			-1.0f,  1.0f, 0.0f,		0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f,		0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f,		1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f,		1.0f, 0.0f,
+			-scale,  scale, 0.0f,	0.0f, 0.0f,
+			-scale, -scale, 0.0f,	0.0f, 1.0f,
+			 scale,  scale, 0.0f,	1.0f, 0.0f,
+			 scale, -scale, 0.0f,	1.0f, 1.0f,
 		};
 
 		unsigned int indices[] = {
 			0, 1, 2,
 			1, 3, 2
 		};
-
-		return Mesh();
+		Mesh mesh;
+		mesh.AddSubmesh(0, vertices, indices, 4 * 5, 6, 
+			{
+				{ ShaderDataType::Float3, "aPos" },
+				{ ShaderDataType::Float2, "aTexCoords" }
+			});
+		return mesh;
 	}
 
 	static Mesh Triangle() {
@@ -33,7 +38,7 @@ namespace Moongoose {
 		GLfloat vertices[] = {
 			0.5f,  0.0f, 0.0f,		0.0f, 1.0f,
 			0.75f, 0.75f, 0.0f,		0.0f, 0.0f,
-			0.25f,  0.75f, 0.0f,		1.0f, 1.0f,
+			0.25f,  0.75f, 0.0f,	1.0f, 1.0f,
 		};
 
 		unsigned int indices[] = {

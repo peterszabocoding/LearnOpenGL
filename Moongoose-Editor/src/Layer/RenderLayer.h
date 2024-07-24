@@ -36,6 +36,7 @@ private:
 	Scope<Moongoose::Framebuffer> m_PreviewRenderBuffer;
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
 	Ref<Moongoose::RenderSystem> m_RenderSystem;
+	Ref<Moongoose::BillboardSystem> m_BillboardSystem;
 
 	size_t m_GizmoMode = 7;
 	int m_HoveredEntityId = -1;

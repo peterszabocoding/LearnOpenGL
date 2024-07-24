@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 
 #include "RenderSystem.h"
+#include "BillboardSystem.h"
 #include "Moongoose/Renderer/Transform.h"
 #include "Systems/EntityListSystem.h"
 
@@ -27,9 +28,11 @@ namespace Moongoose {
 		m_LoadedWorld->RegisterComponent<TransformComponent>();
 		m_LoadedWorld->RegisterComponent<MeshComponent>();
 		m_LoadedWorld->RegisterComponent<LightComponent>();
+		m_LoadedWorld->RegisterComponent<BillboardComponent>();
 
 		m_LoadedWorld->RegisterSystem<EntityListSystem>();
 		m_LoadedWorld->RegisterSystem<RenderSystem>();
+		m_LoadedWorld->RegisterSystem<BillboardSystem>();
 
 		return m_LoadedWorld;
 	}

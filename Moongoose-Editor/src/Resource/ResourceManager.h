@@ -9,6 +9,7 @@ enum class Icon : uint16_t
 	Material = 3,
 	Texture = 4,
 	EnvMap = 5,
+	Directional_Light = 6,
 };
 
 class ResourceManager

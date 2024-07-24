@@ -6,10 +6,10 @@
 
 namespace Moongoose {
 
-	class RenderSystem: public System
+	class BillboardSystem : public System
 	{
 	public:
-		RenderSystem()
+		BillboardSystem()
 		{
 			m_DefaultMaterial = CreateRef<Material>("DefaultMaterial");
 		}

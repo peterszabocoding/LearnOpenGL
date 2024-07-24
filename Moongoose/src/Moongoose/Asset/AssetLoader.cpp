@@ -250,8 +250,8 @@ namespace Moongoose {
 		auto assetJson = nlohmann::json::parse(assetJsonString);
 
 		Ref<Texture2D> textureAsset = std::static_pointer_cast<Texture2D>(LoadAsset(decl));
-		textureAsset->SetTextureFilter(Utils::TextureFilterFromString(assetJson["texture_filter"]));
-		textureAsset->SetTextureWrap(Utils::TextureWrapFromString(assetJson["texture_wrap"]));
+		textureAsset->SetTextureFilter(assetJson.contains("texture_filter") ? Utils::TextureFilterFromString(assetJson["texture_filter"]) : TextureFilter::Linear);
+		textureAsset->SetTextureWrap(assetJson.contains("texture_wrap") ? Utils::TextureWrapFromString(assetJson["texture_wrap"]) : TextureWrap::Repeat);
 
 		return textureAsset;
 	}

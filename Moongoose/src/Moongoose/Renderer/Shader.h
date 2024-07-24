@@ -26,7 +26,8 @@ namespace Moongoose {
 		IRRADIANCE_MAP,
 		BACKGROUND,
 		PREFILTER,
-		BRDF
+		BRDF,
+		BILLBOARD
 	};
 
 	enum class PolygonMode : uint8_t {
@@ -85,6 +86,7 @@ namespace Moongoose {
 				case ShaderType::BACKGROUND:				return "BACKGROUND";
 				case ShaderType::PREFILTER:					return "PREFILTER";
 				case ShaderType::BRDF:						return "BRDF";
+				case ShaderType::BILLBOARD:					return "BILLBOARD";
 			}
 		}
 	}
@@ -108,6 +110,7 @@ namespace Moongoose {
 		void SetModelTransform(const glm::mat4& model);
 		void SetEntityID(const size_t entityId);
 		void SetPolygonMode(PolygonMode mode);
+		void SetDepthTest(bool enabled);
 
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
