@@ -33,9 +33,7 @@ struct DirectionalLight {
 struct PointLight {
 	Light base;
 	vec3 position;
-	float constant;
-	float linear;
-	float exponent;
+	float attenuationRadius;
 };
 
 struct SpotLight {
@@ -114,6 +112,18 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
 
 // ------------------------ LIGHTS --------------------------------------------
 
+float CalcLightAttenuation(vec3 fragPos, vec3 lightPos, float rmax)
+{
+	vec3 ldir = lightPos - fragPos;
+	float dist = length(ldir);
+	if (dist >= rmax) return 0.0;
+
+	float r2 = dot(ldir, ldir);
+	vec2 attenuationConstant = vec2(1.0 / (rmax * rmax), 2.0 / rmax);
+
+	return clamp(r2 * attenuationConstant.x * (sqrt(r2) * attenuationConstant.y - 3.0) + 1.0, 0.0, 1.0);
+}
+
 vec4 CalcLightByDirection(Light light, vec3 direction, float shadowFactor) 
 {
 	float diffuseFactor = clamp(dot(Normal, normalize(direction)), 0.0, 1.0);
@@ -135,10 +145,13 @@ vec4 CalcPointLight(PointLight pLight)
 	direction = normalize(direction);
 
 	vec4 color = CalcLightByDirection(pLight.base, direction, 1.0);
+	/*
 	float attenuation = pLight.exponent * dist * dist 
 						+ pLight.linear * dist 
 						+ pLight.constant;
-	return color / attenuation;
+	*/
+	float attenuation = CalcLightAttenuation(FragPos, pLight.position, pLight.attenuationRadius);
+	return color * attenuation;
 }
 
 vec4 CalcSpotLight(SpotLight sLight) 

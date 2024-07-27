@@ -142,28 +142,24 @@ namespace Moongoose {
 		UploadUniformFloat3("directionalLight.direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 	}
 
-	void Shader::SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent)
+	void Shader::SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius)
 	{
 		glUniform1i(uniformPointLightCount, 1);
 
 		UploadUniformFloat3("pointLights[0].base.color", color);
 		UploadUniformFloat("pointLights[0].base.intensity", intensity);
 		UploadUniformFloat3("pointLights[0].position", position);
-		UploadUniformFloat("pointLights[0].constant", constant);
-		UploadUniformFloat("pointLights[0].linear", linear);
-		UploadUniformFloat("pointLights[0].exponent", exponent);
+		UploadUniformFloat("pointLights[0].attenuationRadius", attenuationRadius);
 	}
 
-	void Shader::SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent, float attenuationAngle)
+	void Shader::SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle)
 	{
 		glUniform1i(uniformSpotLightCount, 1);
 
 		UploadUniformFloat3("spotLights[0].base.base.color", color);
 		UploadUniformFloat("spotLights[0].base.base.intensity", intensity);
 		UploadUniformFloat3("spotLights[0].base.position", position);
-		UploadUniformFloat("spotLights[0].base.constant", constant);
-		UploadUniformFloat("spotLights[0].base.linear", linear);
-		UploadUniformFloat("spotLights[0].base.exponent", exponent);
+		UploadUniformFloat("spotLights[0].base.attenuationRadius", attenuationRadius);
 		UploadUniformFloat3("spotLights[0].direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 		UploadUniformFloat("spotLights[0].attenuationAngle", attenuationAngle);
 	}

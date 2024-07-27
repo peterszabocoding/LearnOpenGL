@@ -132,6 +132,8 @@ void EntityInspectorLayer::onImGuiRender()
 			auto& cLight = world->GetComponent<LightComponent>(selectedEntity);
 			auto windowSize = ImGui::GetWindowSize();
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
+			GuiWidgets::DrawFloatControl("Attenuation Radius", cLight.m_AttenuationRadius, 0.0f, 10000.0f, 0.1f, 50.0f, windowSize.x);
+			GuiWidgets::DrawFloatControl("Attenuation Angle", cLight.m_AttenuationAngle, 0.0f, 1.0f, 0.005f, 0.75f, windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
 			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int) cLight.m_Type, [&](int selected)
 				{

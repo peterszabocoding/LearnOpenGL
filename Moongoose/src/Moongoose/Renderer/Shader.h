@@ -115,8 +115,8 @@ namespace Moongoose {
 
 		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity);
-		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent);
-		void SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent, float attenuationAngle);
+		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
+		void SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);

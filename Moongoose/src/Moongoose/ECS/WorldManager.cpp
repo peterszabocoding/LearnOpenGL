@@ -89,6 +89,9 @@ namespace Moongoose {
 				cLight.m_Color = glm::vec3(jLightComponent["color"]["r"], jLightComponent["color"]["g"], jLightComponent["color"]["b"]);
 				cLight.m_Intensity = jLightComponent["intensity"];
 				cLight.m_Type = (LightType) jLightComponent["type"];
+				cLight.m_AttenuationRadius = jLightComponent.contains("attenuationRadius") ? jLightComponent["attenuationRadius"] : 10.0f;
+				cLight.m_AttenuationAngle = jLightComponent.contains("attenuationAngle") ? jLightComponent["attenuationAngle"] : 0.75f;
+
 				world->AddComponent<LightComponent>(entity, cLight);
 			}
 
@@ -166,6 +169,8 @@ namespace Moongoose {
 				jLight["type"] = cLight.m_Type;
 				jLight["color"] = { {"r", cLight.m_Color.x}, {"g", cLight.m_Color.y}, {"b", cLight.m_Color.z} };
 				jLight["intensity"] = cLight.m_Intensity;
+				jLight["attenuationRadius"] = cLight.m_AttenuationRadius;
+				jLight["attenuationAngle"] = cLight.m_AttenuationAngle;
 
 				entityObj["LightComponent"] = jLight;
 			}

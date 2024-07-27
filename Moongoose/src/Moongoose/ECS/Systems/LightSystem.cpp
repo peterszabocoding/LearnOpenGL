@@ -37,7 +37,7 @@ namespace Moongoose
 						cTransform.m_Position,
 						cLight.m_Color,
 						cLight.m_Intensity,
-						0.3f, 0.2f,0.1f);
+						cLight.m_AttenuationRadius);
 					break;
 				case LightType::SPOT:
 					shader->SetSpotLight(
@@ -45,7 +45,8 @@ namespace Moongoose
 						cTransform.m_Position,
 						cLight.m_Color,
 						cLight.m_Intensity,
-						0.3f, 0.2f, 0.1f, 0.75f);
+						cLight.m_AttenuationRadius, 
+						cLight.m_AttenuationAngle);
 					break;
 			}
 		}
