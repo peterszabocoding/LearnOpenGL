@@ -116,8 +116,10 @@ namespace Moongoose {
 	void Shader::ResetLights()
 	{
 		glUniform1i(uniformPointLightCount, 0);
-		UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		glUniform1i(uniformSpotLightCount, 0);
+
 		UploadUniformFloat("directionalLight.base.intensity", 0.0f);
+		UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 	}
 
@@ -150,6 +152,20 @@ namespace Moongoose {
 		UploadUniformFloat("pointLights[0].constant", constant);
 		UploadUniformFloat("pointLights[0].linear", linear);
 		UploadUniformFloat("pointLights[0].exponent", exponent);
+	}
+
+	void Shader::SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent, float attenuationAngle)
+	{
+		glUniform1i(uniformSpotLightCount, 1);
+
+		UploadUniformFloat3("spotLights[0].base.base.color", color);
+		UploadUniformFloat("spotLights[0].base.base.intensity", intensity);
+		UploadUniformFloat3("spotLights[0].base.position", position);
+		UploadUniformFloat("spotLights[0].base.constant", constant);
+		UploadUniformFloat("spotLights[0].base.linear", linear);
+		UploadUniformFloat("spotLights[0].base.exponent", exponent);
+		UploadUniformFloat3("spotLights[0].direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+		UploadUniformFloat("spotLights[0].attenuationAngle", attenuationAngle);
 	}
 
 	/*
@@ -251,11 +267,8 @@ namespace Moongoose {
 			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.color", i);
 			uniformPointLight[i].uniformColor = glGetUniformLocation(shaderID, locBuff);
 
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.ambientIntensity", i);
-			uniformPointLight[i].uniformAmbientIntensity = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.diffuseIntensity", i);
-			uniformPointLight[i].uniformDiffuseIntensity = glGetUniformLocation(shaderID, locBuff);
+			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.intensity", i);
+			uniformPointLight[i].uniformIntensity = glGetUniformLocation(shaderID, locBuff);
 
 			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.isShadowCasting", i);
 			uniformPointLight[i].uniformIsShadowCasting = glGetUniformLocation(shaderID, locBuff);
@@ -283,11 +296,8 @@ namespace Moongoose {
 			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.base.color", i);
 			uniformSpotLight[i].uniformColor = glGetUniformLocation(shaderID, locBuff);
 
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.base.ambientIntensity", i);
-			uniformSpotLight[i].uniformAmbientIntensity = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.base.diffuseIntensity", i);
-			uniformSpotLight[i].uniformDiffuseIntensity = glGetUniformLocation(shaderID, locBuff);
+			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.base.intensity", i);
+			uniformSpotLight[i].uniformIntensity = glGetUniformLocation(shaderID, locBuff);
 
 			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.isShadowCasting", i);
 			uniformSpotLight[i].uniformIsShadowCasting = glGetUniformLocation(shaderID, locBuff);

@@ -1,7 +1,7 @@
 #version 450
 
-const int MAX_POINT_LIGHTS = 100;
-const int MAX_SPOT_LIGHTS = 100;
+const int MAX_POINT_LIGHTS = 10;
+const int MAX_SPOT_LIGHTS = 10;
 
 in vec3 FragPos;
 in vec2 TexCoord;
@@ -57,9 +57,6 @@ uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform Material material;
 
 vec3 normalizedNormal;
-
-
-
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -191,7 +188,7 @@ void main()
 	normalizedNormal = normalize(n);
 
     vec4 albedo = texture(AlbedoTexture, TexCoord);
-    vec4 color = albedo * (CalcDirectionalLight() + CalcPointLights());
+    vec4 color = albedo * (CalcDirectionalLight() + CalcPointLights() + CalcSpotLights());
 
     FragColor = vec4(color.rgb, 1.0f);
     oEntityID = EntityID;

@@ -37,17 +37,15 @@ namespace Moongoose {
 
 	struct UniformDirectionalLight {
 		unsigned int uniformColor;
-		unsigned int uniformAmbientIntensity;
-		unsigned int uniformDiffuseIntensity;
+		unsigned int uniformIntensity;
+		unsigned int uniformDirection;
 		bool uniformIsShadowCasting;
 		bool uniformUseSoftShadow;
-		unsigned int uniformDirection;
 	};
 
 	struct UniformPointLight {
 		unsigned int uniformColor;
-		unsigned int uniformAmbientIntensity;
-		unsigned int uniformDiffuseIntensity;
+		unsigned int uniformIntensity;
 		bool uniformIsShadowCasting;
 		bool uniformUseSoftShadow;
 
@@ -59,8 +57,7 @@ namespace Moongoose {
 
 	struct UniformSpotLight {
 		unsigned int uniformColor;
-		unsigned int uniformAmbientIntensity;
-		unsigned int uniformDiffuseIntensity;
+		unsigned int uniformIntensity;
 		bool uniformIsShadowCasting;
 		bool uniformUseSoftShadow;
 
@@ -119,6 +116,7 @@ namespace Moongoose {
 		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity);
 		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent);
+		void SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent, float attenuationAngle);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);

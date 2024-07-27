@@ -39,6 +39,14 @@ namespace Moongoose
 						cLight.m_Intensity,
 						0.3f, 0.2f,0.1f);
 					break;
+				case LightType::SPOT:
+					shader->SetSpotLight(
+						cTransform.getTransform(),
+						cTransform.m_Position,
+						cLight.m_Color,
+						cLight.m_Intensity,
+						0.3f, 0.2f, 0.1f, 0.75f);
+					break;
 			}
 		}
 
