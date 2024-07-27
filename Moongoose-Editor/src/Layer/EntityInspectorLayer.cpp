@@ -33,7 +33,7 @@ void EntityInspectorLayer::onImGuiRender()
 
 	if (ImGui::BeginPopup("Add Component"))
 	{
-		DisplayAddComponentEntry<LightComponent>("Light Component", selectedEntity);
+		DisplayAddLightComponentEntry("Light Component", selectedEntity);
 		DisplayAddMeshComponentEntry("Mesh Component", selectedEntity);
 		DisplayAddBillboardComponentEntry("Billboard Component", selectedEntity);
 		ImGui::EndPopup();
@@ -133,6 +133,10 @@ void EntityInspectorLayer::onImGuiRender()
 			auto windowSize = ImGui::GetWindowSize();
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
+			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int) cLight.m_Type, [&](int selected)
+				{
+					cLight.m_Type = (LightType) selected;
+				});
 
 			ImGui::TreePop();
 		}
@@ -149,7 +153,10 @@ void EntityInspectorLayer::onImGuiRender()
 
 				if (world->HasComponent<LightComponent>(selectedEntity))
 				{
-					cBillboard.m_BillboardTexture = ResourceManager::GetIcon(Icon::Directional_Light);
+					LightType type = world->GetComponent<LightComponent>(selectedEntity).m_Type;
+					cBillboard.m_BillboardTexture = ResourceManager::GetIcon(type == LightType::DIRECTIONAL 
+						? Icon::DirectionalLight 
+						: Icon::PointLight);
 				}
 
 				RenderImageTextButton(
@@ -229,6 +236,20 @@ void EntityInspectorLayer::DisplayAddMeshComponentEntry(const std::string& entry
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
 			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, MeshComponent());
+			ImGui::CloseCurrentPopup();
+		}
+	}
+}
+
+void EntityInspectorLayer::DisplayAddLightComponentEntry(const std::string& entryName, size_t entityId)
+{
+	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<LightComponent>(entityId);
+
+	if (!hasComponent)
+	{
+		if (ImGui::MenuItem(entryName.c_str()))
+		{
+			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, LightComponent());
 			ImGui::CloseCurrentPopup();
 		}
 	}

@@ -6,6 +6,9 @@
 
 namespace Moongoose {
 
+	constexpr size_t MAX_POINT_LIGHTS = 4;
+	constexpr size_t MAX_SPOT_LIGHTS = 4;
+
 	Shader::Shader(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation)
 	{
 		shaderID = 0;
@@ -110,6 +113,14 @@ namespace Moongoose {
 		else glDisable(GL_DEPTH_TEST);
 	}
 
+	void Shader::ResetLights()
+	{
+		glUniform1i(uniformPointLightCount, 0);
+		UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		UploadUniformFloat("directionalLight.base.intensity", 0.0f);
+		UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+	}
+
 	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
@@ -127,6 +138,18 @@ namespace Moongoose {
 		UploadUniformFloat3("directionalLight.base.color", color);
 		UploadUniformFloat("directionalLight.base.intensity", intensity);
 		UploadUniformFloat3("directionalLight.direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+	}
+
+	void Shader::SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent)
+	{
+		glUniform1i(uniformPointLightCount, 1);
+
+		UploadUniformFloat3("pointLights[0].base.color", color);
+		UploadUniformFloat("pointLights[0].base.intensity", intensity);
+		UploadUniformFloat3("pointLights[0].position", position);
+		UploadUniformFloat("pointLights[0].constant", constant);
+		UploadUniformFloat("pointLights[0].linear", linear);
+		UploadUniformFloat("pointLights[0].exponent", exponent);
 	}
 
 	/*
@@ -221,8 +244,6 @@ namespace Moongoose {
 			return;
 		}
 
-		/*
-
 		uniformPointLightCount = glGetUniformLocation(shaderID, "pointLightCount");
 		for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
 			char locBuff[100] = { '\0' };
@@ -292,8 +313,6 @@ namespace Moongoose {
 			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].attenuationAngle", i);
 			uniformSpotLight[i].uniformAttenuationAngle = glGetUniformLocation(shaderID, locBuff);
 		}
-
-		*/
 
 		uniformTexture = glGetUniformLocation(shaderID, "AlbedoTexture");
 		uniformNormalMap = glGetUniformLocation(shaderID, "NormalTexture");

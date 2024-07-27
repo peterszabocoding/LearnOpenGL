@@ -35,6 +35,7 @@ private:
 	Scope<Moongoose::Framebuffer> m_RenderBuffer;
 	Scope<Moongoose::Framebuffer> m_PreviewRenderBuffer;
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
+	Ref<Moongoose::LightSystem> m_LightSystem;
 	Ref<Moongoose::RenderSystem> m_RenderSystem;
 	Ref<Moongoose::BillboardSystem> m_BillboardSystem;
 

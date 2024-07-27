@@ -30,8 +30,6 @@ namespace Moongoose
 	{
 		for (auto const& entity : m_Entities)
 		{
-			if (!world->HasComponent<BillboardComponent>(entity)) continue;
-
 			TransformComponent transformComponent = world->GetComponent<TransformComponent>(entity);
 			BillboardComponent billboardComponent = world->GetComponent<BillboardComponent>(entity);
 

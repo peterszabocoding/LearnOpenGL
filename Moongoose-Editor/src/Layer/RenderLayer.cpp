@@ -34,6 +34,7 @@ void RenderLayer::onUpdate(float deltaTime)
 	RenderCommand::Clear();
 	m_RenderBuffer->ClearAttachment(1, -1);
 
+	m_LightSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 	m_RenderSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 	m_BillboardSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 
@@ -154,6 +155,7 @@ void RenderLayer::renderToolbarMenu()
 				if (!worldFilePath.empty())
 				{
 					WorldManager::LoadWorld(worldFilePath);
+					m_LightSystem = WorldManager::GetLoadedWorld()->GetSystem<LightSystem>();
 					m_RenderSystem = WorldManager::GetLoadedWorld()->GetSystem<RenderSystem>();
 					m_BillboardSystem = WorldManager::GetLoadedWorld()->GetSystem<BillboardSystem>();
 				}

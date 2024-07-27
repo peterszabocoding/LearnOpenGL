@@ -8,7 +8,8 @@ void ResourceManager::LoadResources()
 	m_Icons[Icon::Mesh] = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetMesh", "res\\icon\\icon_asset_mesh.png");
 	m_Icons[Icon::Texture] = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetTexture", "res\\icon\\icon_asset_texture.png");
 	m_Icons[Icon::Material] = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetMaterial", "res\\icon\\icon_asset_material.png");
-	m_Icons[Icon::Directional_Light] = assetManager.CreateAsset<Moongoose::Texture2D>("iconDirectionalLight", "res\\icon\\icon_light_directional.png");
+	m_Icons[Icon::DirectionalLight] = assetManager.CreateAsset<Moongoose::Texture2D>("iconDirectionalLight", "res\\icon\\icon_light_directional.png");
+	m_Icons[Icon::PointLight] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_light_point.png");
 }
 
 Ref<Moongoose::Texture2D> ResourceManager::GetIcon(Icon icon)

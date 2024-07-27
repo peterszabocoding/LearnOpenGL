@@ -21,21 +21,31 @@ namespace Moongoose {
 	const ComponentType MAX_COMPONENTS = 32;
 	using Signature = std::bitset<MAX_COMPONENTS>;
 
-	/*
-	enum class ComponentType: uint8_t
-	{
-		Transform = 0,
-		Mesh,
-		Camera
-	};
-	*/
-
 	enum class LightType: uint8_t
 	{
 		DIRECTIONAL = 0,
 		POINT,
 		SPOT
 	};
+
+	namespace Utils {
+
+		static std::string LightTypeToString(LightType type)
+		{
+			switch (type)
+			{
+			case LightType::DIRECTIONAL: return "Directional";
+			case LightType::POINT: return "Point";
+			case LightType::SPOT: return "Spot";
+			}
+			return "Unknown";
+		}
+
+		static std::vector<std::string> GetLightTypeStrings()
+		{
+			return { "Directional", "Point", "Spot" };
+		}
+	}
 
 	struct Component
 	{

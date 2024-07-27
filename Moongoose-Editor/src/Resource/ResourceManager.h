@@ -4,12 +4,13 @@
 enum class Icon : uint16_t
 {
 	Unknown = 0,
-	Scene = 1,
-	Mesh = 2,
-	Material = 3,
-	Texture = 4,
-	EnvMap = 5,
-	Directional_Light = 6,
+	Scene,
+	Mesh,
+	Material,
+	Texture,
+	EnvMap,
+	DirectionalLight,
+	PointLight,
 };
 
 class ResourceManager

@@ -10,6 +10,7 @@
 #include "BillboardSystem.h"
 #include "Moongoose/Renderer/Transform.h"
 #include "Systems/EntityListSystem.h"
+#include "Systems/LightSystem.h"
 
 namespace Moongoose {
 
@@ -31,6 +32,7 @@ namespace Moongoose {
 		m_LoadedWorld->RegisterComponent<BillboardComponent>();
 
 		m_LoadedWorld->RegisterSystem<EntityListSystem>();
+		m_LoadedWorld->RegisterSystem<LightSystem>();
 		m_LoadedWorld->RegisterSystem<RenderSystem>();
 		m_LoadedWorld->RegisterSystem<BillboardSystem>();
 
@@ -86,7 +88,7 @@ namespace Moongoose {
 				LightComponent cLight;
 				cLight.m_Color = glm::vec3(jLightComponent["color"]["r"], jLightComponent["color"]["g"], jLightComponent["color"]["b"]);
 				cLight.m_Intensity = jLightComponent["intensity"];
-				cLight.m_Type = LightType::DIRECTIONAL;
+				cLight.m_Type = (LightType) jLightComponent["type"];
 				world->AddComponent<LightComponent>(entity, cLight);
 			}
 

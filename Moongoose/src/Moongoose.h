@@ -41,5 +41,6 @@
 #include "Moongoose/ECS/RenderSystem.h"
 #include "Moongoose/ECS/BillboardSystem.h"
 #include "Moongoose/ECS/Systems/EntityListSystem.h"
+#include "Moongoose/ECS/Systems/LightSystem.h"
 
 #include "Moongoose/Util/FileSystem.h"

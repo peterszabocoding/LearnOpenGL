@@ -112,10 +112,14 @@ namespace Moongoose {
 		void SetPolygonMode(PolygonMode mode);
 		void SetDepthTest(bool enabled);
 
+		void ResetLights();
+
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity);
+		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float constant, float linear, float exponent);
+		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);
 		void SetSpotLights(std::vector<std::tuple<Transform*, Ref<Light>>> sLight);
