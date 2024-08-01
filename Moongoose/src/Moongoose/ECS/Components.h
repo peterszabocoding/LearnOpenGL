@@ -90,6 +90,11 @@ namespace Moongoose {
 				* glm::scale(glm::mat4(1.0f), m_Scale);
 		}
 
+		glm::vec3 GetForwardDirection() const
+		{
+			return getTransform() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+		}
+
 		static glm::mat4 GetModelMatrix(const TransformComponent& component)
 		{
 			return glm::translate(glm::mat4(1.0f), component.m_Position)
@@ -192,6 +197,16 @@ namespace Moongoose {
 		BillboardComponent() {}
 		BillboardComponent(Ref<Texture2D> texture): m_BillboardTexture(texture) {}
 		Ref<Texture2D> m_BillboardTexture;
+	};
+
+	struct AtmosphericsComponent : public Component
+	{
+		glm::vec3 m_SunDirection = glm::vec3(0.0f, 0.5f, 0.5f);
+		glm::vec3 m_SunColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		float m_SunIntensity = 10.0f;
+		float m_SunAmbientIntensity = 2.0f;
+
+		AtmosphericsComponent() {}
 	};
 
 }

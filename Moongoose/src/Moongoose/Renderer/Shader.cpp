@@ -135,11 +135,11 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 	}
 	
-	void Shader::SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity)
+	void Shader::SetDirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity)
 	{
 		UploadUniformFloat3("directionalLight.base.color", color);
 		UploadUniformFloat("directionalLight.base.intensity", intensity);
-		UploadUniformFloat3("directionalLight.direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+		UploadUniformFloat3("directionalLight.direction", direction);
 	}
 
 	void Shader::SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius)

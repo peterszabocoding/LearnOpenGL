@@ -43,22 +43,6 @@ namespace Moongoose {
 
 	void RenderSystem::Run(const Ref<PerspectiveCamera>& camera, Ref<World> world)
 	{
-		/*
-		LightComponent directionalLightComponent;
-		TransformComponent directionalLightTransformComponent;
-
-		std::vector<LightComponent> lightComponents = world->GetComponentsByType<LightComponent>();
-		for (size_t i = 0; i < lightComponents.size(); i++)
-		{
-			LightComponent cLight = lightComponents[i];
-			if (cLight.m_Type == LightType::DIRECTIONAL)
-			{
-				directionalLightComponent = cLight;
-				directionalLightTransformComponent = world->GetComponent<TransformComponent>(i);
-			}
-		}
-		*/
-
 		for (auto const& entity : m_Entities)
 		{
 			TransformComponent transformComponent = world->GetComponent<TransformComponent>(entity);
@@ -74,12 +58,6 @@ namespace Moongoose {
 				Ref<Shader> shader = ShaderManager::GetShaderByType(mat.material->getShaderType());
 				shader->Bind();
 				shader->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
-				/*
-				shader->SetDirectionalLight(
-					directionalLightTransformComponent.getTransform(),
-					directionalLightComponent.m_Color,
-					directionalLightComponent.m_Intensity);
-				*/
 				shader->SetModelTransform(TransformComponent::GetModelMatrix(transformComponent));
 				shader->SetEntityID(entity);
 				shader->Unbind();

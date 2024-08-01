@@ -24,6 +24,7 @@ private:
 	void renderToolbarMenu();
 	void renderGizmo();
 	void renderDebugInfo(float posX, float posY);
+	void renderFramebufferPreviewWindow();
 
 	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
 	bool isMouseInWindow() const;
@@ -32,15 +33,21 @@ private:
 private:
 	glm::vec2 m_WindowSize = { 1280, 720 };
 	
-	Scope<Moongoose::Framebuffer> m_RenderBuffer;
-	Scope<Moongoose::Framebuffer> m_PreviewRenderBuffer;
+	Ref<Moongoose::Framebuffer> m_RenderBuffer;
+	Ref<Moongoose::Framebuffer> m_PreviewRenderBuffer;
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
 	Ref<Moongoose::LightSystem> m_LightSystem;
 	Ref<Moongoose::RenderSystem> m_RenderSystem;
 	Ref<Moongoose::BillboardSystem> m_BillboardSystem;
+	Ref<Moongoose::AtmosphericsSystem> m_AtmosphericsSystem;
+
+	double m_Time = 0;
 
 	size_t m_GizmoMode = 7;
 	int m_HoveredEntityId = -1;
+
+	int selectedFramebuffer = 0;
+	int selectedAttachment = 0;
 
 	glm::vec2 m_WindowMousePos = { 0, 0 };
 	glm::vec2 m_ViewportBounds[2];

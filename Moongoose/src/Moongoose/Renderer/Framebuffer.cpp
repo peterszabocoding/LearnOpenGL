@@ -114,13 +114,12 @@ namespace Moongoose {
 		}
 	}
 
-	Framebuffer::Framebuffer(const FramebufferSpecs& specs) : m_Specs(specs)
+	Framebuffer::Framebuffer(const std::string& name, const FramebufferSpecs& specs) : m_Name(name), m_Specs(specs)
 	{
 		for (auto& format : m_Specs.Attachments.Attachments) {
 			if (!Utils::IsDepthFormat(format.TextureFormat)) {
 				m_ColorAttachmentSpecs.emplace_back(format.TextureFormat);
-			}
-			else {
+			} else {
 				m_DepthAttachmentSpec = format.TextureFormat;
 			}
 		}

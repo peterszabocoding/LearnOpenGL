@@ -7,6 +7,7 @@
 #include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/ECS/WorldManager.h"
 #include "Moongoose/Util/FileSystem.h"
+#include "GUI/GuiWidgets.h"
 #include "Platform/PlatformUtils.h"
 
 using namespace Moongoose;
@@ -20,20 +21,28 @@ void RenderLayer::onAttach()
 	AssetManager::Get().BuildAssetRegistry();
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
 	ShaderManager::AssignShaderToType(ShaderType::BILLBOARD, "shader\\billboard.vs", "shader\\billboard.fs");
+	ShaderManager::AssignShaderToType(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\atmos_scattering.frag");
 }
 
 void RenderLayer::onUpdate(float deltaTime)
 {
+	m_Time += deltaTime;
+	if (m_Time >= 50.0) m_Time = 0.0;
+
 	if (!WorldManager::Get().isWorldOpened()) return;
+
+	m_AtmosphericsSystem->Update(m_EditorCamera, m_RenderBuffer->GetResolution());
 
 	m_EditorCamera->setCameraActive(isMouseInWindow());
 	m_EditorCamera->onUpdate(deltaTime);
+	
 	m_RenderBuffer->Bind();
 
 	RenderCommand::SetClearColor(glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
 	RenderCommand::Clear();
 	m_RenderBuffer->ClearAttachment(1, -1);
 
+	m_AtmosphericsSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 	m_LightSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 	m_RenderSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
 	m_BillboardSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
@@ -65,6 +74,7 @@ void RenderLayer::onEvent(Event& event)
 void RenderLayer::onImGuiRender()
 {
 	renderToolbarMenu();
+	renderFramebufferPreviewWindow();
 
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
@@ -112,7 +122,8 @@ void RenderLayer::createRenderBuffer()
 		FramebufferTextureFormat::DEPTH24STENCIL8
 	};
 	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_RenderBuffer = CreateScope<Framebuffer>(specs);
+
+	m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
 }
 
 void RenderLayer::createPreviewRenderBuffer()
@@ -126,7 +137,7 @@ void RenderLayer::createPreviewRenderBuffer()
 		FramebufferTextureFormat::DEPTH24STENCIL8
 	};
 	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_PreviewRenderBuffer = CreateScope<Framebuffer>(specs);
+	m_PreviewRenderBuffer = FramebufferManager::CreateFramebuffer("PreviewBuffer", specs);
 }
 
 void RenderLayer::createCamera()
@@ -158,6 +169,7 @@ void RenderLayer::renderToolbarMenu()
 					m_LightSystem = WorldManager::GetLoadedWorld()->GetSystem<LightSystem>();
 					m_RenderSystem = WorldManager::GetLoadedWorld()->GetSystem<RenderSystem>();
 					m_BillboardSystem = WorldManager::GetLoadedWorld()->GetSystem<BillboardSystem>();
+					m_AtmosphericsSystem = WorldManager::GetLoadedWorld()->GetSystem<AtmosphericsSystem>();
 				}
 			}
 
@@ -174,6 +186,44 @@ void RenderLayer::renderToolbarMenu()
 		}
 		ImGui::EndMainMenuBar();
 	}
+}
+
+void RenderLayer::renderFramebufferPreviewWindow()
+{
+	ImGui::Begin("FBO Preview");
+
+	std::vector<Ref<Framebuffer>> framebuffers = FramebufferManager::GetFramebuffers();
+	std::vector<std::string> framebufferNames;
+	for (Ref<Framebuffer> buffer : framebuffers) framebufferNames.push_back(buffer->m_Name);
+
+	GuiWidgets::DrawSingleSelectDropdown("Framebuffers", framebufferNames, selectedFramebuffer, [&](int selected) {
+		selectedFramebuffer = selected;
+		});
+
+	Ref<Framebuffer> selectedBuffer = framebuffers[selectedFramebuffer];
+	ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+	ImVec2 imageSize = { (float) selectedBuffer->m_Specs.Width, (float) selectedBuffer->m_Specs.Height };
+
+	imageSize.x = availableSpace.x;
+	imageSize.y = imageSize.x * ((float)selectedBuffer->m_Specs.Height / selectedBuffer->m_Specs.Width);
+
+	size_t i = 0;
+	std::vector<std::string> bufferAttachments;
+	for (FramebufferTextureSpecs textureSpecs : selectedBuffer->m_ColorAttachmentSpecs)
+	{
+		bufferAttachments.push_back(std::to_string(++i) + ": " + Util::FramebufferTextureFormatToString(textureSpecs.TextureFormat));
+	}
+	
+	GuiWidgets::DrawSingleSelectDropdown("Attachments", bufferAttachments, selectedAttachment, [&](int selected) {
+		selectedAttachment = selected;
+	});
+
+
+
+	void* texturePointer = (void*)selectedBuffer->GetColorAttachments()[selectedAttachment];
+	ImGui::Image(texturePointer, imageSize, ImVec2(0, 1), ImVec2(1, 0));
+
+	ImGui::End();
 }
 
 void RenderLayer::renderGizmo()

@@ -1,5 +1,6 @@
 #include "mgpch.h"
 
+#include "Moongoose/Log.h"
 #include <GLFW/glfw3.h>
 #include "PerspectiveCamera.h"
 #include "Moongoose/Input/Input.h"
@@ -38,7 +39,6 @@ namespace Moongoose {
 
 		mouseDelta = lastMousePos - mouseInput;
 		lastMousePos = mouseInput;
-
 
 		if (isCameraActive && Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT))
 		{
@@ -145,6 +145,31 @@ namespace Moongoose {
 		m_Rotation.x = std::clamp(m_Rotation.x, -89.0f, 89.0f);
 
 		mouseDelta = { 0.0f, 0.0f };
+	}
+
+	float PerspectiveCamera::getFOV() const
+	{
+		return m_Params.fov;
+	}
+
+	float PerspectiveCamera::getFOVRad() const
+	{
+		return glm::radians(m_Params.fov);
+	}
+
+	float PerspectiveCamera::getNear() const
+	{
+		return m_Params.zNear;
+	}
+
+	float PerspectiveCamera::getFar() const
+	{
+		return m_Params.zFar;
+	}
+
+	glm::vec3 PerspectiveCamera::getForward() const
+	{
+		return m_Front;
 	}
 
 	glm::vec3 PerspectiveCamera::getCameraPosition() const

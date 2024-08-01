@@ -36,6 +36,7 @@ void EntityInspectorLayer::onImGuiRender()
 		DisplayAddLightComponentEntry("Light Component", selectedEntity);
 		DisplayAddMeshComponentEntry("Mesh Component", selectedEntity);
 		DisplayAddBillboardComponentEntry("Billboard Component", selectedEntity);
+		DisplayAddAtmosphericsComponentEntry("Atmospherics Component", selectedEntity);
 		ImGui::EndPopup();
 	}
 
@@ -178,6 +179,24 @@ void EntityInspectorLayer::onImGuiRender()
 			}
 		}
 	}
+	
+	// Atmospherics Component
+	{
+		if (world->HasComponent<AtmosphericsComponent>(selectedEntity))
+		{
+			auto& cAtmospherics = world->GetComponent<AtmosphericsComponent>(selectedEntity);
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+			if (ImGui::TreeNode("Atmospherics")) {
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+				GuiWidgets::DrawVec3Control("Sun Direction", cAtmospherics.m_SunDirection, 0.0f, windowSize.x / 4);
+				GuiWidgets::DrawRGBColorPicker("Sun Color", cAtmospherics.m_SunColor, 1.0f, windowSize.x);
+				GuiWidgets::DrawFloatControl("Sun Intensity", cAtmospherics.m_SunIntensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
+				
+				ImGui::TreePop();
+			}
+		}
+	}
 
 	ImGui::End();
 }
@@ -265,7 +284,29 @@ void EntityInspectorLayer::DisplayAddBillboardComponentEntry(const std::string& 
 	{
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
-			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, BillboardComponent(NULL));
+			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, BillboardComponent());
+			ImGui::CloseCurrentPopup();
+		}
+	}
+}
+
+void EntityInspectorLayer::DisplayAddAtmosphericsComponentEntry(const std::string& entryName, size_t entityId)
+{
+	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<AtmosphericsComponent>(entityId);
+
+	if (!hasComponent)
+	{
+		if (ImGui::MenuItem(entryName.c_str()))
+		{
+			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, AtmosphericsComponent());
+
+			if (!WorldManager::Get().GetLoadedWorld()->HasComponent<LightComponent>(entityId))
+			{
+				LightComponent directionalLight;
+				directionalLight.m_Type = LightType::DIRECTIONAL;
+				WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, directionalLight);
+			}
+			
 			ImGui::CloseCurrentPopup();
 		}
 	}

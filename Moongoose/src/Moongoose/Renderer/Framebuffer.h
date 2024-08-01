@@ -6,7 +6,7 @@
 
 namespace Moongoose {
 
-	enum class FramebufferTextureFormat {
+	enum class FramebufferTextureFormat: uint32_t {
 		None = 0,
 
 		// Color
@@ -24,6 +24,22 @@ namespace Moongoose {
 		// Defaults
 		Depth = DEPTH24STENCIL8
 	};
+
+	namespace Util {
+
+		static std::string FramebufferTextureFormatToString(FramebufferTextureFormat format) {
+			switch (format) {
+				case FramebufferTextureFormat::RGBA8: return "RGBA8";
+				case FramebufferTextureFormat::RGBA16: return "RGBA16";
+				case FramebufferTextureFormat::RGBA16F: return "RGBA16F";
+				case FramebufferTextureFormat::RGBA32F: return "RGBA32F";
+				case FramebufferTextureFormat::RED_INTEGER: return "RED_INTEGER";
+				case FramebufferTextureFormat::DEPTH24: return "DEPTH24";
+				case FramebufferTextureFormat::DEPTH24STENCIL8: return "DEPTH24STENCIL8";
+			}
+			return "Unknown";
+		}
+	}
 
 	struct FramebufferTextureSpecs {
 		FramebufferTextureSpecs() = default;
@@ -54,7 +70,7 @@ namespace Moongoose {
 	class Framebuffer {
 
 	public:
-		Framebuffer(const FramebufferSpecs& specs);
+		Framebuffer(const std::string& name, const FramebufferSpecs& specs);
 		~Framebuffer();
 
 		void Bind();
@@ -71,6 +87,7 @@ namespace Moongoose {
 
 		uint32_t GetDepthAttachment() const { return m_DepthAttachment; }
 		uint32_t GetShadowMapAttachmentID() const { return m_ShadowMapAttachment; }
+		glm::vec2 GetResolution() const { return { m_Specs.Width, m_Specs.Height }; }
 
 	private:
 		void Invalidate();
@@ -81,6 +98,7 @@ namespace Moongoose {
 		static int TextureFormatToInternalGL(const FramebufferTextureFormat format);
 
 	public:
+		std::string m_Name;
 		FramebufferSpecs m_Specs;
 		unsigned int m_FramebufferID = 0;
 

@@ -23,6 +23,7 @@
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/Buffer.h"
 #include "Moongoose/Renderer/Framebuffer.h"
+#include "Moongoose/Renderer/FramebufferManager.h"
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/Shader.h"
 #include "Moongoose/Renderer/Texture.h"
@@ -42,5 +43,6 @@
 #include "Moongoose/ECS/BillboardSystem.h"
 #include "Moongoose/ECS/Systems/EntityListSystem.h"
 #include "Moongoose/ECS/Systems/LightSystem.h"
+#include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 
 #include "Moongoose/Util/FileSystem.h"

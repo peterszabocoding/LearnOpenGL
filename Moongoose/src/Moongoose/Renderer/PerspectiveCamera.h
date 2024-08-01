@@ -44,6 +44,11 @@ namespace Moongoose {
 		void moveCamera(float deltaTime);
 		void rotateCamera(float deltaTime);
 
+		float getFOV() const;
+		float getFOVRad() const;
+		float getNear() const;
+		float getFar() const;
+		glm::vec3 getForward() const;
 		glm::vec3 getCameraPosition() const;
 		glm::mat4 getViewMatrix() const;
 

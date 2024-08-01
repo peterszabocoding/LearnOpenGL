@@ -28,7 +28,7 @@ namespace Moongoose
 			{
 				case LightType::DIRECTIONAL:
 					shader->SetDirectionalLight(
-						cTransform.getTransform(),
+						cTransform.GetForwardDirection(),
 						cLight.m_Color,
 						cLight.m_Intensity);
 					break;

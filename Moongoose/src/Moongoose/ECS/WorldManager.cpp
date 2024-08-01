@@ -11,6 +11,7 @@
 #include "Moongoose/Renderer/Transform.h"
 #include "Systems/EntityListSystem.h"
 #include "Systems/LightSystem.h"
+#include "Systems/AtmosphericsSystem.h"
 
 namespace Moongoose {
 
@@ -30,11 +31,13 @@ namespace Moongoose {
 		m_LoadedWorld->RegisterComponent<MeshComponent>();
 		m_LoadedWorld->RegisterComponent<LightComponent>();
 		m_LoadedWorld->RegisterComponent<BillboardComponent>();
+		m_LoadedWorld->RegisterComponent<AtmosphericsComponent>();
 
 		m_LoadedWorld->RegisterSystem<EntityListSystem>();
 		m_LoadedWorld->RegisterSystem<LightSystem>();
 		m_LoadedWorld->RegisterSystem<RenderSystem>();
 		m_LoadedWorld->RegisterSystem<BillboardSystem>();
+		m_LoadedWorld->RegisterSystem<AtmosphericsSystem>();
 
 		return m_LoadedWorld;
 	}

@@ -27,7 +27,8 @@ namespace Moongoose {
 		BACKGROUND,
 		PREFILTER,
 		BRDF,
-		BILLBOARD
+		BILLBOARD,
+		ATMOSPHERE
 	};
 
 	enum class PolygonMode : uint8_t {
@@ -84,6 +85,7 @@ namespace Moongoose {
 				case ShaderType::PREFILTER:					return "PREFILTER";
 				case ShaderType::BRDF:						return "BRDF";
 				case ShaderType::BILLBOARD:					return "BILLBOARD";
+				case ShaderType::ATMOSPHERE:				return "ATMOSPHERE";
 			}
 		}
 	}
@@ -93,7 +95,7 @@ namespace Moongoose {
 
 	public:
 		Shader(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation);
-		~Shader();
+		virtual ~Shader();
 		void ClearShader();
 		
 		ShaderType GetShaderType() const { return shaderType; }
@@ -114,7 +116,7 @@ namespace Moongoose {
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		unsigned int GetDirectionLocation() const;
-		void SetDirectionalLight(glm::mat4 transform, glm::vec3 color, float intensity);
+		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity);
 		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
 		void SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
 		

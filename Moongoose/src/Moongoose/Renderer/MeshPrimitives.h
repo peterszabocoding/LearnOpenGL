@@ -9,20 +9,23 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 namespace Moongoose {
 
 	static Mesh QuadMesh(float scale = 1.0f) {
 		// Position - UVs
 		GLfloat vertices[] = {
-			-scale,  scale, 0.0f,	0.0f, 0.0f,
-			-scale, -scale, 0.0f,	0.0f, 1.0f,
-			 scale,  scale, 0.0f,	1.0f, 0.0f,
-			 scale, -scale, 0.0f,	1.0f, 1.0f,
+			-scale, -scale, 0.0f,	0.0f, 0.0f,
+			 scale, -scale, 0.0f,	1.0f, 0.0f,
+			-scale,  scale, 0.0f,	0.0f, 1.0f,
+			 scale,  scale, 0.0f,	1.0f, 1.0f,
 		};
 
 		unsigned int indices[] = {
-			0, 1, 2,
-			1, 3, 2
+			0, 3, 2,
+			0, 1, 3
 		};
 		Mesh mesh;
 		mesh.AddSubmesh(0, vertices, indices, 4 * 5, 6, 
@@ -163,6 +166,56 @@ namespace Moongoose {
 				{ ShaderDataType::Float2, "aTexCoords" }
 			});
 
+		return mesh;
+	}
+
+	static Mesh Sphere(float radius, unsigned int rings, unsigned int sectors) {
+		std::vector<float> vertices;
+		std::vector<unsigned int> indices;
+
+		float const R = 1/(float)(rings - 1);
+		float const S = 1/(float)(sectors - 1);
+		int r, s;
+
+		vertices.resize(rings * sectors * 8);
+
+		std::vector<float>::iterator v = vertices.begin();
+		for (r = 0; r < rings; r++) {
+			for (s = 0; s < sectors; s++) {
+				float const y = sin(-M_PI_2 + M_PI * r * R);
+				float const x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
+				float const z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
+
+				*v++ = x * radius;
+				*v++ = y * radius;
+				*v++ = z * radius;
+
+				*v++ = x;
+				*v++ = y;
+				*v++ = z;
+
+				*v++ = s * S;
+				*v++ = r * R;
+			}
+		}
+
+		indices.resize(rings * sectors * 4);
+		std::vector<unsigned int>::iterator i = indices.begin();
+		for (r = 0; r < rings; r++) {
+			for (s = 0; s < sectors; s++) {
+				*i++ = r * sectors + s;
+				*i++ = r * sectors + (s + 1);
+				*i++ = (r + 1) * sectors + (s + 1);
+				*i++ = (r + 1) * sectors + s;
+			}
+		}
+
+		Mesh mesh;
+		mesh.AddSubmesh(0, &vertices[0], &indices[0], 8 * vertices.size(), indices.size(), {
+				{ ShaderDataType::Float3, "aPos" },
+				{ ShaderDataType::Float3, "aNormal" },
+				{ ShaderDataType::Float2, "aTexCoords" }
+			});
 		return mesh;
 	}
 
