@@ -167,6 +167,11 @@ namespace Moongoose {
 		return m_Params.zFar;
 	}
 
+	glm::vec2 PerspectiveCamera::getResolution() const
+	{
+		return { m_Params.renderWidth, m_Params.renderHeight };
+	}
+
 	glm::vec3 PerspectiveCamera::getForward() const
 	{
 		return m_Front;

@@ -12,6 +12,7 @@
 #include "Layer/AssetBrowserLayer.h"
 #include "Layer/AssetInspectorLayer.h"
 #include "Layer/ImGuiDemoLayer.h"
+#include "Layer/FramebufferViewerLayer.h"
 
 class EditorApp : public Moongoose::Application
 {
@@ -27,6 +28,7 @@ public:
 		PushLayer(new AssetBrowserLayer());
 		PushLayer(new AssetInspectorLayer());
 		PushLayer(new ImGuiDemoLayer());
+		PushLayer(new FramebufferViewerLayer());
 		PushLayer(new RenderLayer());
 	}
 	virtual ~EditorApp() {}

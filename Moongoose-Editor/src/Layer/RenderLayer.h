@@ -24,7 +24,6 @@ private:
 	void renderToolbarMenu();
 	void renderGizmo();
 	void renderDebugInfo(float posX, float posY);
-	void renderFramebufferPreviewWindow();
 
 	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
 	bool isMouseInWindow() const;
@@ -45,9 +44,6 @@ private:
 
 	size_t m_GizmoMode = 7;
 	int m_HoveredEntityId = -1;
-
-	int selectedFramebuffer = 0;
-	int selectedAttachment = 0;
 
 	glm::vec2 m_WindowMousePos = { 0, 0 };
 	glm::vec2 m_ViewportBounds[2];

@@ -74,7 +74,6 @@ void RenderLayer::onEvent(Event& event)
 void RenderLayer::onImGuiRender()
 {
 	renderToolbarMenu();
-	renderFramebufferPreviewWindow();
 
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
@@ -186,44 +185,6 @@ void RenderLayer::renderToolbarMenu()
 		}
 		ImGui::EndMainMenuBar();
 	}
-}
-
-void RenderLayer::renderFramebufferPreviewWindow()
-{
-	ImGui::Begin("FBO Preview");
-
-	std::vector<Ref<Framebuffer>> framebuffers = FramebufferManager::GetFramebuffers();
-	std::vector<std::string> framebufferNames;
-	for (Ref<Framebuffer> buffer : framebuffers) framebufferNames.push_back(buffer->m_Name);
-
-	GuiWidgets::DrawSingleSelectDropdown("Framebuffers", framebufferNames, selectedFramebuffer, [&](int selected) {
-		selectedFramebuffer = selected;
-		});
-
-	Ref<Framebuffer> selectedBuffer = framebuffers[selectedFramebuffer];
-	ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-	ImVec2 imageSize = { (float) selectedBuffer->m_Specs.Width, (float) selectedBuffer->m_Specs.Height };
-
-	imageSize.x = availableSpace.x;
-	imageSize.y = imageSize.x * ((float)selectedBuffer->m_Specs.Height / selectedBuffer->m_Specs.Width);
-
-	size_t i = 0;
-	std::vector<std::string> bufferAttachments;
-	for (FramebufferTextureSpecs textureSpecs : selectedBuffer->m_ColorAttachmentSpecs)
-	{
-		bufferAttachments.push_back(std::to_string(++i) + ": " + Util::FramebufferTextureFormatToString(textureSpecs.TextureFormat));
-	}
-	
-	GuiWidgets::DrawSingleSelectDropdown("Attachments", bufferAttachments, selectedAttachment, [&](int selected) {
-		selectedAttachment = selected;
-	});
-
-
-
-	void* texturePointer = (void*)selectedBuffer->GetColorAttachments()[selectedAttachment];
-	ImGui::Image(texturePointer, imageSize, ImVec2(0, 1), ImVec2(1, 0));
-
-	ImGui::End();
 }
 
 void RenderLayer::renderGizmo()
