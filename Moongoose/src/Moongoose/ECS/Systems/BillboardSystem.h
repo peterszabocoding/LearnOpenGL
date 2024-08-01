@@ -1,7 +1,7 @@
 #pragma once
 
-#include "WorldManager.h"
-#include "SystemManager.h"
+#include "Moongoose/ECS/SystemManager.h"
+#include "Moongoose/ECS/Systems/RenderSystem.h"
 #include "Moongoose/Renderer/PerspectiveCamera.h"
 
 namespace Moongoose {

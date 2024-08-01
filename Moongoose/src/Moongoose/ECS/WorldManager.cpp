@@ -6,9 +6,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "RenderSystem.h"
-#include "BillboardSystem.h"
 #include "Moongoose/Renderer/Transform.h"
+#include "Systems/BillboardSystem.h"
+#include "Systems/RenderSystem.h"
 #include "Systems/EntityListSystem.h"
 #include "Systems/LightSystem.h"
 #include "Systems/AtmosphericsSystem.h"
