@@ -40,8 +40,6 @@ private:
 	Ref<Moongoose::BillboardSystem> m_BillboardSystem;
 	Ref<Moongoose::AtmosphericsSystem> m_AtmosphericsSystem;
 
-	double m_Time = 0;
-
 	size_t m_GizmoMode = 7;
 	int m_HoveredEntityId = -1;
 

@@ -81,6 +81,8 @@ namespace Moongoose {
 
 	bool PerspectiveCamera::onResize(WindowResizeEvent& event)
 	{
+		if (event.getWidth() == 0 || event.getHeight() == 0) return false;
+
 		m_Params.renderWidth = event.getWidth();
 		m_Params.renderHeight = event.getHeight();
 		m_Projection = glm::perspective(

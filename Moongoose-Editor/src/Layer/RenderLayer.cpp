@@ -26,9 +26,6 @@ void RenderLayer::onAttach()
 
 void RenderLayer::onUpdate(float deltaTime)
 {
-	m_Time += deltaTime;
-	if (m_Time >= 50.0) m_Time = 0.0;
-
 	if (!WorldManager::Get().isWorldOpened()) return;
 
 	m_AtmosphericsSystem->Update(m_EditorCamera, m_RenderBuffer->GetResolution());
@@ -172,12 +169,11 @@ void RenderLayer::renderToolbarMenu()
 				}
 			}
 
-			if (ImGui::MenuItem("Save World"))
+			if (ImGui::MenuItem("Save World", "", false, WorldManager::IsWorldOpened()))
 			{
 				std::string worldName = WorldManager::GetLoadedWorld()->m_Name;
 				WorldManager::SaveWorld("Content\\Worlds\\" + worldName + ".mgworld");
 			}
-			if (ImGui::MenuItem("Save World As..")) {}
 
 			ImGui::Separator();
 			if (ImGui::MenuItem("Quit", false)) {}
