@@ -55,6 +55,7 @@ namespace Moongoose
 			m_Window->OnUpdate();
 		}
 	}
+	
 	void Application::OnEvent(Event& event)
 	{
 		EventDispatcher dispatcher(event);
@@ -69,6 +70,7 @@ namespace Moongoose
 
 	void Application::PushLayer(Layer* layer)
 	{
+		layer->SetApplication(s_Instance);
 		m_LayerStack.PushLayer(layer);
 	}
 

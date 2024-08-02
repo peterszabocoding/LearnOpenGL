@@ -5,7 +5,7 @@ void PerformanceLayer::onImGuiRender()
 {
 	ImGui::Begin("Performance");
 
-	auto& io = ImGui::GetIO();
+	const ImGuiIO& io = ImGui::GetIO();
 
 	ImGui::Text("Vendor: %s", (char*)glGetString(GL_VENDOR));
 	ImGui::Text("Renderer: %s", (char*)glGetString(GL_RENDERER));

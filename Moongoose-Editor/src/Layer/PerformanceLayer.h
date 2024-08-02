@@ -4,8 +4,8 @@
 class PerformanceLayer : public Moongoose::Layer
 {
 public:
-	PerformanceLayer() {}
-	virtual ~PerformanceLayer() {}
+	PerformanceLayer() = default;
+	~PerformanceLayer() override = default;
 
 	virtual void onAttach() override {}
 	virtual void onDetach() override {}

@@ -1,26 +1,29 @@
-#include "EntityInspectorLayer.h"
 #include <imgui/imgui.h>
+#include "EntityInspectorLayer.h"
 #include "GUI/GuiWidgets.h"
 
 #include "Resource/ResourceManager.h"
-#include "Platform/PlatformUtils.h"
-#include "Moongoose/Renderer/Material.h"
-#include "Moongoose/Renderer/OpenGL/OpenGLTexture2D.h"
 
 using namespace Moongoose;
+
+void EntityInspectorLayer::onAttach()
+{
+	m_AssetManager = GetApplication()->GetAssetManager();
+	m_WorldManager = GetApplication()->GetWorldManager();
+}
 
 void EntityInspectorLayer::onImGuiRender()
 {
 	ImGui::Begin("Entity Inspector");
 
-	Ref<World> world = WorldManager::Get().GetLoadedWorld();
+	const Ref<World> world = m_WorldManager->GetLoadedWorld();
 	if (!world)
 	{
 		ImGui::End();
 		return;
 	}
 
-	Entity selectedEntity = world->GetSelectedEntity();
+	const Entity selectedEntity = world->GetSelectedEntity();
 	if (selectedEntity == -1) {
 		ImGui::End();
 		return;
@@ -42,11 +45,10 @@ void EntityInspectorLayer::onImGuiRender()
 
 	ImVec2 windowSize = ImGui::GetWindowSize();
 
-	IDComponent& cID = world->GetComponent<IDComponent>(selectedEntity);
-	TagComponent& cTag = world->GetComponent<TagComponent>(selectedEntity);
-
 	// ID & Tag Component
 	{
+		const IDComponent& cId = world->GetComponent<IDComponent>(selectedEntity);
+		TagComponent& cTag = world->GetComponent<TagComponent>(selectedEntity);
 		ImGui::Dummy({ windowSize.x , 1.0f });
 
 		static char tagArray[50];
@@ -54,14 +56,17 @@ void EntityInspectorLayer::onImGuiRender()
 		
 		ImGui::Text("ID:");
 		ImGui::SameLine();
-		ImGui::Text(std::to_string(cID.m_ID).c_str());
+		ImGui::Text(std::to_string(cId.m_ID).c_str());
 
 		ImGui::Text("Tag:");
 		ImGui::SameLine();
 		ImGui::InputText("##label", tagArray, IM_ARRAYSIZE(tagArray));
 
-		std::string newTag = std::string(tagArray);
-		if (newTag != cTag.Tag && newTag != "") cTag.Tag = std::string(tagArray);
+		auto newTag = std::string(tagArray);
+		if (newTag != cTag.Tag && !newTag.empty())
+		{
+			cTag.Tag = std::string(tagArray);
+		}
 
 		ImGui::Dummy({ windowSize.x , 10.0f });
 		ImGui::Separator();
@@ -103,7 +108,7 @@ void EntityInspectorLayer::onImGuiRender()
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
 						UUID meshId = ((const AssetDeclaration*)payload->Data)->ID;
-						cMesh.m_Mesh = AssetManager::Get().GetAssetById<Mesh>(meshId);
+						cMesh.m_Mesh = m_AssetManager->GetAssetById<Mesh>(meshId);
 					}
 					ImGui::EndDragDropTarget();
 				}
@@ -171,7 +176,7 @@ void EntityInspectorLayer::onImGuiRender()
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
 						UUID textureId = ((const AssetDeclaration*)payload->Data)->ID;
-						cBillboard.m_BillboardTexture = AssetManager::Get().GetAssetById<Texture2D>(textureId);
+						cBillboard.m_BillboardTexture = m_AssetManager->GetAssetById<Texture2D>(textureId);
 					}
 					ImGui::EndDragDropTarget();
 				}
@@ -201,15 +206,14 @@ void EntityInspectorLayer::onImGuiRender()
 	ImGui::End();
 }
 
-void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int materialIndex)
+void EntityInspectorLayer::DrawMaterialControls(const Ref<Mesh>& mesh, const unsigned int materialIndex)
 {
 	const auto& materialSlots = mesh->GetMaterials();
-	const auto& materialSlot = materialSlots[materialIndex];
-	const auto& material = materialSlot.material;
+	const auto& [materialName, material] = materialSlots[materialIndex];
 
 	if (!material) return;
 
-	Ref<Texture2D> albedo = material->getAlbedo();
+	const Ref<Texture2D> albedo = material->getAlbedo();
 	const std::string& matName = material->GetName();
 
 	ImGui::PushID(material->m_ID);
@@ -220,25 +224,25 @@ void EntityInspectorLayer::DrawMaterialControls(Ref<Mesh> mesh, unsigned int mat
 	ImGui::PopID();
 }
 
-void EntityInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Texture2D> icon, std::string text)
+void EntityInspectorLayer::RenderImageTextButton(const ImVec2 imageSize, const Ref<Texture2D>& icon, const std::string& text)
 {
 	ImGui::BeginGroup();
 
-	auto availSpace = ImGui::GetContentRegionAvail();
-	auto& ogPos = ImGui::GetCursorPos();
+	const auto availSpace = ImGui::GetContentRegionAvail();
+	const auto& ogPos = ImGui::GetCursorPos();
 
 	ImGui::Image(icon->GetPointerToData(), ImVec2{ 50.0f, 50.0f });
 	ImGui::SameLine();
 	ImGui::Spacing();
 	ImGui::SameLine();
 
-	auto& pos = ImGui::GetCursorPos();
+	auto pos = ImGui::GetCursorPos();
 
-	ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+	const ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
 	pos.y = ogPos.y + textSize.y;
 
-	float text_offset_y = (imageSize.y - textSize.y) * 0.5f;
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + text_offset_y);
+	const float textOffsetY = (imageSize.y - textSize.y) * 0.5f;
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + textOffsetY);
 
 	ImGui::Text(text.c_str());
 
@@ -248,63 +252,60 @@ void EntityInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Texture2D
 	ImGui::EndGroup();
 }
 
-void EntityInspectorLayer::DisplayAddMeshComponentEntry(const std::string& entryName, size_t entityId)
+void EntityInspectorLayer::DisplayAddMeshComponentEntry(const std::string& entryName, size_t entityId) const
 {
-	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<MeshComponent>(entityId);
-
+	const bool hasComponent = m_WorldManager->GetLoadedWorld()->HasComponent<MeshComponent>(entityId);
 	if (!hasComponent)
 	{
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
-			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, MeshComponent());
+			m_WorldManager->GetLoadedWorld()->AddComponent(entityId, MeshComponent());
 			ImGui::CloseCurrentPopup();
 		}
 	}
 }
 
-void EntityInspectorLayer::DisplayAddLightComponentEntry(const std::string& entryName, size_t entityId)
+void EntityInspectorLayer::DisplayAddLightComponentEntry(const std::string& entryName, size_t entityId) const
 {
-	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<LightComponent>(entityId);
+	const bool hasComponent = m_WorldManager->GetLoadedWorld()->HasComponent<LightComponent>(entityId);
 
 	if (!hasComponent)
 	{
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
-			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, LightComponent());
+			m_WorldManager->GetLoadedWorld()->AddComponent(entityId, LightComponent());
 			ImGui::CloseCurrentPopup();
 		}
 	}
 }
 
-void EntityInspectorLayer::DisplayAddBillboardComponentEntry(const std::string& entryName, size_t entityId)
+void EntityInspectorLayer::DisplayAddBillboardComponentEntry(const std::string& entryName, size_t entityId) const
 {
-	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<BillboardComponent>(entityId);
-
+	const bool hasComponent = m_WorldManager->GetLoadedWorld()->HasComponent<BillboardComponent>(entityId);
 	if (!hasComponent)
 	{
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
-			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, BillboardComponent());
+			m_WorldManager->GetLoadedWorld()->AddComponent(entityId, BillboardComponent());
 			ImGui::CloseCurrentPopup();
 		}
 	}
 }
 
-void EntityInspectorLayer::DisplayAddAtmosphericsComponentEntry(const std::string& entryName, size_t entityId)
+void EntityInspectorLayer::DisplayAddAtmosphericsComponentEntry(const std::string& entryName, size_t entityId) const
 {
-	bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<AtmosphericsComponent>(entityId);
-
+	bool hasComponent = m_WorldManager->GetLoadedWorld()->HasComponent<AtmosphericsComponent>(entityId);
 	if (!hasComponent)
 	{
 		if (ImGui::MenuItem(entryName.c_str()))
 		{
-			WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, AtmosphericsComponent());
+			m_WorldManager->GetLoadedWorld()->AddComponent(entityId, AtmosphericsComponent());
 
-			if (!WorldManager::Get().GetLoadedWorld()->HasComponent<LightComponent>(entityId))
+			if (!m_WorldManager->GetLoadedWorld()->HasComponent<LightComponent>(entityId))
 			{
 				LightComponent directionalLight;
 				directionalLight.m_Type = LightType::DIRECTIONAL;
-				WorldManager::Get().GetLoadedWorld()->AddComponent(entityId, directionalLight);
+				m_WorldManager->GetLoadedWorld()->AddComponent(entityId, directionalLight);
 			}
 			
 			ImGui::CloseCurrentPopup();

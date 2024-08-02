@@ -34,11 +34,12 @@
 #include "Moongoose/Renderer/RendererAPI.h"
 #include "Moongoose/Renderer/RenderCommand.h"
 #include "Moongoose/Renderer/Transform.h"
+
 #include "Moongoose/Asset/AssetManager.h"
 
-#include "Moongoose/ECS/WorldManager.h"
 #include "Moongoose/ECS/Entity.h"
 #include "Moongoose/ECS/Components.h"
+#include "Moongoose/ECS/WorldManager.h"
 #include "Moongoose/ECS/Systems/BillboardSystem.h"
 #include "Moongoose/ECS/Systems/RenderSystem.h"
 #include "Moongoose/ECS/Systems/EntityListSystem.h"

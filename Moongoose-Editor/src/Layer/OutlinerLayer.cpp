@@ -3,12 +3,14 @@
 #include "Moongoose/ECS/WorldManager.h"
 #include <imgui/imgui.h>
 
+using namespace Moongoose;
+
 unsigned int OutlinerLayer::m_NewEntityCounter = 0;
 
 void OutlinerLayer::onImGuiRender()
 {
 	ImGui::Begin("Outliner");
-	Ref<Moongoose::World> world = Moongoose::WorldManager::Get().GetLoadedWorld();
+	const Ref<World> world = WorldManager::Get().GetLoadedWorld();
 
 	if (!world)
 	{
@@ -16,20 +18,18 @@ void OutlinerLayer::onImGuiRender()
 		return;
 	}
 
-	auto& io = ImGui::GetIO();
+	static size_t itemCurrentIdx = 0;
+	itemCurrentIdx = world->GetSelectedEntity();
 
-	static size_t item_current_idx = 0;
-	item_current_idx = world->GetSelectedEntity();
-
-	auto& tags = world->GetSystem<Moongoose::EntityListSystem>()->GetEntityTagList(world);
+	const std::vector<std::string>& tags = world->GetSystem<EntityListSystem>()->GetEntityTagList(world);
 
 	if (ImGui::Button("Add Entity")) world->CreateEntity("New Entity " + std::to_string(++m_NewEntityCounter));
 	ImGui::SameLine();
 	if (ImGui::Button("Delete Entity")) world->DestroyEntity(world->GetSelectedEntity());
 
 
-	GuiWidgets::DrawList("##hierarchyList", tags, item_current_idx, [&](int selected) {
-		item_current_idx = selected;
+	GuiWidgets::DrawList("##hierarchyList", tags, itemCurrentIdx, [&](const int selected) {
+		itemCurrentIdx = selected;
 		world->SetSelectedEntity(selected);
 	});
 

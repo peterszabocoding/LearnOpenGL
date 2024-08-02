@@ -1,42 +1,32 @@
 #pragma once
 #include <Moongoose.h>
-#include "Moongoose/ECS/WorldManager.h"
+
+#include "imgui.h"
 
 class ImVec2;
 
 class EntityInspectorLayer : public Moongoose::Layer
 {
 public:
-	EntityInspectorLayer() {};
-	virtual ~EntityInspectorLayer() {};
+	EntityInspectorLayer() = default;
+	~EntityInspectorLayer() override {}
 
-	virtual void onAttach() override {};
-	virtual void onDetach() override {};
-	virtual void onUpdate(float deltaTime) override {};
-	virtual void onEvent(Moongoose::Event& event) override {};
+	virtual void onAttach() override;
+	virtual void onDetach() override {}
+	virtual void onUpdate(float deltaTime) override {}
+	virtual void onEvent(Moongoose::Event& event) override {}
 	virtual void onImGuiRender() override;
 
 private:
-	void DrawMaterialControls(Ref<Moongoose::Mesh> mesh, unsigned int materialIndex);
+	static void RenderImageTextButton(ImVec2 imageSize, const Ref<Moongoose::Texture2D>& icon, const std::string& text);
+	static void DrawMaterialControls(const Ref<Moongoose::Mesh>& mesh, unsigned int materialIndex);
 
-	void RenderImageTextButton(ImVec2 imageSize, Ref<Moongoose::Texture2D> icon, std::string text);
+	void DisplayAddMeshComponentEntry(const std::string& entryName, size_t entityId) const;
+	void DisplayAddLightComponentEntry(const std::string& entryName, size_t entityId) const;
+	void DisplayAddBillboardComponentEntry(const std::string& entryName, size_t entityId) const;
+	void DisplayAddAtmosphericsComponentEntry(const std::string& entryName, size_t entityId) const;
 
-	template<typename T>
-	void DisplayAddComponentEntry(const std::string& entryName, size_t entityId) {
-		bool hasComponent = WorldManager::Get().GetLoadedWorld()->HasComponent<T>(entityId);
-
-		if (!hasComponent)
-		{
-			if (ImGui::MenuItem(entryName.c_str()))
-			{
-				ImGui::CloseCurrentPopup();
-			}
-		}
-	}
-
-	void DisplayAddMeshComponentEntry(const std::string& entryName, size_t entityId);
-	void DisplayAddLightComponentEntry(const std::string& entryName, size_t entityId);
-	void DisplayAddBillboardComponentEntry(const std::string& entryName, size_t entityId);
-	void DisplayAddAtmosphericsComponentEntry(const std::string& entryName, size_t entityId);
-
+private:
+	Moongoose::AssetManager* m_AssetManager;
+	Moongoose::WorldManager* m_WorldManager;
 };

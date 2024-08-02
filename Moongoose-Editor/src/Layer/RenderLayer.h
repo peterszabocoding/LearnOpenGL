@@ -1,14 +1,13 @@
 #pragma once
 
 #include <Moongoose.h>
-#include <Moongoose/ECS/World.h>
 
 class RenderLayer: public Moongoose::Layer
 {
 
 public:
 	RenderLayer() = default;
-	virtual ~RenderLayer() {};
+	~RenderLayer() override = default;
 
 	virtual void onAttach() override;
 	virtual void onDetach() override {};
@@ -17,20 +16,22 @@ public:
 	virtual void onImGuiRender() override;
 
 private:
-	void createRenderBuffer();
-	void createPreviewRenderBuffer();
-	void createCamera();
+	void CreateRenderBuffer();
+	void CreatePreviewRenderBuffer();
+	void CreateCamera();
 
-	void renderToolbarMenu();
-	void renderGizmo();
-	void renderDebugInfo(float posX, float posY);
+	void RenderToolbarMenu();
+	void RenderGizmo();
+	void RenderDebugInfo(float posX, float posY) const;
 
-	bool onKeyPressed(Moongoose::KeyPressedEvent& event);
-	bool isMouseInWindow() const;
-	virtual bool onMouseButtonPresed(Moongoose::MousePressedEvent& event) override;
+	bool IsMouseInWindow() const;
+	virtual bool onKeyPressed(Moongoose::KeyPressedEvent& event) override;
+	virtual bool onMouseButtonPressed(Moongoose::MousePressedEvent& event) override;
 
 private:
-	glm::vec2 m_WindowSize = { 1280, 720 };
+	Moongoose::WorldManager* m_WorldManager;
+
+	glm::uvec2 m_WindowSize = { 1280, 720 };
 	
 	Ref<Moongoose::Framebuffer> m_RenderBuffer;
 	Ref<Moongoose::Framebuffer> m_PreviewRenderBuffer;

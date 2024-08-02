@@ -8,44 +8,45 @@
 
 using namespace Moongoose;
 
-void AssetBrowserLayer::ShowPopupMenu()
+void AssetBrowserLayer::ShowPopupMenu() const
 {
     if (ImGui::BeginPopupContextWindow("asset_browser_popup"))
     {
         if (ImGui::MenuItem("Import Mesh"))
         {
-            Moongoose::FileDialogs::OpenFile(".fbx", [&](const std::string& filePath)
+            FileDialogs::OpenFile(".fbx", [&](const std::string& filePath)
             {
                  const std::string fileName = std::filesystem::path(filePath).filename().string();
                  const std::string extension = std::filesystem::path(filePath).extension().string();
-                 Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
+                 AssetType assetType = s_AssetExtensionMap[extension];
 
-                 if (assetType != Moongoose::AssetType::Mesh) return;
+                 if (assetType != AssetType::Mesh) return;
 
-                 AssetDeclaration decl = Moongoose::AssetManager::Get().CreateAssetDeclaration<Moongoose::Mesh>(fileName, filePath);
-                 Ref<Moongoose::Mesh> asset = Moongoose::AssetManager::Get().LoadAsset<Moongoose::Mesh>(decl);
-                 Moongoose::AssetManager::Get().SaveAsset(asset);
+                 
+                 AssetDeclaration decl = m_AssetManager->CreateAssetDeclaration<Mesh>(fileName, filePath);
+                 const Ref<Mesh> asset = m_AssetManager->LoadAsset<Mesh>(decl);
+                 m_AssetManager->SaveAsset(asset);
 
                  FileSystem::GetFileStructure("Content\\", true);
-                 AssetManager::Get().BuildAssetRegistry();
+                 m_AssetManager->BuildAssetRegistry();
             });
 		}
         if (ImGui::MenuItem("Import Texture"))
         {
-            Moongoose::FileDialogs::OpenFile(".png", [&](const std::string& filePath)
+            FileDialogs::OpenFile(".png", [&](const std::string& filePath)
             {
                 const std::string fileName = std::filesystem::path(filePath).filename().string();
-                std::string extension = std::filesystem::path(filePath).extension().string();
-                Moongoose::AssetType assetType = Moongoose::s_AssetExtensionMap[extension];
+                const std::string extension = std::filesystem::path(filePath).extension().string();
+                AssetType assetType = s_AssetExtensionMap[extension];
 
-                if (assetType != Moongoose::AssetType::Texture) return;
+                if (assetType != AssetType::Texture) return;
 
-                AssetDeclaration decl = Moongoose::AssetManager::Get().CreateAssetDeclaration<Moongoose::Texture2D>(fileName, filePath);
-                Ref<Moongoose::Texture2D> asset = Moongoose::AssetManager::Get().LoadAsset<Moongoose::Texture2D>(decl);
-                Moongoose::AssetManager::Get().SaveAsset(asset);
+                AssetDeclaration decl = m_AssetManager->CreateAssetDeclaration<Texture2D>(fileName, filePath);
+                const Ref<Texture2D> asset = m_AssetManager->LoadAsset<Texture2D>(decl);
+                m_AssetManager->SaveAsset(asset);
 
                 FileSystem::GetFileStructure("Content\\", true);
-                AssetManager::Get().BuildAssetRegistry();
+                m_AssetManager->BuildAssetRegistry();
             });
         }
 
@@ -53,11 +54,11 @@ void AssetBrowserLayer::ShowPopupMenu()
 
         if (ImGui::MenuItem("Create Material"))
         {
-            auto& material = AssetManager::Get().CreateAsset<Material>("New_Material", m_SelectedFolder.string() + "\\" + "new_material.mgasset");
-            AssetManager::Get().SaveAsset(material);
+	        const auto material = m_AssetManager->CreateAsset<Material>("New_Material", m_SelectedFolder.string() + "\\" + "new_material.mgasset");
+            m_AssetManager->SaveAsset(material);
 
             FileSystem::GetFileStructure("Content\\", true);
-            AssetManager::Get().BuildAssetRegistry();
+            m_AssetManager->BuildAssetRegistry();
         }
         
 		ImGui::EndPopup();
@@ -66,6 +67,7 @@ void AssetBrowserLayer::ShowPopupMenu()
 
 void AssetBrowserLayer::onAttach()
 {
+    m_AssetManager = GetApplication()->GetAssetManager();
 }
 
 void AssetBrowserLayer::onImGuiRender()
@@ -79,7 +81,7 @@ void AssetBrowserLayer::onImGuiRender()
         const ImVec2 availableSpace = ImGui::GetContentRegionAvail();
         ImGui::BeginChild("ChildL", ImVec2(std::max(250.0f, availableSpace.x * 0.15f), availableSpace.y),true);
        
-        RenderFolder(Moongoose::FileSystem::GetFileStructure("Content\\"), true);
+        RenderFolder(FileSystem::GetFileStructure("Content\\"), true);
 
         ImGui::EndChild();
 	}
@@ -96,7 +98,7 @@ void AssetBrowserLayer::onImGuiRender()
         if (!m_SelectedFolder.empty() && is_directory(m_SelectedFolder))
         {
             if (availableSpace.x > 0) {
-                std::vector<AssetDeclaration> decls = AssetManager::Get().GetAssetsByFolder(m_SelectedFolder);
+                std::vector<AssetDeclaration> decls = m_AssetManager->GetAssetsByFolder(m_SelectedFolder);
                 int columns = availableSpace.x / (cardSize.x + cardPadding.x);
                 if (columns < 1) columns = 1;
 
@@ -125,29 +127,30 @@ void AssetBrowserLayer::onImGuiRender()
 	ImGui::End();
 }
 
-void AssetBrowserLayer::OnButtonClicked(const UUID id)
+void AssetBrowserLayer::OnButtonClicked(const UUID& id) const
 {
-    Moongoose::AssetManager::Get().SetSelectedAsset(AssetManager::Get().GetAssetById(id));
+    m_AssetManager->SetSelectedAsset(m_AssetManager->GetAssetById(id));
 }
 
-void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std::function<void(const UUID)>& onButtonClicked)
+void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std::function<void(const UUID)>& onButtonClicked) const
 {
     constexpr auto cardSize = ImVec2{ 120.0f, 150.0f };
-    ImGui::BeginGroup();
-   
-    auto& originalCursorPos = ImGui::GetCursorPos();
     constexpr ImVec2 imgPadding = ImVec2{ 20.0f, 20.0f };
+    constexpr ImVec2 imgSize = { cardSize.x - 4 * imgPadding.x, cardSize.x - 4 * imgPadding.y };
+
+	ImGui::BeginGroup();
+    auto originalCursorPos = ImGui::GetCursorPos();
 
     // Render card image
-    const ImVec2 imgSize = { cardSize.x - 4 * imgPadding.x, cardSize.x - 4 * imgPadding.y };
-    Ref<Texture2D> icon = ResourceManager::GetIcon(Icon(decl.Type));
-    ImVec2 imgCursorPos = { originalCursorPos.x + 2 * imgPadding.x, originalCursorPos.y + 2 * imgPadding.y };
+
+    const Ref<Texture2D> icon = ResourceManager::GetIcon(Icon(decl.Type));
+    const ImVec2 imgCursorPos = { originalCursorPos.x + 2 * imgPadding.x, originalCursorPos.y + 2 * imgPadding.y };
     ImGui::SetCursorPos(imgCursorPos);
     ImGui::Image(icon->GetPointerToData(), imgSize);
 
     // Render card text
     const ImVec2 textSize = ImGui::CalcTextSize(decl.Name.c_str());
-    ImVec2 textCursorPos = { originalCursorPos.x + (cardSize.x - textSize.x) * 0.5f, originalCursorPos.y + cardSize.y - 1.5f * imgPadding.y };
+    const ImVec2 textCursorPos = { originalCursorPos.x + (cardSize.x - textSize.x) * 0.5f, originalCursorPos.y + cardSize.y - 1.5f * imgPadding.y };
     ImGui::SetCursorPos(textCursorPos);
     ImGui::Text(decl.Name.c_str());
 
@@ -172,7 +175,7 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
         }
         if (ImGui::MenuItem("Rename Asset"))
         {
-            AssetManager::Get().RenameAsset(decl.ID, "New_Asset_Renamed");
+            m_AssetManager->RenameAsset(decl.ID, "New_Asset_Renamed");
             FileSystem::GetFileStructure("Content\\", true);
         }
         ImGui::EndPopup();
@@ -181,7 +184,7 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
     ImGui::EndGroup();
 }
 
-void AssetBrowserLayer::RenderFolder(Moongoose::FileStructureNode folder, bool openOnStart)
+void AssetBrowserLayer::RenderFolder(const FileStructureNode& folder, const bool openOnStart)
 {
     if (!folder.isDirectory) return;
 
@@ -189,7 +192,8 @@ void AssetBrowserLayer::RenderFolder(Moongoose::FileStructureNode folder, bool o
     flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
     ImGui::SetNextItemOpen(openOnStart, ImGuiCond_Once);
-    bool opened = ImGui::TreeNodeEx(folder.path.string().c_str(), flags);
+    const bool opened = ImGui::TreeNodeEx(folder.path.string().c_str(), flags);
+
     if (ImGui::IsItemClicked())
     {
         m_SelectedFolder = folder.path;

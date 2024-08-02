@@ -156,7 +156,7 @@ namespace Moongoose {
 			{
 				nlohmann::json jMesh = nlohmann::json::object();
 				auto& cMesh = m_LoadedWorld->GetComponent<MeshComponent>(entity);
-				auto& decl = AssetManager::Get().GetDeclByID(cMesh.m_Mesh->m_ID);
+				auto& decl = AssetManager::Get().GetDeclById(cMesh.m_Mesh->m_ID);
 
 				jMesh["asset"] = std::to_string(decl.ID);
 				jMesh["assetDecl"] = decl.DeclFilePath;

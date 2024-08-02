@@ -6,24 +6,26 @@
 #include "Resource/ResourceManager.h"
 #include "Platform/PlatformUtils.h"
 
-void AssetInspectorLayer::DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture)
+using namespace Moongoose;
+
+void AssetInspectorLayer::DrawTextureAssetGui(AssetDeclaration& decl, const Ref<Texture2D>& texture) const
 {
 	ImGui::SeparatorText("Texture Parameters");
 	ImGui::Text("Texture ID: %s", std::to_string(texture->m_ID).c_str());
 	ImGui::Text("Texture Name: %s", texture->m_Name.c_str());
-	ImGui::Text("Texture Type: %s", Moongoose::Utils::TextureTypeToString(texture->getType()));
+	ImGui::Text("Texture Type: %s", Utils::TextureTypeToString(texture->getType()));
 
 	ImGui::AlignTextToFramePadding();
 	ImGui::Text("Texture File:");
 	ImGui::SameLine();
-	GuiWidgets::DrawButton(decl.FilePath.string(), [&]()
-		{
-			decl.FilePath = Moongoose::FileDialogs::OpenFile(".png");
-			Moongoose::AssetManager::Get().ReloadAsset(decl);
+	GuiWidgets::DrawButton(decl.FilePath.string(), [&]
+	{
+			decl.FilePath = FileDialogs::OpenFile(".png");
+			m_AssetManager->ReloadAsset(decl);
 		});
 
-	std::vector<std::string> textureWrapOptions = {"None", "Clamp", "Repeat"};
-	std::vector<std::string> textureFilterOptions = {"None", "Linear", "Nearest", "Cubic"};
+	const std::vector<std::string> textureWrapOptions = {"None", "Clamp", "Repeat"};
+	const std::vector<std::string> textureFilterOptions = {"None", "Linear", "Nearest", "Cubic"};
 
 	GuiWidgets::DrawSingleSelectDropdown("Texture Wrap", textureWrapOptions, to_underlying(texture->GetTextureWrap()), [&](int selected) {});
 	GuiWidgets::DrawSingleSelectDropdown("Texture Filter", textureFilterOptions, to_underlying(texture->GetTextureFilter()), [&](int selected) {});
@@ -31,24 +33,24 @@ void AssetInspectorLayer::DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl,
 	GuiWidgets::DrawTextureImage(texture->GetPointerToData(), ImVec2{ 256.0f, 256.0f });
 }
 
-void AssetInspectorLayer::DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Material> material)
+void AssetInspectorLayer::DrawMaterialAssetGui(AssetDeclaration& decl, const Ref<Material>& material) const
 {
-	Ref<Moongoose::Texture2D> albedoTexture = material->getAlbedo();
+	constexpr ImVec2 imgSize = { 50.0f, 50.0f };
+	const Ref<Texture2D> albedoTexture = material->getAlbedo();
 
 	ImGui::SeparatorText("Material Parameters");
-	ImGui::Text("Shader Type: %s", Moongoose::Utils::GetShaderTypeString(material->getShaderType()).c_str());
+	ImGui::Text("Shader Type: %s", Utils::GetShaderTypeString(material->getShaderType()).c_str());
 
 	ImGui::Separator();
 
-	ImVec2 imgSize = { 50.0f, 50.0f };
 	ImGui::PushID(albedoTexture->m_ID);
 	RenderImageTextButton(imgSize, albedoTexture, albedoTexture->m_Name);
 
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
-			Moongoose::UUID textureId = ((const Moongoose::AssetDeclaration*)payload->Data)->ID;
-			material->setAlbedo(Moongoose::AssetManager::Get().GetAssetById<Moongoose::Texture2D>(textureId));
+			const UUID textureId = ((const AssetDeclaration*) payload->Data)->ID;
+			material->setAlbedo(m_AssetManager->GetAssetById<Texture2D>(textureId));
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -56,7 +58,7 @@ void AssetInspectorLayer::DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl
 	ImGui::PopID();
 }
 
-void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Mesh> mesh)
+void AssetInspectorLayer::DrawMeshAssetGui(AssetDeclaration& decl, const Ref<Mesh>& mesh) const
 {
 	ImGui::SeparatorText("Mesh Parameters");
 
@@ -65,32 +67,31 @@ void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Re
 	ImGui::SameLine();
 	GuiWidgets::DrawButton(decl.FilePath.string(), [&]()
 		{
-			decl.FilePath = Moongoose::FileDialogs::OpenFile(".fbx");
-			Moongoose::AssetManager::Get().ReloadAsset(decl);
+			decl.FilePath = FileDialogs::OpenFile(".fbx");
+			m_AssetManager->ReloadAsset(decl);
 		}
 	);
 
-	std::vector<Moongoose::MaterialSlot> materialSlots = mesh->GetMaterials();
+	std::vector<MaterialSlot> materialSlots = mesh->GetMaterials();
 
 	ImGui::SeparatorText("Materials");
 	for (size_t i = 0; i < materialSlots.size(); i++)
 	{
-		Moongoose::MaterialSlot& materialSlot = materialSlots[i];
-		bool isMaterialEmpty = !materialSlot.material;
+		auto& [materialName, material] = materialSlots[i];
 
-		if (isMaterialEmpty)
+		if (!material)
 		{
-			ImGui::PushID(materialSlot.name.c_str());
-			ImGui::Text("%s:", materialSlot.name.c_str());
+			ImGui::PushID(materialName.c_str());
+			ImGui::Text("%s:", materialName.c_str());
 			RenderImageTextButton(ImVec2(50.0f, 50.0f), ResourceManager::GetIcon(Icon::Material), "Empty");
 		}
 		else
 		{
-			Ref<Moongoose::Texture2D> albedo = materialSlot.material->getAlbedo();
-			const std::string& matName = materialSlot.material->GetName();
+			const Ref<Texture2D> albedo = material->getAlbedo();
+			const std::string& matName = material->GetName();
 
-			ImGui::PushID(materialSlot.material->m_ID);
-			ImGui::Text("%s:", materialSlot.name.c_str());
+			ImGui::PushID(material->m_ID);
+			ImGui::Text("%s:", materialName.c_str());
 
 			RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
 		}
@@ -98,10 +99,10 @@ void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Re
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
-				Moongoose::UUID materialId = ((const Moongoose::AssetDeclaration*)payload->Data)->ID;
+				UUID materialId = ((const AssetDeclaration*)payload->Data)->ID;
 				mesh->SetMaterial(
 					i,
-					Moongoose::AssetManager::Get().GetAssetById<Moongoose::Material>(materialId)
+					m_AssetManager->GetAssetById<Material>(materialId)
 				);
 			}
 			ImGui::EndDragDropTarget();
@@ -111,25 +112,22 @@ void AssetInspectorLayer::DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Re
 	}
 }
 
-void AssetInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Moongoose::Texture2D> icon, std::string text)
+void AssetInspectorLayer::RenderImageTextButton(const ImVec2 imageSize, const Ref<Texture2D>& icon, const std::string& text)
 {
 	ImGui::BeginGroup();
 
-	auto availSpace = ImGui::GetContentRegionAvail();
-	auto& ogPos = ImGui::GetCursorPos();
+	const auto availSpace = ImGui::GetContentRegionAvail();
+	const auto& ogPos = ImGui::GetCursorPos();
 
 	ImGui::Image(icon ? icon->GetPointerToData() : ResourceManager::GetIcon(Icon::Texture)->GetPointerToData(), ImVec2{50.0f, 50.0f});
 	ImGui::SameLine();
 	ImGui::Spacing();
 	ImGui::SameLine();
 
-	auto& pos = ImGui::GetCursorPos();
+	const ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+	const float textOffsetY = (imageSize.y - textSize.y) * 0.5f;
 
-	ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
-	pos.y = ogPos.y + textSize.y;
-
-	float text_offset_y = (imageSize.y - textSize.y) * 0.5f;
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + text_offset_y);
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + textOffsetY);
 
 	ImGui::Text(text.c_str());
 
@@ -139,38 +137,42 @@ void AssetInspectorLayer::RenderImageTextButton(ImVec2 imageSize, Ref<Moongoose:
 	ImGui::EndGroup();
 }
 
+void AssetInspectorLayer::onAttach()
+{
+	m_AssetManager = GetApplication()->GetAssetManager();
+}
+
 void AssetInspectorLayer::onImGuiRender()
 {
 	ImGui::Begin("Asset Inspector");
-	auto& selectedAsset = Moongoose::AssetManager::Get().GetSelectedAsset();
 
-	if (selectedAsset)
+	if (auto& selectedAsset = m_AssetManager->GetSelectedAsset())
 	{
-		auto& assetId = selectedAsset->m_ID;
-		auto& assetDecl = Moongoose::AssetManager::Get().GetDeclByID(assetId);
+		const UUID& assetId = selectedAsset->m_ID;
+		AssetDeclaration& assetDecl = m_AssetManager->GetDeclById(assetId);
 
 		GuiWidgets::DrawButton("Save Asset", [&]()
 		{
 			LOG_APP_INFO("Asset save button clicked");
-			Moongoose::AssetManager::Get().SaveAsset(selectedAsset);
+			m_AssetManager->SaveAsset(selectedAsset);
 		});
 
 		ImGui::SeparatorText("Asset Parameters");
 
 		ImGui::Text("ID: %s", std::to_string(assetDecl.ID).c_str());
 		ImGui::Text("Name: %s", assetDecl.Name.c_str());
-		ImGui::Text("Type: %s", Moongoose::Utils::AssetTypeToString(assetDecl.Type));
+		ImGui::Text("Type: %s", Utils::AssetTypeToString(assetDecl.Type));
 
 		switch (assetDecl.Type)
 		{
-			case Moongoose::AssetType::Mesh:
-				DrawMeshAssetGUI(assetDecl, CAST_TO(Moongoose::Mesh, selectedAsset));
+			case AssetType::Mesh:
+				DrawMeshAssetGui(assetDecl, CAST_TO(Moongoose::Mesh, selectedAsset));
 				break;
-			case Moongoose::AssetType::Material:
-				DrawMaterialAssetGUI(assetDecl, CAST_TO(Moongoose::Material, selectedAsset));
+			case AssetType::Material:
+				DrawMaterialAssetGui(assetDecl, CAST_TO(Moongoose::Material, selectedAsset));
 				break;
-			case Moongoose::AssetType::Texture:
-				DrawTextureAssetGUI(assetDecl, CAST_TO(Moongoose::Texture2D, selectedAsset));
+			case AssetType::Texture:
+				DrawTextureAssetGui(assetDecl, CAST_TO(Moongoose::Texture2D, selectedAsset));
 				break;
 		}
 

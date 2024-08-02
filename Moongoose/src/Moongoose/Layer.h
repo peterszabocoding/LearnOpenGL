@@ -8,6 +8,8 @@
 
 namespace Moongoose {
 
+class Application;
+
 	class MOONGOOSE_API Layer
 	{
 	public:
@@ -20,12 +22,19 @@ namespace Moongoose {
 		virtual void onEvent(Event& event) {}
 		virtual void onImGuiRender() {};
 
+		void SetApplication(Application* application) { m_Application = application; }
+
 		inline const std::string& GetName() const { return m_DebugName; }
 
 	protected:
+		Application* GetApplication() 
+		{ 
+			return m_Application; 
+		}
+
 		virtual bool onWindowResized(WindowResizeEvent& event) { return false; }
 
-		virtual bool onMouseButtonPresed(MousePressedEvent& event) { return false; }
+		virtual bool onMouseButtonPressed(MousePressedEvent& event) { return false; }
 		virtual bool onMouseButtonReleased(MouseReleasedEvent& event) { return false; }
 
 		virtual bool onMouseMoved(MouseMovedEvent& event) { return false; }
@@ -37,6 +46,7 @@ namespace Moongoose {
 
 	protected:
 		std::string m_DebugName;
+		Application* m_Application;
 	};
 
 }

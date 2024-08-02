@@ -14,9 +14,11 @@ using namespace Moongoose;
 
 void RenderLayer::onAttach()
 {
-	createRenderBuffer();
-	createPreviewRenderBuffer();
-	createCamera();
+	m_WorldManager = GetApplication()->GetWorldManager();
+
+	CreateRenderBuffer();
+	CreatePreviewRenderBuffer();
+	CreateCamera();
 
 	AssetManager::Get().BuildAssetRegistry();
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
@@ -24,13 +26,13 @@ void RenderLayer::onAttach()
 	ShaderManager::AssignShaderToType(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\atmos_scattering.frag");
 }
 
-void RenderLayer::onUpdate(float deltaTime)
+void RenderLayer::onUpdate(const float deltaTime)
 {
-	if (!WorldManager::Get().isWorldOpened()) return;
+	if (!m_WorldManager->isWorldOpened()) return;
 
 	m_AtmosphericsSystem->Update(m_EditorCamera, m_RenderBuffer->GetResolution());
 
-	m_EditorCamera->setCameraActive(isMouseInWindow());
+	m_EditorCamera->setCameraActive(IsMouseInWindow());
 	m_EditorCamera->onUpdate(deltaTime);
 	
 	m_RenderBuffer->Bind();
@@ -39,19 +41,21 @@ void RenderLayer::onUpdate(float deltaTime)
 	RenderCommand::Clear();
 	m_RenderBuffer->ClearAttachment(1, -1);
 
-	m_AtmosphericsSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
-	m_LightSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
-	m_RenderSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
-	m_BillboardSystem->Run(m_EditorCamera, WorldManager::Get().GetLoadedWorld());
+
+	const Ref<World> world = m_WorldManager->GetLoadedWorld();
+	m_AtmosphericsSystem->Run(m_EditorCamera, world);
+	m_LightSystem->Run(m_EditorCamera, world);
+	m_RenderSystem->Run(m_EditorCamera, world);
+	m_BillboardSystem->Run(m_EditorCamera, world);
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= m_ViewportBounds[0].x;
 	my -= m_ViewportBounds[0].y;
-	glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 	my = viewportSize.y - my;
 
 	m_WindowMousePos = { (int)mx, (int)my };
-	if (isMouseInWindow())
+	if (IsMouseInWindow())
 	{
 		m_HoveredEntityId = m_RenderBuffer->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
 	}
@@ -64,13 +68,13 @@ void RenderLayer::onEvent(Event& event)
 	m_EditorCamera->onEvent(event);
 
 	EventDispatcher dispatcher(event);
-	dispatcher.Dispatch<MousePressedEvent>(BIND_EVENT_FUNC(RenderLayer::onMouseButtonPresed));
+	dispatcher.Dispatch<MousePressedEvent>(BIND_EVENT_FUNC(RenderLayer::onMouseButtonPressed));
 	dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FUNC(RenderLayer::onKeyPressed));
 }
 
 void RenderLayer::onImGuiRender()
 {
-	renderToolbarMenu();
+	RenderToolbarMenu();
 
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
@@ -86,12 +90,12 @@ void RenderLayer::onImGuiRender()
 	{
 		m_WindowSize = { windowSize.x, windowSize.y };
 		m_EditorCamera->setRenderResolution(m_WindowSize.x, m_WindowSize.y);
-		createRenderBuffer();
+		CreateRenderBuffer();
 	}
 
-	auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-	auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-	auto viewportOffset = ImGui::GetWindowPos();
+	const ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
+	const ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+	const ImVec2 viewportOffset = ImGui::GetWindowPos();
 
 	m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 	m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
@@ -101,15 +105,15 @@ void RenderLayer::onImGuiRender()
 		ImVec2(0, 1),
 		ImVec2(1, 0));
 
-	renderGizmo();
-	renderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
+	RenderGizmo();
+	RenderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
 
 	ImGui::End();
 }
 
-void RenderLayer::createRenderBuffer()
+void RenderLayer::CreateRenderBuffer()
 {
-	Moongoose::FramebufferSpecs specs;
+	FramebufferSpecs specs;
 	specs.Width = m_WindowSize.x;
 	specs.Height = m_WindowSize.y;
 	specs.Attachments = {
@@ -122,9 +126,9 @@ void RenderLayer::createRenderBuffer()
 	m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
 }
 
-void RenderLayer::createPreviewRenderBuffer()
+void RenderLayer::CreatePreviewRenderBuffer()
 {
-	Moongoose::FramebufferSpecs specs;
+	FramebufferSpecs specs;
 	specs.Width = m_WindowSize.x;
 	specs.Height = m_WindowSize.y;
 	specs.Attachments = {
@@ -136,7 +140,7 @@ void RenderLayer::createPreviewRenderBuffer()
 	m_PreviewRenderBuffer = FramebufferManager::CreateFramebuffer("PreviewBuffer", specs);
 }
 
-void RenderLayer::createCamera()
+void RenderLayer::CreateCamera()
 {
 	PerspectiveCamera::Params params;
 	params.renderWidth = m_WindowSize.x;
@@ -145,7 +149,7 @@ void RenderLayer::createCamera()
 	m_EditorCamera = CreateRef<PerspectiveCamera>(params);
 }
 
-void RenderLayer::renderToolbarMenu()
+void RenderLayer::RenderToolbarMenu()
 {
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -157,35 +161,35 @@ void RenderLayer::renderToolbarMenu()
 			}
 			if (ImGui::MenuItem("Open World"))
 			{
-				std::string worldFilePath = Moongoose::FileDialogs::OpenFile(".mgworld");
+				const std::string worldFilePath = FileDialogs::OpenFile(".mgworld");
 
 				if (!worldFilePath.empty())
 				{
-					WorldManager::LoadWorld(worldFilePath);
-					m_LightSystem = WorldManager::GetLoadedWorld()->GetSystem<LightSystem>();
-					m_RenderSystem = WorldManager::GetLoadedWorld()->GetSystem<RenderSystem>();
-					m_BillboardSystem = WorldManager::GetLoadedWorld()->GetSystem<BillboardSystem>();
-					m_AtmosphericsSystem = WorldManager::GetLoadedWorld()->GetSystem<AtmosphericsSystem>();
+					m_WorldManager->LoadWorld(worldFilePath);
+					m_LightSystem = m_WorldManager->GetLoadedWorld()->GetSystem<LightSystem>();
+					m_RenderSystem = m_WorldManager->GetLoadedWorld()->GetSystem<RenderSystem>();
+					m_BillboardSystem = m_WorldManager->GetLoadedWorld()->GetSystem<BillboardSystem>();
+					m_AtmosphericsSystem = m_WorldManager->GetLoadedWorld()->GetSystem<AtmosphericsSystem>();
 				}
 			}
 
-			if (ImGui::MenuItem("Save World", "", false, WorldManager::IsWorldOpened()))
+			if (ImGui::MenuItem("Save World", "", false, m_WorldManager->IsWorldOpened()))
 			{
-				std::string worldName = WorldManager::GetLoadedWorld()->m_Name;
-				WorldManager::SaveWorld("Content\\Worlds\\" + worldName + ".mgworld");
+				const std::string worldName = m_WorldManager->GetLoadedWorld()->m_Name;
+				m_WorldManager->SaveWorld("Content\\Worlds\\" + worldName + ".mgworld");
 			}
 
 			ImGui::Separator();
-			if (ImGui::MenuItem("Quit", false)) {}
+			if (ImGui::MenuItem("Quit", nullptr)) {}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
 	}
 }
 
-void RenderLayer::renderGizmo()
+void RenderLayer::RenderGizmo()
 {
-	Entity selectedEntity = WorldManager::GetLoadedWorld()->GetSelectedEntity();
+	const Entity selectedEntity = WorldManager::GetLoadedWorld()->GetSelectedEntity();
 	if (selectedEntity != -1)
 	{
 		auto& entityTransform = WorldManager::GetLoadedWorld()->GetComponent<TransformComponent>(selectedEntity);
@@ -201,12 +205,12 @@ void RenderLayer::renderGizmo()
 
 		auto transform = entityTransform.getTransform();
 
-		ImGuizmo::Manipulate(
-			glm::value_ptr(m_EditorCamera->getViewMatrix()),
-			glm::value_ptr(m_EditorCamera->getProjection()),
+		Manipulate(
+			value_ptr(m_EditorCamera->getViewMatrix()),
+			value_ptr(m_EditorCamera->getProjection()),
 			ImGuizmo::OPERATION(m_GizmoMode),
 			ImGuizmo::LOCAL,
-			glm::value_ptr(transform),
+			value_ptr(transform),
 			nullptr,
 			nullptr);
 
@@ -214,7 +218,7 @@ void RenderLayer::renderGizmo()
 		{
 			glm::vec3 translation, rotation, scale;
 			TransformComponent::DecomposeTransform(transform, translation, rotation, scale);
-			glm::vec3 deltaRotation = glm::degrees(rotation) - entityTransform.m_Rotation;
+			glm::vec3 deltaRotation = degrees(rotation) - entityTransform.m_Rotation;
 
 			entityTransform.m_Position = translation;
 			entityTransform.m_Rotation += deltaRotation;
@@ -223,9 +227,9 @@ void RenderLayer::renderGizmo()
 	}
 }
 
-void RenderLayer::renderDebugInfo(float posX, float posY)
+void RenderLayer::RenderDebugInfo(const float posX, const float posY) const
 {
-	float debugMargin = 15.0f;
+	constexpr float debugMargin = 15.0f;
 	ImGui::SetCursorPos({ posX + debugMargin, posY + debugMargin });
 
 	ImGui::SetCursorPos(ImGui::GetCursorPos());
@@ -233,10 +237,10 @@ void RenderLayer::renderDebugInfo(float posX, float posY)
 	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
 	ImGui::Text("Mouse: X: %f Y: %f", m_WindowMousePos.x, m_WindowMousePos.y);
 	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
-	ImGui::Text("Is mouse inside window: %s", isMouseInWindow() ? "True" : "False");
+	ImGui::Text("Is mouse inside window: %s", IsMouseInWindow() ? "True" : "False");
 }
 
-bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
+bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 {
 	if (Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT)) return false;
 
@@ -260,23 +264,25 @@ bool RenderLayer::onKeyPressed(Moongoose::KeyPressedEvent& event)
 
 	if (event.getKeyCode() == MG_KEY_ESCAPE)
 	{
-		WorldManager::Get().GetLoadedWorld()->SetSelectedEntity(-1);
+		m_WorldManager->GetLoadedWorld()->SetSelectedEntity(-1);
 		return false;
 	}
+
+	return false;
 }
 
-bool RenderLayer::onMouseButtonPresed(Moongoose::MousePressedEvent& event)
+bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 {
-	bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
-	bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
+	const bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
+	const bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
 
 	if (mouseHoveredOverEntity && entitySelectButtonsPressed) WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
 
 	return false;
 }
 
-bool RenderLayer::isMouseInWindow() const
+bool RenderLayer::IsMouseInWindow() const
 {
-	glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < (int)viewportSize.x && m_WindowMousePos.y < (int)viewportSize.y;
 }

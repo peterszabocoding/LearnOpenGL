@@ -17,7 +17,6 @@ class ResourceManager
 {
 public:
 	static void LoadResources();
-
 	static Ref<Moongoose::Texture2D> GetIcon(Icon icon);
 
 private:

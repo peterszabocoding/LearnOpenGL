@@ -144,7 +144,7 @@ namespace Moongoose {
 				UUID materialId = materialJson[0].get<std::string>();
 				std::string materialSlotName = materialJson[1].get<std::string>();
 
-				auto& materialDecl = AssetManager::Get().GetDeclByID(materialId);
+				auto& materialDecl = AssetManager::Get().GetDeclById(materialId);
 
 				if (materialDecl.Type == AssetType::None) continue;
 				if (!materialDecl.IsDataLoaded) AssetManager::Get().LoadAssetById<Material>(materialId);
@@ -177,7 +177,7 @@ namespace Moongoose {
 
 	void MeshAssetLoader::SaveAsset(const Ref<Asset> asset)
 	{
-		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
+		AssetDeclaration& decl = AssetManager::Get().GetDeclById(asset->m_ID);
 		const Ref<Mesh> meshAsset = std::static_pointer_cast<Mesh>(asset);
 
 		const auto& filepath = std::filesystem::path(decl.FilePath);
@@ -289,7 +289,7 @@ namespace Moongoose {
 
 	void TextureAssetLoader::SaveAsset(const Ref<Asset> asset)
 	{
-		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
+		AssetDeclaration& decl = AssetManager::Get().GetDeclById(asset->m_ID);
 		const Ref<Texture2D> textureAsset = std::static_pointer_cast<Texture2D>(asset);
 
 		const auto& filepath = std::filesystem::path(decl.FilePath);
@@ -342,7 +342,7 @@ namespace Moongoose {
 		if (!albedoJson.empty())
 		{ 
 			UUID albedoTextureId = albedoJson["ID"].get<std::string>();
-			AssetDeclaration albedoTextureDecl = AssetManager::Get().GetDeclByID(albedoTextureId);
+			AssetDeclaration albedoTextureDecl = AssetManager::Get().GetDeclById(albedoTextureId);
 			Ref<Texture2D> albedoTexture = !albedoTextureDecl.IsDataLoaded
 				? AssetManager::Get().LoadAssetById<Texture2D>(albedoTextureId)
 				: AssetManager::Get().GetAssetById<Texture2D>(albedoTextureId);
@@ -365,7 +365,7 @@ namespace Moongoose {
 
 	void MaterialAssetLoader::SaveAsset(const Ref<Asset> asset)
 	{
-		AssetDeclaration& decl = AssetManager::Get().GetDeclByID(asset->m_ID);
+		AssetDeclaration& decl = AssetManager::Get().GetDeclById(asset->m_ID);
 		const Ref<Material> materialAsset = CAST_REF(Material, asset);
 
 		const auto fileDir = std::filesystem::path(decl.FilePath).parent_path();

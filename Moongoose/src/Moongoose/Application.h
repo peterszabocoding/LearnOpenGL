@@ -6,6 +6,10 @@
 #include "Ui/ImGuiLayer.h"
 #include "Events/ApplicationEvent.h"
 
+#include "Asset/AssetManager.h"
+#include "ECS/WorldManager.h"
+#include "Renderer/FramebufferManager.h"
+
 namespace Moongoose
 {
 	class Application
@@ -20,6 +24,22 @@ namespace Moongoose
 		void PushLayer(Layer* layer);
 
 		inline Window& GetWindow() { return *m_Window; }
+
+		FramebufferManager* GetFramebufferManager() const
+		{
+			return &FramebufferManager::Get();
+		}
+
+		AssetManager* GetAssetManager() const
+		{
+			return &AssetManager::Get();
+		}
+
+		WorldManager* GetWorldManager() const
+		{
+			return &WorldManager::Get();
+		}
+
 
 	private:
 

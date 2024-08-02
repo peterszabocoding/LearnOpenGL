@@ -9,19 +9,22 @@ class ImVec2;
 class AssetInspectorLayer : public Moongoose::Layer
 {
 public:
-	AssetInspectorLayer() {};
-	virtual ~AssetInspectorLayer() {};
+	AssetInspectorLayer() = default;
+	~AssetInspectorLayer() override = default;
 
-	virtual void onAttach() override {};
-	virtual void onDetach() override {};
-	virtual void onUpdate(float deltaTime) override {};
-	virtual void onEvent(Moongoose::Event& event) override {};
+	virtual void onAttach() override;
+	virtual void onDetach() override {}
+	virtual void onUpdate(float deltaTime) override {}
+	virtual void onEvent(Moongoose::Event& event) override {}
 	virtual void onImGuiRender() override;
 
 private:
-	void DrawMeshAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Mesh> mesh);
-	void DrawTextureAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Texture2D> texture);
-	void DrawMaterialAssetGUI(Moongoose::AssetDeclaration& decl, Ref<Moongoose::Material> material);
-	void RenderImageTextButton(ImVec2 imageSize, Ref<Moongoose::Texture2D> icon, std::string text);
+	void DrawMeshAssetGui(Moongoose::AssetDeclaration& decl, const Ref<Moongoose::Mesh>& mesh) const;
+	void DrawTextureAssetGui(Moongoose::AssetDeclaration& decl, const Ref<Moongoose::Texture2D>& texture) const;
+	void DrawMaterialAssetGui(Moongoose::AssetDeclaration& decl, const Ref<Moongoose::Material>& material) const;
+
+	static void RenderImageTextButton(ImVec2 imageSize, const Ref<Moongoose::Texture2D>& icon, const std::string& text);
+private:
+	Moongoose::AssetManager* m_AssetManager;
 
 };

@@ -4,8 +4,8 @@
 class FramebufferViewerLayer : public Moongoose::Layer
 {
 public:
-	FramebufferViewerLayer() {}
-	virtual ~FramebufferViewerLayer() {}
+	FramebufferViewerLayer() = default;
+	~FramebufferViewerLayer() override {}
 
 	virtual void onAttach() override {}
 	virtual void onDetach() override {}

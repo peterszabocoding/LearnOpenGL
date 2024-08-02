@@ -144,7 +144,7 @@ in vec3 EyePosition;
 in vec2 TexCoords;
 uniform vec3 CameraForward;
 uniform float CameraFOV;
-uniform float CameraFar;
+uniform float CameraNear;
 uniform float u_Time;
 
 layout (location = 0) out vec4 bSky;
