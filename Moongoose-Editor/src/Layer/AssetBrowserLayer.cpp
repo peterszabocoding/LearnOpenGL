@@ -18,11 +18,8 @@ void AssetBrowserLayer::ShowPopupMenu() const
             {
                  const std::string fileName = std::filesystem::path(filePath).filename().string();
                  const std::string extension = std::filesystem::path(filePath).extension().string();
-                 AssetType assetType = s_AssetExtensionMap[extension];
+                 if (s_AssetExtensionMap[extension] != AssetType::Mesh) return;
 
-                 if (assetType != AssetType::Mesh) return;
-
-                 
                  AssetDeclaration decl = m_AssetManager->CreateAssetDeclaration<Mesh>(fileName, filePath);
                  const Ref<Mesh> asset = m_AssetManager->LoadAsset<Mesh>(decl);
                  m_AssetManager->SaveAsset(asset);
@@ -37,9 +34,8 @@ void AssetBrowserLayer::ShowPopupMenu() const
             {
                 const std::string fileName = std::filesystem::path(filePath).filename().string();
                 const std::string extension = std::filesystem::path(filePath).extension().string();
-                AssetType assetType = s_AssetExtensionMap[extension];
 
-                if (assetType != AssetType::Texture) return;
+                if (s_AssetExtensionMap[extension] != AssetType::Texture) return;
 
                 AssetDeclaration decl = m_AssetManager->CreateAssetDeclaration<Texture2D>(fileName, filePath);
                 const Ref<Texture2D> asset = m_AssetManager->LoadAsset<Texture2D>(decl);
@@ -105,12 +101,12 @@ void AssetBrowserLayer::onImGuiRender()
                 if (ImGui::BeginTable("CardTable", columns, ImGuiTableFlags_SizingStretchSame)) {
                     for (const auto& decl : decls) {
                         ImGui::TableNextColumn();
-                        ImGui::PushID(decl.ID);
+                        ImGui::PushID(decl.id);
                         RenderAssetCard(decl, BIND_FUNC(AssetBrowserLayer::OnButtonClicked));
 
                         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
                             ImGui::SetDragDropPayload("ASSET", &decl, sizeof(AssetDeclaration));
-                            ImGui::Text("Dragging %s", decl.Name.c_str());
+                            ImGui::Text("Dragging %s", decl.name.c_str());
                             ImGui::EndDragDropSource();
                         }
 
@@ -143,22 +139,22 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
 
     // Render card image
 
-    const Ref<Texture2D> icon = ResourceManager::GetIcon(Icon(decl.Type));
+    const Ref<Texture2D> icon = ResourceManager::GetIcon(Icon(decl.type));
     const ImVec2 imgCursorPos = { originalCursorPos.x + 2 * imgPadding.x, originalCursorPos.y + 2 * imgPadding.y };
     ImGui::SetCursorPos(imgCursorPos);
     ImGui::Image(icon->GetPointerToData(), imgSize);
 
     // Render card text
-    const ImVec2 textSize = ImGui::CalcTextSize(decl.Name.c_str());
+    const ImVec2 textSize = ImGui::CalcTextSize(decl.name.c_str());
     const ImVec2 textCursorPos = { originalCursorPos.x + (cardSize.x - textSize.x) * 0.5f, originalCursorPos.y + cardSize.y - 1.5f * imgPadding.y };
     ImGui::SetCursorPos(textCursorPos);
-    ImGui::Text(decl.Name.c_str());
+    ImGui::Text(decl.name.c_str());
 
     // Render card button
     ImGui::SetCursorPos(originalCursorPos);
     if (ImGui::Button("", cardSize))
     {
-        onButtonClicked(decl.ID);
+        onButtonClicked(decl.id);
     }
 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_None) && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
@@ -171,11 +167,11 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
     {
         if (ImGui::MenuItem("Delete Asset"))
         {
-            LOG_APP_INFO("Delete asset: {0}", decl.Name);
+            LOG_APP_INFO("Delete asset: {0}", decl.name);
         }
         if (ImGui::MenuItem("Rename Asset"))
         {
-            m_AssetManager->RenameAsset(decl.ID, "New_Asset_Renamed");
+            m_AssetManager->RenameAsset(decl.id, "New_Asset_Renamed");
             FileSystem::GetFileStructure("Content\\", true);
         }
         ImGui::EndPopup();

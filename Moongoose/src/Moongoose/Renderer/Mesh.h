@@ -130,7 +130,7 @@ namespace Moongoose {
 		Mesh() {}
 		~Mesh() = default;
 
-		virtual AssetType getAssetType() const override { return AssetType::Mesh; }
+		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
 		static AssetType GetStaticAssetType() { return AssetType::Mesh; }
 
 		const Ref<SubMesh>& AddSubmesh(

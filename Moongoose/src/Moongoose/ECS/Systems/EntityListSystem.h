@@ -10,9 +10,9 @@ namespace Moongoose
 	class EntityListSystem: public System
 	{
 	public:
-		virtual Signature EntityListSystem::GetSystemSignature(Moongoose::World* world);
+		virtual Signature EntityListSystem::GetSystemSignature(World* world) override;
 
-		const std::vector<std::string> GetEntityTagList(Ref<World> world) const;
+		std::vector<std::string> GetEntityTagList(const Ref<World>& world) const;
 
 	};
 }

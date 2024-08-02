@@ -36,28 +36,28 @@ namespace Moongoose {
 		PerspectiveCamera(const PerspectiveCamera::Params& params);
 		~PerspectiveCamera() = default;
 
-		void onUpdate(float deltaTime);
-		void onEvent(Event& e);
+		void OnUpdate(float deltaTime);
+		void OnEvent(Event& event);
 
-		void setRenderResolution(float width, float height);
+		void SetRenderResolution(unsigned int width, unsigned int height);
 
-		void moveCamera(float deltaTime);
-		void rotateCamera(float deltaTime);
+		void MoveCamera(float deltaTime);
+		void RotateCamera(float deltaTime);
 
-		float getFOV() const;
-		float getFOVRad() const;
-		float getNear() const;
-		float getFar() const;
-		glm::vec2 getResolution() const;
+		float GetFov() const;
+		float GetFovRad() const;
+		float GetNear() const;
+		float GetFar() const;
+		glm::vec2 GetResolution() const;
 
-		glm::vec3 getForward() const;
-		glm::vec3 getCameraPosition() const;
-		glm::mat4 getViewMatrix() const;
+		glm::vec3 GetForward() const;
+		glm::vec3 GetCameraPosition() const;
+		glm::mat4 GetViewMatrix() const;
 
 
 	private:
-		bool onResize(WindowResizeEvent& event);
-		bool onMouseScrolled(MouseScrolledEvent& event);
+		bool OnResize(const WindowResizeEvent& event);
+		bool OnMouseScrolled(const MouseScrolledEvent& event);
 
 	private:
 		bool m_IsCameraMoving = false;

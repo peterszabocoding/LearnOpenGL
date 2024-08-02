@@ -14,7 +14,8 @@ namespace Moongoose
 
 		return signature;
 	}
-	const std::vector<std::string> EntityListSystem::GetEntityTagList(Ref<World> world) const
+
+	std::vector<std::string> EntityListSystem::GetEntityTagList(const Ref<World>& world) const
 	{
 		std::vector<std::string> tags;
 		for (auto& e : m_Entities)

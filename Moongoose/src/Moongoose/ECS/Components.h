@@ -11,9 +11,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include "Moongoose/Renderer/Mesh.h"
-#include "Moongoose/Renderer/Shader.h"
 #include "Moongoose/Renderer/Material.h"
-#include "Moongoose/Renderer/Billboard.h"
 
 namespace Moongoose {
 
@@ -23,20 +21,20 @@ namespace Moongoose {
 
 	enum class LightType: uint8_t
 	{
-		DIRECTIONAL = 0,
-		POINT,
-		SPOT
+		Directional = 0,
+		Point,
+		Spot
 	};
 
 	namespace Utils {
 
-		static std::string LightTypeToString(LightType type)
+		static std::string LightTypeToString(const LightType type)
 		{
 			switch (type)
 			{
-			case LightType::DIRECTIONAL: return "Directional";
-			case LightType::POINT: return "Point";
-			case LightType::SPOT: return "Spot";
+			case LightType::Directional: return "Directional";
+			case LightType::Point: return "Point";
+			case LightType::Spot: return "Spot";
 			}
 			return "Unknown";
 		}
@@ -52,14 +50,14 @@ namespace Moongoose {
 		bool m_Active = false;
 	};
 
-	struct IDComponent : public Component
+	struct IDComponent : Component
 	{
 		UUID m_ID = 0;
 
 		IDComponent(UUID id = UUID()) : m_ID(id) {}
 	};
 
-	struct TagComponent: public Component
+	struct TagComponent: Component
 	{
 		std::string Tag;
 
@@ -72,7 +70,7 @@ namespace Moongoose {
 		operator const std::string& () const { return Tag; }
 	};
 
-	struct TransformComponent: public Component
+	struct TransformComponent: Component
 	{
 		glm::vec3 m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -80,26 +78,26 @@ namespace Moongoose {
 
 		TransformComponent() = default;
 		TransformComponent(
-			glm::vec3 position, 
-			glm::vec3 rotation, 
-			glm::vec3 scale): m_Position(position), m_Rotation(rotation), m_Scale(scale) {}
+			const glm::vec3 position,
+			const glm::vec3 rotation,
+			const glm::vec3 scale): m_Position(position), m_Rotation(rotation), m_Scale(scale) {}
 
-		glm::mat4 getTransform() const {
-			return glm::translate(glm::mat4(1.0f), m_Position)
-				* glm::toMat4(glm::quat(glm::radians(m_Rotation)))
-				* glm::scale(glm::mat4(1.0f), m_Scale);
+		glm::mat4 GetTransform() const {
+			return translate(glm::mat4(1.0f), m_Position)
+				* toMat4(glm::quat(radians(m_Rotation)))
+				* scale(glm::mat4(1.0f), m_Scale);
 		}
 
 		glm::vec3 GetForwardDirection() const
 		{
-			return getTransform() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+			return GetTransform() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 		}
 
 		static glm::mat4 GetModelMatrix(const TransformComponent& component)
 		{
-			return glm::translate(glm::mat4(1.0f), component.m_Position)
-				* glm::toMat4(glm::quat(glm::radians(component.m_Rotation)))
-				* glm::scale(glm::mat4(1.0f), component.m_Scale);
+			return translate(glm::mat4(1.0f), component.m_Position)
+				* toMat4(glm::quat(radians(component.m_Rotation)))
+				* scale(glm::mat4(1.0f), component.m_Scale);
 		}
 
 		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
@@ -175,38 +173,38 @@ namespace Moongoose {
 		}
 	};
 
-	struct MeshComponent: public Component
+	struct MeshComponent: Component
 	{
 		Ref<Mesh> m_Mesh;
 
-		MeshComponent() {};
-		MeshComponent(Ref<Mesh> mesh) : m_Mesh(mesh) {}
+		MeshComponent() = default;
+		explicit MeshComponent(const Ref<Mesh>& mesh) : m_Mesh(mesh) {}
 	};
 
-	struct LightComponent : public Component
+	struct LightComponent : Component
 	{
-		LightType m_Type = LightType::POINT;
+		LightType m_Type = LightType::Point;
 		glm::vec3 m_Color = glm::vec3(1.0f);
 		float m_Intensity = 1.0f;
 		float m_AttenuationRadius = 10.0f;
 		float m_AttenuationAngle = 0.75f;
 	};
 
-	struct BillboardComponent : public Component
+	struct BillboardComponent : Component
 	{
-		BillboardComponent() {}
-		BillboardComponent(Ref<Texture2D> texture): m_BillboardTexture(texture) {}
+		BillboardComponent() = default;
+		BillboardComponent(const Ref<Texture2D>& texture): m_BillboardTexture(texture) {}
 		Ref<Texture2D> m_BillboardTexture;
 	};
 
-	struct AtmosphericsComponent : public Component
+	struct AtmosphericsComponent : Component
 	{
 		glm::vec3 m_SunDirection = glm::vec3(0.0f, 0.5f, 0.5f);
 		glm::vec3 m_SunColor = glm::vec3(1.0f, 1.0f, 1.0f);
 		float m_SunIntensity = 10.0f;
 		float m_SunAmbientIntensity = 2.0f;
 
-		AtmosphericsComponent() {}
+		AtmosphericsComponent() = default;
 	};
 
 }

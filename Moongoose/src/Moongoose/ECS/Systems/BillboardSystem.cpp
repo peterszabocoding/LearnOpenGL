@@ -1,14 +1,7 @@
 #include "mgpch.h"
 #include "BillboardSystem.h"
 
-#include <glm/glm.hpp>
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
 
 #include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/ECS/Components.h"
@@ -17,6 +10,11 @@
 
 namespace Moongoose
 {
+	BillboardSystem::BillboardSystem()
+	{
+		m_DefaultMaterial = CreateRef<Material>("DefaultMaterial");
+	}
+
 	Signature BillboardSystem::GetSystemSignature(World* world)
 	{
 		Signature signature;
@@ -26,27 +24,23 @@ namespace Moongoose
 		return signature;
 	}
 
-	void BillboardSystem::Run(const Ref<PerspectiveCamera>& camera, Ref<World> world)
+	void BillboardSystem::Run(const Ref<PerspectiveCamera>& camera, const Ref<World>& world) const
 	{
 		for (auto const& entity : m_Entities)
 		{
-			TransformComponent transformComponent = world->GetComponent<TransformComponent>(entity);
-			BillboardComponent billboardComponent = world->GetComponent<BillboardComponent>(entity);
+			auto transformComponent = world->GetComponent<TransformComponent>(entity);
+			const auto billboardComponent = world->GetComponent<BillboardComponent>(entity);
 
 			if (!billboardComponent.m_BillboardTexture) continue;
 
-			Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
+			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
 			shader->Bind();
-			shader->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
+			shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 			shader->SetModelTransform(TransformComponent::GetModelMatrix(transformComponent));
 			shader->SetEntityID(entity);
-			//shader->SetDepthTest(false);
 
 			billboardComponent.m_BillboardTexture->bind(0);
-			
 			Renderer::RenderMesh(QuadMesh(0.75f).GetSubmeshes()[0]->vertexArray);
-
-			//shader->SetDepthTest(true);
 			shader->Unbind();
 		}
 	}

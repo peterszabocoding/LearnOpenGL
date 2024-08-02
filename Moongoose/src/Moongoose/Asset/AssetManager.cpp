@@ -27,9 +27,9 @@ namespace Moongoose {
 		for (auto& file : files)
 		{
 			AssetDeclaration decl = ReadDeclarationFromFile(file);
-			s_AssetRegistry[decl.ID] = decl;
+			s_AssetRegistry[decl.id] = decl;
 
-			s_AssetsByType[decl.Type].push_back(decl);
+			s_AssetsByType[decl.type].push_back(decl);
 
 			std::filesystem::path fileDir = file.parent_path();
 			if (!is_directory(fileDir)) continue;
@@ -43,17 +43,17 @@ namespace Moongoose {
 
 	void AssetManager::ReloadAsset(AssetDeclaration& decl)
 	{
-		s_AssetLoaders[decl.Type]->ReloadAsset(decl);
+		s_AssetLoaders[decl.type]->ReloadAsset(decl);
 	}
 
 	void AssetManager::SaveAsset(const Ref<Asset>& asset)
 	{
-		s_AssetLoaders[asset->getAssetType()]->SaveAsset(asset);
+		s_AssetLoaders[asset->GetAssetType()]->SaveAsset(asset);
 	}
 
 	void AssetManager::LoadAsset(AssetDeclaration& decl)
 	{
-		switch (decl.Type) {
+		switch (decl.type) {
 			case AssetType::Mesh:
 				LoadAsset<Mesh>(decl);
 				break;
@@ -69,7 +69,7 @@ namespace Moongoose {
 
 	void AssetManager::LoadAssetFromFile(AssetDeclaration& decl)
 	{
-		switch (decl.Type) {
+		switch (decl.type) {
 		case AssetType::Mesh:
 			LoadAssetFromFile<Mesh>(decl);
 			break;
@@ -95,11 +95,11 @@ namespace Moongoose {
 
 		AssetDeclaration decl;
 		std::string id = json["id"];
-		decl.ID = UUID(id);
-		decl.Name = json["name"];
-		decl.Type = Utils::AssetTypeFromString(json["type"]);
-		decl.DeclFilePath = declFile.string();
-		decl.FilePath = std::filesystem::path(std::string(json["source"]));
+		decl.id = UUID(id);
+		decl.name = json["name"];
+		decl.type = Utils::AssetTypeFromString(json["type"]);
+		decl.declFilePath = declFile.string();
+		decl.filePath = std::filesystem::path(std::string(json["source"]));
 
 		return decl;
 	}

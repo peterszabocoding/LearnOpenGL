@@ -41,12 +41,12 @@ namespace Moongoose {
 			static_assert(std::is_base_of_v<Asset, T>, "Type must derive from Asset!");
 
 			AssetDeclaration decl;
-			decl.ID = UUID();
-			decl.Name = assetName;
-			decl.FilePath = path;
-			decl.Type = T::GetStaticAssetType();
-			decl.IsDataLoaded = false;
-			decl.IsMemoryAsset = false;
+			decl.id = UUID();
+			decl.name = assetName;
+			decl.filePath = path;
+			decl.type = T::GetStaticAssetType();
+			decl.isDataLoaded = false;
+			decl.isMemoryAsset = false;
 
 			return decl;
 		}
@@ -59,9 +59,9 @@ namespace Moongoose {
 			AssetDeclaration decl = CreateAssetDeclaration<T>(assetName, filePath);
 			Ref<T> asset = CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->CreateAsset(decl));	
 
-			decl.IsDataLoaded = true;
-			s_AssetRegistry[decl.ID] = decl;
-			s_LoadedAssets[decl.ID] = asset;
+			decl.isDataLoaded = true;
+			s_AssetRegistry[decl.id] = decl;
+			s_LoadedAssets[decl.id] = asset;
 
 			return asset;
 		}
@@ -82,11 +82,11 @@ namespace Moongoose {
 		Ref<T> LoadAssetFromFile(AssetDeclaration& decl)
 		{
 			Ref<T> asset = CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->LoadAssetFromFile(decl));
-			asset->m_ID = decl.ID;
-			asset->m_Name = decl.Name;
-			decl.IsDataLoaded = true;
+			asset->m_Id = decl.id;
+			asset->m_Name = decl.name;
+			decl.isDataLoaded = true;
 
-			s_LoadedAssets[decl.ID] = asset;
+			s_LoadedAssets[decl.id] = asset;
 
 			return asset;
 		}
@@ -96,12 +96,12 @@ namespace Moongoose {
 		{
 			static_assert(std::is_base_of_v<Asset, T>, "Type must derive from Asset!");
 			Ref<T> asset = CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->LoadAsset(decl));
-			asset->m_ID = decl.ID;
-			asset->m_Name = decl.Name;
+			asset->m_Id = decl.id;
+			asset->m_Name = decl.name;
 
-			decl.IsDataLoaded = true;
-			s_AssetRegistry[decl.ID] = decl;
-			s_LoadedAssets[decl.ID] = asset;
+			decl.isDataLoaded = true;
+			s_AssetRegistry[decl.id] = decl;
+			s_LoadedAssets[decl.id] = asset;
 
 			return asset;
 		}
@@ -109,10 +109,10 @@ namespace Moongoose {
 		void RenameAsset(const UUID& assetId, const std::string& newName)
 		{
 			AssetDeclaration& decl = s_AssetRegistry[assetId];
-			decl.Name = newName;
-			decl.DeclFilePath = decl.DeclFilePath.parent_path() / (newName + ".mgasset");
+			decl.name = newName;
+			decl.declFilePath = decl.declFilePath.parent_path() / (newName + ".mgasset");
 
-			if (decl.IsDataLoaded) SaveAsset(s_LoadedAssets[assetId]);
+			if (decl.isDataLoaded) SaveAsset(s_LoadedAssets[assetId]);
 		}
 
 		template<typename T>
@@ -158,7 +158,7 @@ namespace Moongoose {
 		Ref<Asset> GetAssetById(const UUID& assetId)
 		{
 			AssetDeclaration decl = GetDeclById(assetId);
-			if (!decl.IsDataLoaded) LoadAssetFromFile(decl);
+			if (!decl.isDataLoaded) LoadAssetFromFile(decl);
 			return s_LoadedAssets[assetId];
 		}
 

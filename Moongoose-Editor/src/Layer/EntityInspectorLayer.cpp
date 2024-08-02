@@ -107,7 +107,7 @@ void EntityInspectorLayer::onImGuiRender()
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
-						UUID meshId = ((const AssetDeclaration*)payload->Data)->ID;
+						UUID meshId = ((const AssetDeclaration*)payload->Data)->id;
 						cMesh.m_Mesh = m_AssetManager->GetAssetById<Mesh>(meshId);
 					}
 					ImGui::EndDragDropTarget();
@@ -162,7 +162,7 @@ void EntityInspectorLayer::onImGuiRender()
 				if (world->HasComponent<LightComponent>(selectedEntity))
 				{
 					LightType type = world->GetComponent<LightComponent>(selectedEntity).m_Type;
-					cBillboard.m_BillboardTexture = ResourceManager::GetIcon(type == LightType::DIRECTIONAL 
+					cBillboard.m_BillboardTexture = ResourceManager::GetIcon(type == LightType::Directional 
 						? Icon::DirectionalLight 
 						: Icon::PointLight);
 				}
@@ -175,7 +175,7 @@ void EntityInspectorLayer::onImGuiRender()
 				if (ImGui::BeginDragDropTarget())
 				{
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
-						UUID textureId = ((const AssetDeclaration*)payload->Data)->ID;
+						UUID textureId = ((const AssetDeclaration*)payload->Data)->id;
 						cBillboard.m_BillboardTexture = m_AssetManager->GetAssetById<Texture2D>(textureId);
 					}
 					ImGui::EndDragDropTarget();
@@ -213,10 +213,10 @@ void EntityInspectorLayer::DrawMaterialControls(const Ref<Mesh>& mesh, const uns
 
 	if (!material) return;
 
-	const Ref<Texture2D> albedo = material->getAlbedo();
+	const Ref<Texture2D> albedo = material->GetAlbedo();
 	const std::string& matName = material->GetName();
 
-	ImGui::PushID(material->m_ID);
+	ImGui::PushID(material->m_Id);
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
 	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
@@ -304,7 +304,7 @@ void EntityInspectorLayer::DisplayAddAtmosphericsComponentEntry(const std::strin
 			if (!m_WorldManager->GetLoadedWorld()->HasComponent<LightComponent>(entityId))
 			{
 				LightComponent directionalLight;
-				directionalLight.m_Type = LightType::DIRECTIONAL;
+				directionalLight.m_Type = LightType::Directional;
 				m_WorldManager->GetLoadedWorld()->AddComponent(entityId, directionalLight);
 			}
 			

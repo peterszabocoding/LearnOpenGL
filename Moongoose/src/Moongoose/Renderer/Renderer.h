@@ -4,16 +4,28 @@
 #include "VertexArray.h"
 #include <glm/glm.hpp>
 
+#include "PerspectiveCamera.h"
+
 namespace Moongoose {
+	class Framebuffer;
+	class World;
 
 	class Renderer {
 
 	public:
+		static void SetResolution(glm::uvec2 resolution);
+		static void RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world);
+
+		static Ref<Framebuffer> GetRenderBuffer() { return m_RenderBuffer; }
+
 		static void BeginScene();
 		static void EndScene();
-
 		static void RenderMesh(const Ref<VertexArray>& vertexArray);
-		//static void RenderMesh(Shader* shader, Material* material, const Ref<VertexArray>& vertexArray, const glm::mat4& modelMatrix);
+
+	private:
+
+		static Ref<Framebuffer> m_RenderBuffer;
+		static glm::uvec2 m_Resolution;
 	};
 
 }

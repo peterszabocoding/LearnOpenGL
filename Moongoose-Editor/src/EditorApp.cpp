@@ -17,7 +17,7 @@
 class EditorApp : public Moongoose::Application
 {
 public:
-	EditorApp(): Application()
+	EditorApp()
 	{
 		ResourceManager::LoadResources();
 
@@ -31,7 +31,8 @@ public:
 		PushLayer(new FramebufferViewerLayer());
 		PushLayer(new RenderLayer());
 	}
-	virtual ~EditorApp() {}
+
+	~EditorApp() override = default;
 };
 
 Moongoose::Application* Moongoose::CreateApplication()

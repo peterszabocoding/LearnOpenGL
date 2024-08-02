@@ -153,7 +153,7 @@ namespace Moongoose {
 	public:
 		static Ref<Texture2D> Create();
 
-		virtual AssetType getAssetType() const override { return AssetType::Texture; }
+		virtual AssetType GetAssetType() const override { return AssetType::Texture; }
 		static AssetType GetStaticAssetType() { return AssetType::Texture; }
 
 		virtual void Resize(const glm::uvec2& size) = 0;

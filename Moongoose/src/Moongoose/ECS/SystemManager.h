@@ -14,7 +14,8 @@ namespace Moongoose {
 	class System
 	{
 	public:
-		virtual Signature GetSystemSignature(Moongoose::World* world) = 0;
+		virtual ~System() = default;
+		virtual Signature GetSystemSignature(World* world) = 0;
 	public:
 		std::set<Entity> m_Entities;
 	};
@@ -48,37 +49,26 @@ namespace Moongoose {
 		void SetSignature(Signature signature)
 		{
 			const char* typeName = typeid(T).name();
-
 			MG_ASSERT(m_Systems.find(typeName) != m_Systems.end(), "System used before registered.");
-
 			m_Signatures.insert({ typeName, signature });
 		}
 
-		void EntityDestroyed(Entity entity)
+		void EntityDestroyed(const Entity entity) const
 		{
-			for (auto const& pair : m_Systems)
+			for (const auto& [type, system] : m_Systems)
 			{
-				auto const& system = pair.second;
 				system->m_Entities.erase(entity);
 			}
 		}
 
-		void EntitySignatureChanged(Entity entity, Signature entitySignature)
+		void EntitySignatureChanged(const Entity entity, const Signature entitySignature)
 		{
-			for (auto const& pair : m_Systems)
+			for (const auto& [type, system] : m_Systems)
 			{
-				auto const& type = pair.first;
-				auto const& system = pair.second;
-				auto const& systemSignature = m_Signatures[type];
-
-				if ((entitySignature & systemSignature) == systemSignature)
-				{
+				if ((entitySignature & m_Signatures[type]) == m_Signatures[type])
 					system->m_Entities.insert(entity);
-				}
 				else
-				{
 					system->m_Entities.erase(entity);
-				}
 			}
 		}
 

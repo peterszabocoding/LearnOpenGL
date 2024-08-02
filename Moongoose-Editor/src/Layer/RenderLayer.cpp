@@ -16,37 +16,24 @@ void RenderLayer::onAttach()
 {
 	m_WorldManager = GetApplication()->GetWorldManager();
 
-	CreateRenderBuffer();
-	CreatePreviewRenderBuffer();
 	CreateCamera();
 
 	AssetManager::Get().BuildAssetRegistry();
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
 	ShaderManager::AssignShaderToType(ShaderType::BILLBOARD, "shader\\billboard.vs", "shader\\billboard.fs");
 	ShaderManager::AssignShaderToType(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\atmos_scattering.frag");
+
+	Renderer::SetResolution(m_WindowSize);
 }
 
 void RenderLayer::onUpdate(const float deltaTime)
 {
 	if (!m_WorldManager->isWorldOpened()) return;
 
-	m_AtmosphericsSystem->Update(m_EditorCamera, m_RenderBuffer->GetResolution());
+	m_EditorCamera->SetCameraActive(IsMouseInWindow());
+	m_EditorCamera->OnUpdate(deltaTime);
 
-	m_EditorCamera->setCameraActive(IsMouseInWindow());
-	m_EditorCamera->onUpdate(deltaTime);
-	
-	m_RenderBuffer->Bind();
-
-	RenderCommand::SetClearColor(glm::vec4 { 0.0f, 0.0f, 0.0f, 1.0f });
-	RenderCommand::Clear();
-	m_RenderBuffer->ClearAttachment(1, -1);
-
-
-	const Ref<World> world = m_WorldManager->GetLoadedWorld();
-	m_AtmosphericsSystem->Run(m_EditorCamera, world);
-	m_LightSystem->Run(m_EditorCamera, world);
-	m_RenderSystem->Run(m_EditorCamera, world);
-	m_BillboardSystem->Run(m_EditorCamera, world);
+	Renderer::RenderWorld(m_EditorCamera, m_WorldManager->GetLoadedWorld());
 
 	auto [mx, my] = ImGui::GetMousePos();
 	mx -= m_ViewportBounds[0].x;
@@ -54,18 +41,18 @@ void RenderLayer::onUpdate(const float deltaTime)
 	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 	my = viewportSize.y - my;
 
-	m_WindowMousePos = { (int)mx, (int)my };
+	m_WindowMousePos = { mx, my };
 	if (IsMouseInWindow())
 	{
-		m_HoveredEntityId = m_RenderBuffer->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
+		Renderer::GetRenderBuffer()->Bind();
+		m_HoveredEntityId = Renderer::GetRenderBuffer()->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
+		Renderer::GetRenderBuffer()->Unbind();
 	}
-
-	m_RenderBuffer->Unbind();
 }
 
 void RenderLayer::onEvent(Event& event)
 {
-	m_EditorCamera->onEvent(event);
+	m_EditorCamera->OnEvent(event);
 
 	EventDispatcher dispatcher(event);
 	dispatcher.Dispatch<MousePressedEvent>(BIND_EVENT_FUNC(RenderLayer::onMouseButtonPressed));
@@ -79,7 +66,7 @@ void RenderLayer::onImGuiRender()
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
 
-	if (!WorldManager::IsWorldOpened())
+	if (!m_WorldManager->IsWorldOpened())
 	{
 		ImGui::End();
 		return;
@@ -89,8 +76,8 @@ void RenderLayer::onImGuiRender()
 	if (windowSize.x != m_WindowSize.x || windowSize.y != m_WindowSize.y)
 	{
 		m_WindowSize = { windowSize.x, windowSize.y };
-		m_EditorCamera->setRenderResolution(m_WindowSize.x, m_WindowSize.y);
-		CreateRenderBuffer();
+		m_EditorCamera->SetRenderResolution(m_WindowSize.x, m_WindowSize.y);
+		Renderer::SetResolution(m_WindowSize);
 	}
 
 	const ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
@@ -100,7 +87,7 @@ void RenderLayer::onImGuiRender()
 	m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 	m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 	
-	ImGui::Image((void*) m_RenderBuffer->GetColorAttachments()[0],
+	ImGui::Image((void*) Renderer::GetRenderBuffer()->GetColorAttachments()[0],
 		windowSize,
 		ImVec2(0, 1),
 		ImVec2(1, 0));
@@ -109,35 +96,6 @@ void RenderLayer::onImGuiRender()
 	RenderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
 
 	ImGui::End();
-}
-
-void RenderLayer::CreateRenderBuffer()
-{
-	FramebufferSpecs specs;
-	specs.Width = m_WindowSize.x;
-	specs.Height = m_WindowSize.y;
-	specs.Attachments = {
-		FramebufferTextureFormat::RGBA8,
-		FramebufferTextureFormat::RED_INTEGER,
-		FramebufferTextureFormat::DEPTH24STENCIL8
-	};
-	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
-}
-
-void RenderLayer::CreatePreviewRenderBuffer()
-{
-	FramebufferSpecs specs;
-	specs.Width = m_WindowSize.x;
-	specs.Height = m_WindowSize.y;
-	specs.Attachments = {
-		FramebufferTextureFormat::RGBA8,
-		FramebufferTextureFormat::RED_INTEGER,
-		FramebufferTextureFormat::DEPTH24STENCIL8
-	};
-	specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_PreviewRenderBuffer = FramebufferManager::CreateFramebuffer("PreviewBuffer", specs);
 }
 
 void RenderLayer::CreateCamera()
@@ -149,7 +107,7 @@ void RenderLayer::CreateCamera()
 	m_EditorCamera = CreateRef<PerspectiveCamera>(params);
 }
 
-void RenderLayer::RenderToolbarMenu()
+void RenderLayer::RenderToolbarMenu() const
 {
 	if (ImGui::BeginMainMenuBar())
 	{
@@ -162,15 +120,7 @@ void RenderLayer::RenderToolbarMenu()
 			if (ImGui::MenuItem("Open World"))
 			{
 				const std::string worldFilePath = FileDialogs::OpenFile(".mgworld");
-
-				if (!worldFilePath.empty())
-				{
-					m_WorldManager->LoadWorld(worldFilePath);
-					m_LightSystem = m_WorldManager->GetLoadedWorld()->GetSystem<LightSystem>();
-					m_RenderSystem = m_WorldManager->GetLoadedWorld()->GetSystem<RenderSystem>();
-					m_BillboardSystem = m_WorldManager->GetLoadedWorld()->GetSystem<BillboardSystem>();
-					m_AtmosphericsSystem = m_WorldManager->GetLoadedWorld()->GetSystem<AtmosphericsSystem>();
-				}
+				if (!worldFilePath.empty()) m_WorldManager->LoadWorld(worldFilePath);
 			}
 
 			if (ImGui::MenuItem("Save World", "", false, m_WorldManager->IsWorldOpened()))
@@ -203,11 +153,11 @@ void RenderLayer::RenderGizmo()
 			m_ViewportBounds[1].x - m_ViewportBounds[0].x,
 			m_ViewportBounds[1].y - m_ViewportBounds[0].y);
 
-		auto transform = entityTransform.getTransform();
+		auto transform = entityTransform.GetTransform();
 
 		Manipulate(
-			value_ptr(m_EditorCamera->getViewMatrix()),
-			value_ptr(m_EditorCamera->getProjection()),
+			value_ptr(m_EditorCamera->GetViewMatrix()),
+			value_ptr(m_EditorCamera->GetProjection()),
 			ImGuizmo::OPERATION(m_GizmoMode),
 			ImGuizmo::LOCAL,
 			value_ptr(transform),
@@ -218,7 +168,7 @@ void RenderLayer::RenderGizmo()
 		{
 			glm::vec3 translation, rotation, scale;
 			TransformComponent::DecomposeTransform(transform, translation, rotation, scale);
-			glm::vec3 deltaRotation = degrees(rotation) - entityTransform.m_Rotation;
+			const glm::vec3 deltaRotation = degrees(rotation) - entityTransform.m_Rotation;
 
 			entityTransform.m_Position = translation;
 			entityTransform.m_Rotation += deltaRotation;

@@ -10,7 +10,7 @@
 
 namespace Moongoose {
 
-	PerspectiveCamera::PerspectiveCamera(const PerspectiveCamera::Params& params)
+	PerspectiveCamera::PerspectiveCamera(const Params& params)
 	{
 		m_Params = params;
 
@@ -27,12 +27,12 @@ namespace Moongoose {
 			m_Params.zNear,
 			m_Params.zFar);
 
-		onUpdate(1.0f);
+		OnUpdate(1.0f);
 	}
 
-	void PerspectiveCamera::onUpdate(float deltaTime)
+	void PerspectiveCamera::OnUpdate(const float deltaTime)
 	{
-		glm::vec2 mouseInput = {
+		const glm::vec2 mouseInput = {
 			Input::GetMousePosX(),
 			Input::GetMousePosY()
 		};
@@ -42,8 +42,8 @@ namespace Moongoose {
 
 		if (isCameraActive && Input::IsMousePressed(MG_MOUSE_BUTTON_RIGHT))
 		{
-			moveCamera(deltaTime);
-			rotateCamera(deltaTime);
+			MoveCamera(deltaTime);
+			RotateCamera(deltaTime);
 		}
 		else 
 		{
@@ -61,14 +61,14 @@ namespace Moongoose {
 		m_Up = glm::normalize(glm::cross(m_Right, m_Front));
 	}
 
-	void PerspectiveCamera::onEvent(Event& event)
+	void PerspectiveCamera::OnEvent(Event& event)
 	{
 		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(PerspectiveCamera::onResize));
-		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(PerspectiveCamera::onMouseScrolled));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FUNC(PerspectiveCamera::OnResize));
+		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FUNC(PerspectiveCamera::OnMouseScrolled));
 	}
 
-	void PerspectiveCamera::setRenderResolution(float width, float height)
+	void PerspectiveCamera::SetRenderResolution(const unsigned int width, const unsigned int height)
 	{
 		m_Params.renderWidth = width;
 		m_Params.renderHeight = height;
@@ -79,7 +79,7 @@ namespace Moongoose {
 			m_Params.zFar);
 	}
 
-	bool PerspectiveCamera::onResize(WindowResizeEvent& event)
+	bool PerspectiveCamera::OnResize(const WindowResizeEvent& event)
 	{
 		if (event.getWidth() == 0 || event.getHeight() == 0) return false;
 
@@ -94,7 +94,7 @@ namespace Moongoose {
 		return false;
 	}
 
-	bool PerspectiveCamera::onMouseScrolled(MouseScrolledEvent& event)
+	bool PerspectiveCamera::OnMouseScrolled(const MouseScrolledEvent& event)
 	{
 		maxSpeed += event.GetYOffset() * 1.0f;
 		maxSpeed = std::clamp(maxSpeed, 0.01f, 100.0f);
@@ -102,7 +102,7 @@ namespace Moongoose {
 		return false;
 	}
 
-	void PerspectiveCamera::moveCamera(float deltaTime)
+	void PerspectiveCamera::MoveCamera(const float deltaTime)
 	{
 		m_IsCameraMoving = 
 			Input::IsKeyPressed(MG_KEY_W) || 
@@ -138,7 +138,7 @@ namespace Moongoose {
 		m_Position += m_Velocity;
 	}
 
-	void PerspectiveCamera::rotateCamera(float deltaTime) {
+	void PerspectiveCamera::RotateCamera(float deltaTime) {
 		mouseDelta *= turnSpeed;
 
 		m_Rotation.y -= mouseDelta.x;
@@ -149,42 +149,42 @@ namespace Moongoose {
 		mouseDelta = { 0.0f, 0.0f };
 	}
 
-	float PerspectiveCamera::getFOV() const
+	float PerspectiveCamera::GetFov() const
 	{
 		return m_Params.fov;
 	}
 
-	float PerspectiveCamera::getFOVRad() const
+	float PerspectiveCamera::GetFovRad() const
 	{
 		return glm::radians(m_Params.fov);
 	}
 
-	float PerspectiveCamera::getNear() const
+	float PerspectiveCamera::GetNear() const
 	{
 		return m_Params.zNear;
 	}
 
-	float PerspectiveCamera::getFar() const
+	float PerspectiveCamera::GetFar() const
 	{
 		return m_Params.zFar;
 	}
 
-	glm::vec2 PerspectiveCamera::getResolution() const
+	glm::vec2 PerspectiveCamera::GetResolution() const
 	{
 		return { m_Params.renderWidth, m_Params.renderHeight };
 	}
 
-	glm::vec3 PerspectiveCamera::getForward() const
+	glm::vec3 PerspectiveCamera::GetForward() const
 	{
 		return m_Front;
 	}
 
-	glm::vec3 PerspectiveCamera::getCameraPosition() const
+	glm::vec3 PerspectiveCamera::GetCameraPosition() const
 	{
 		return m_Position;
 	}
 
-	glm::mat4 PerspectiveCamera::getViewMatrix() const
+	glm::mat4 PerspectiveCamera::GetViewMatrix() const
 	{
 		return glm::lookAt(m_Position, m_Position + m_Front, m_Up);
 	}

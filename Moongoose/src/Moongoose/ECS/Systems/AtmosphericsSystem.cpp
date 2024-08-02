@@ -47,10 +47,6 @@ namespace Moongoose {
 		Init();
 	}
 
-	AtmosphericsSystem::~AtmosphericsSystem()
-	{
-	}
-
 	Signature AtmosphericsSystem::GetSystemSignature(World* world)
 	{
 		Signature signature;
@@ -110,9 +106,9 @@ namespace Moongoose {
 		m_SkyShader->Bind();
 		m_SkyShader->UploadUniformFloat("u_Time", 10.0f);
 		m_SkyShader->UploadUniformFloat2("resolution", resolution);
-		m_SkyShader->UploadUniformFloat3("CameraForward", camera->getForward());
-		m_SkyShader->UploadUniformFloat("CameraFOV", camera->getFOVRad());
-		m_SkyShader->UploadUniformFloat("CameraFar", camera->getFar());
+		m_SkyShader->UploadUniformFloat3("CameraForward", camera->GetForward());
+		m_SkyShader->UploadUniformFloat("CameraFOV", camera->GetFovRad());
+		m_SkyShader->UploadUniformFloat("CameraFar", camera->GetFar());
 		m_SkyShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		m_SkyShader->BindTexture(1, m_RaymarchingBuffer->GetColorAttachments()[0]);
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
@@ -126,13 +122,11 @@ namespace Moongoose {
 
 		for (auto const& entity : m_Entities)
 		{
-			TransformComponent cTransform = world->GetComponent<TransformComponent>(entity);
-			AtmosphericsComponent cAtmos = world->GetComponent<AtmosphericsComponent>(entity);
-			Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
+			const Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
 
 			bgShader->Bind();
 			bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
-			bgShader->SetCamera(camera->getCameraPosition(), camera->getViewMatrix(), camera->getProjection());
+			bgShader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 			bgShader->SetDepthTest(false);
 			Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 			bgShader->Unbind();

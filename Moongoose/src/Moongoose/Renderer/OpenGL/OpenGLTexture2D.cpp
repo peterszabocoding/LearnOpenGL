@@ -5,10 +5,7 @@
 
 namespace Moongoose {
 
-	OpenGLTexture2D::OpenGLTexture2D()
-	{
-		
-	}
+	OpenGLTexture2D::OpenGLTexture2D(): m_TextureID(0) {}
 
 	OpenGLTexture2D::~OpenGLTexture2D()
 	{
@@ -16,21 +13,17 @@ namespace Moongoose {
 		m_TextureID = 0;
 	}
 
-	void OpenGLTexture2D::bind(uint32_t textureUnit) const
+	void OpenGLTexture2D::bind(const uint32_t textureUnit) const
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		glBindTexture(GL_TEXTURE_2D, m_TextureID);
 	}
 
-	void OpenGLTexture2D::Resize(const glm::uvec2& size)
-	{
-	}
+	void OpenGLTexture2D::Resize(const glm::uvec2& size){}
 
-	void OpenGLTexture2D::Resize(const uint32_t width, const uint32_t height)
-	{
-	}
+	void OpenGLTexture2D::Resize(const uint32_t width, const uint32_t height) {}
 
-	void OpenGLTexture2D::LoadData(TextureSpecs specs, void* data)
+	void OpenGLTexture2D::LoadData(const TextureSpecs specs, void* data)
 	{
 		m_TextureSpecs = specs;
 		m_TextureFormat = specs.TextureFormat;

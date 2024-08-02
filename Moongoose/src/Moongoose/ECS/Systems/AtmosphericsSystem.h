@@ -11,9 +11,9 @@ namespace Moongoose {
 	{
 	public:
 		AtmosphericsSystem();
-		~AtmosphericsSystem();
+		~AtmosphericsSystem() override = default;
 
-		virtual Signature GetSystemSignature(World* world);
+		virtual Signature GetSystemSignature(World* world) override;
 
 		void Init();
 		void Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution);
@@ -22,7 +22,6 @@ namespace Moongoose {
 
 	private:
 		bool isLUTGenerated = false;
-		Ref<Framebuffer> m_LUTBuffer;
 		Ref<Framebuffer> m_TransmittanceBuffer;
 		Ref<Framebuffer> m_MultiScatteringBuffer;
 		Ref<Framebuffer> m_RaymarchingBuffer;

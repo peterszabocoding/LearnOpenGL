@@ -23,7 +23,7 @@ namespace Moongoose
 		void OnEvent(Event& event);
 		void PushLayer(Layer* layer);
 
-		inline Window& GetWindow() { return *m_Window; }
+		inline Window& GetWindow() const { return *m_Window; }
 
 		FramebufferManager* GetFramebufferManager() const
 		{

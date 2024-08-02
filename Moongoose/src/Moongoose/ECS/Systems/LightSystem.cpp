@@ -13,35 +13,35 @@ namespace Moongoose
 		return signature;
 	}
 
-	void LightSystem::Run(const Ref<PerspectiveCamera>& camera, Ref<World> world)
+	void LightSystem::Run(const Ref<PerspectiveCamera>& camera, const Ref<World>& world) const
 	{
-		Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
+		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
 		shader->Bind();
 		shader->ResetLights();
 
 		for (auto const& entity : m_Entities)
 		{
-			LightComponent cLight = world->GetComponent<LightComponent>(entity);
-			TransformComponent cTransform = world->GetComponent<TransformComponent>(entity);
+			const auto cLight = world->GetComponent<LightComponent>(entity);
+			auto cTransform = world->GetComponent<TransformComponent>(entity);
 
 			switch (cLight.m_Type)
 			{
-				case LightType::DIRECTIONAL:
+				case LightType::Directional:
 					shader->SetDirectionalLight(
 						cTransform.GetForwardDirection(),
 						cLight.m_Color,
 						cLight.m_Intensity);
 					break;
-				case LightType::POINT:
+				case LightType::Point:
 					shader->SetPointLight(
 						cTransform.m_Position,
 						cLight.m_Color,
 						cLight.m_Intensity,
 						cLight.m_AttenuationRadius);
 					break;
-				case LightType::SPOT:
+				case LightType::Spot:
 					shader->SetSpotLight(
-						cTransform.getTransform(),
+						cTransform.GetTransform(),
 						cTransform.m_Position,
 						cLight.m_Color,
 						cLight.m_Intensity,

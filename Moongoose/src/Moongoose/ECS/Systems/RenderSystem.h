@@ -14,9 +14,9 @@ namespace Moongoose {
 			m_DefaultMaterial = CreateRef<Material>("DefaultMaterial");
 		}
 
-		virtual Signature GetSystemSignature(World* world);
+		virtual Signature GetSystemSignature(World* world) override;
 
-		void Run(const Ref<PerspectiveCamera>& camera, Ref<World> world);
+		void Run(const Ref<PerspectiveCamera>& camera, const Ref<World>& world) const;
 
 	private:
 		Ref<Material> m_DefaultMaterial;
