@@ -23,7 +23,6 @@ namespace Moongoose {
 	class SystemManager
 	{
 	public:
-
 		template<typename T>
 		Ref<T> RegisterSystem()
 		{

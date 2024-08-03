@@ -15,13 +15,12 @@ namespace Moongoose {
 
 		virtual Signature GetSystemSignature(World* world) override;
 
-		void Init();
-		void Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution);
-		void Run(const Ref<PerspectiveCamera>& camera, Ref<World> world);
+		void Init() const;
+		void Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution) const;
+		void Run(const Ref<PerspectiveCamera>& camera) const;
 
 
 	private:
-		bool isLUTGenerated = false;
 		Ref<Framebuffer> m_TransmittanceBuffer;
 		Ref<Framebuffer> m_MultiScatteringBuffer;
 		Ref<Framebuffer> m_RaymarchingBuffer;

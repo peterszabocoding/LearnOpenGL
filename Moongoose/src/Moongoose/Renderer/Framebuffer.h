@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "Moongoose/Core.h"
 #include "Moongoose/Log.h"
 
 namespace Moongoose {

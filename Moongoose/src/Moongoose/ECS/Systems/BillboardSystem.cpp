@@ -5,8 +5,6 @@
 
 #include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/ECS/Components.h"
-#include "Moongoose/Renderer/MeshPrimitives.h"
-#include "Moongoose/Renderer/ShaderManager.h"
 
 namespace Moongoose
 {
@@ -28,25 +26,15 @@ namespace Moongoose
 	{
 		for (auto const& entity : m_Entities)
 		{
-			auto transformComponent = world->GetComponent<TransformComponent>(entity);
+			auto cTransform = world->GetComponent<TransformComponent>(entity);
 			const auto billboardComponent = world->GetComponent<BillboardComponent>(entity);
 
 			if (!billboardComponent.m_BillboardTexture) continue;
 
-			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
-			shader->Bind();
-			shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-			shader->SetModelTransform(TransformComponent::GetModelMatrix(transformComponent));
-			shader->SetEntityId(entity);
-			shader->SetBlendMode(true);
-
-			shader->UploadUniformFloat3("TintColor", billboardComponent.m_ColorTint);
-
-			billboardComponent.m_BillboardTexture->bind(0);
-			Renderer::RenderMesh(QuadMeshWorld(0.75f).GetSubmeshes()[0]->vertexArray);
-
-			shader->SetBlendMode(false);
-			shader->Unbind();
+			Renderer::BillboardCmd cmd;
+			cmd = {entity, cTransform.GetModelMatrix(), billboardComponent.m_BillboardTexture};
+			cmd.tintColor = billboardComponent.m_TintColor;
+			Renderer::PushBillboardRenderCommand(cmd);
 		}
 	}
 }

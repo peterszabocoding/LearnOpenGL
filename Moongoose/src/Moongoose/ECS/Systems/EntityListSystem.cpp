@@ -6,7 +6,7 @@
 
 namespace Moongoose
 {
-	Signature Moongoose::EntityListSystem::GetSystemSignature(World* world)
+	Signature EntityListSystem::GetSystemSignature(World* world)
 	{
 		Signature signature;
 		signature.set(world->GetComponentType<IDComponent>());

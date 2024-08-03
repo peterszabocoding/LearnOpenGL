@@ -1,5 +1,7 @@
 #include "mgpch.h"
 #include "LightSystem.h"
+
+#include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 
 namespace Moongoose
@@ -23,30 +25,35 @@ namespace Moongoose
 		{
 			const auto cLight = world->GetComponent<LightComponent>(entity);
 			auto cTransform = world->GetComponent<TransformComponent>(entity);
-
 			switch (cLight.m_Type)
 			{
 				case LightType::Directional:
-					shader->SetDirectionalLight(
-						cTransform.GetForwardDirection(),
+					Renderer::PushDirectionalLight({ 
 						cLight.m_Color,
-						cLight.m_Intensity);
+						cLight.m_Intensity,
+						false,
+						cTransform.GetForwardDirection()
+					});
 					break;
 				case LightType::Point:
-					shader->SetPointLight(
-						cTransform.m_Position,
+					Renderer::PushPointLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						cLight.m_AttenuationRadius);
+						false,
+						cTransform.m_Position,
+						cLight.m_AttenuationRadius
+					});
 					break;
-				case LightType::Spot:
-					shader->SetSpotLight(
-						cTransform.GetTransform(),
-						cTransform.m_Position,
+			case LightType::Spot:
+					Renderer::PushSpotLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						cLight.m_AttenuationRadius, 
-						cLight.m_AttenuationAngle);
+						false,
+						cTransform.m_Position,
+						cLight.m_AttenuationRadius,
+						cTransform.GetForwardDirection(),
+						cLight.m_AttenuationAngle
+					});
 					break;
 			}
 		}

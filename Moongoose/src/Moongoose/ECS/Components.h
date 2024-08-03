@@ -93,11 +93,11 @@ namespace Moongoose {
 			return GetTransform() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 		}
 
-		static glm::mat4 GetModelMatrix(const TransformComponent& component)
+		glm::mat4 GetModelMatrix() const
 		{
-			return translate(glm::mat4(1.0f), component.m_Position)
-				* toMat4(glm::quat(radians(component.m_Rotation)))
-				* scale(glm::mat4(1.0f), component.m_Scale);
+			return translate(glm::mat4(1.0f), m_Position)
+				* toMat4(glm::quat(radians(m_Rotation)))
+				* scale(glm::mat4(1.0f), m_Scale);
 		}
 
 		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
@@ -195,7 +195,7 @@ namespace Moongoose {
 		BillboardComponent() = default;
 		BillboardComponent(const Ref<Texture2D>& texture): m_BillboardTexture(texture) {}
 		Ref<Texture2D> m_BillboardTexture;
-		glm::vec3 m_ColorTint = glm::vec3(1.0f);
+		glm::vec3 m_TintColor = glm::vec3(1.0f);
 	};
 
 	struct AtmosphericsComponent : Component

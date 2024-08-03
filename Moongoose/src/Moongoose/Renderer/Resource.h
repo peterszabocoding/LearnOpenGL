@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include "Moongoose/Core.h"
 #include "Moongoose/Asset/UUID.h"
 
 namespace Moongoose {

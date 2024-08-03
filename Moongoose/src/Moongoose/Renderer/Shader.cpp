@@ -2,6 +2,9 @@
 #include "Shader.h"
 #include <glm/glm.hpp>
 
+#include "glad/glad.h"
+#include "Moongoose/Application.h"
+
 namespace Moongoose {
 
 	constexpr size_t MAX_POINT_LIGHTS = 4;
@@ -163,7 +166,7 @@ namespace Moongoose {
 		UploadUniformFloat("pointLights[0].attenuationRadius", attenuationRadius);
 	}
 
-	void Shader::SetSpotLight(const glm::mat4& transform, const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius, const float attenuationAngle)
+	void Shader::SetSpotLight(const glm::vec3 direction, const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius, float attenuationAngle)
 	{
 		glUniform1i(uniformSpotLightCount, 1);
 
@@ -171,7 +174,7 @@ namespace Moongoose {
 		UploadUniformFloat("spotLights[0].base.base.intensity", intensity);
 		UploadUniformFloat3("spotLights[0].base.position", position);
 		UploadUniformFloat("spotLights[0].base.attenuationRadius", attenuationRadius);
-		UploadUniformFloat3("spotLights[0].direction", transform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+		UploadUniformFloat3("spotLights[0].direction", direction);
 		UploadUniformFloat("spotLights[0].attenuationAngle", attenuationAngle);
 	}
 

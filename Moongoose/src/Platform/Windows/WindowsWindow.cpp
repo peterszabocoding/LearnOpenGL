@@ -69,6 +69,7 @@ namespace Moongoose {
 			s_GLFWInitialized = true;
 		}
 
+		glfwWindowHint(GLFW_SAMPLES, 4);
 		m_Window = glfwCreateWindow((int)m_Data.Width, (int)m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_Window);
 
@@ -153,6 +154,7 @@ namespace Moongoose {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			data.EventCallback(MouseMovedEvent((float)xPos, (float)yPos));
 		});
+
 
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_MULTISAMPLE);

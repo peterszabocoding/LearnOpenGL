@@ -16,7 +16,7 @@ namespace Moongoose {
 
 	static Mesh QuadMesh(float scale = 1.0f) {
 		// Position - UVs
-		GLfloat vertices[] = {
+		float vertices[] = {
 			-scale, -scale, 0.0f,	0.0f, 0.0f,
 			 scale, -scale, 0.0f,	1.0f, 0.0f,
 			-scale,  scale, 0.0f,	0.0f, 1.0f,
@@ -38,7 +38,7 @@ namespace Moongoose {
 
 	static Mesh QuadMeshWorld(float scale = 1.0f) {
 		// Position - UVs
-		GLfloat vertices[] = {
+		float vertices[] = {
 			-scale, -scale, 0.0f,	0.0f, 1.0f,
 			 scale, -scale, 0.0f,	1.0f, 1.0f,
 			-scale,  scale, 0.0f,	0.0f, 0.0f,
@@ -61,7 +61,7 @@ namespace Moongoose {
 	static Ref<Mesh> QuadMeshRef(float scale = 1.0f)
 	{
 		// Position - UVs
-		GLfloat vertices[] = {
+		float vertices[] = {
 			-scale, -scale, 0.0f,	0.0f, 1.0f,
 			 scale, -scale, 0.0f,	1.0f, 1.0f,
 			-scale,  scale, 0.0f,	0.0f, 0.0f,
@@ -84,7 +84,7 @@ namespace Moongoose {
 
 	static Mesh Triangle() {
 		// Position - UVs
-		GLfloat vertices[] = {
+		float vertices[] = {
 			0.5f,  0.0f, 0.0f,		0.0f, 1.0f,
 			0.75f, 0.75f, 0.0f,		0.0f, 0.0f,
 			0.25f,  0.75f, 0.0f,	1.0f, 1.0f,

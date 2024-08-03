@@ -54,10 +54,8 @@ namespace Moongoose {
 		return signature;
 	}
 
-	void AtmosphericsSystem::Init()
+	void AtmosphericsSystem::Init() const
 	{
-		//if (isLUTGenerated) return;
-
 		m_TransmittanceBuffer->Bind();
 		RenderCommand::SetClearColor(m_TransmittanceBuffer->GetSpecs().ClearColor);
 		RenderCommand::Clear();
@@ -66,9 +64,7 @@ namespace Moongoose {
 		m_TransmittanceShader->UploadUniformFloat2("resolution", m_TransmittanceBuffer->GetResolution());
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_TransmittanceShader->Unbind();
-
 		m_TransmittanceBuffer->Unbind();
-
 
 		m_MultiScatteringBuffer->Bind();
 		RenderCommand::SetClearColor(m_MultiScatteringBuffer->GetSpecs().ClearColor);
@@ -79,13 +75,10 @@ namespace Moongoose {
 		m_MultiScatteringShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_MultiScatteringShader->Unbind();
-
 		m_MultiScatteringBuffer->Unbind();
-
-		isLUTGenerated = true;
 	}
 
-	void AtmosphericsSystem::Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution)
+	void AtmosphericsSystem::Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution) const
 	{
 		m_RaymarchingBuffer->Bind();
 		RenderCommand::SetClearColor(m_RaymarchingBuffer->GetSpecs().ClearColor);
@@ -116,21 +109,18 @@ namespace Moongoose {
 		m_SkyBuffer->Unbind();
 	}
 
-	void AtmosphericsSystem::Run(const Ref<PerspectiveCamera>& camera, Ref<World> world)
+	void AtmosphericsSystem::Run(const Ref<PerspectiveCamera>& camera) const
 	{
-		if (m_Entities.size() <= 0) return;
+		if (m_Entities.empty()) return;
 
-		for (auto const& entity : m_Entities)
-		{
-			const Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
+		const Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
 
-			bgShader->Bind();
-			bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
-			bgShader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-			bgShader->SetDepthTest(false);
-			Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
-			bgShader->Unbind();
-		}	
+		bgShader->Bind();
+		bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
+		bgShader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
+		bgShader->SetDepthTest(false);
+		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		bgShader->Unbind();
 	}
 
 }

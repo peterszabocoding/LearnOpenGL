@@ -3,11 +3,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Camera.h"
 #include "Moongoose/Events/ApplicationEvent.h"
 #include "Moongoose/Events/KeyboardEvents.h"
 #include "Moongoose/Events/MouseEvents.h"
-#include "Moongoose/Core.h"
-#include "Camera.h"
 
 namespace Moongoose {
 

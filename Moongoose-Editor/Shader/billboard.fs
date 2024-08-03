@@ -17,8 +17,8 @@ void main()
     vec4 albedo = texture(AlbedoTexture, TexCoord) * vec4(TintColor, 1.0);
     float transparency = clamp((Distance - 1.0) / (3.0 - 1.0), 0.0, 1.0);
 
-    if (albedo.a < 0.1 || transparency <= 0.01) discard;
+    if (albedo.a < 0.01 || transparency <= 0.01) discard;
 
-    FragColor = vec4(albedo.rgb, transparency);
+    FragColor = vec4(albedo.rgb, albedo.a * transparency);
     oEntityID = EntityID;
 }

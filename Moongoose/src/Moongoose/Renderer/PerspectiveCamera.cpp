@@ -1,7 +1,6 @@
 #include "mgpch.h"
 
 #include "Moongoose/Log.h"
-#include <GLFW/glfw3.h>
 #include "PerspectiveCamera.h"
 #include "Moongoose/Input/Input.h"
 #include "Moongoose/Events/MouseEvents.h"

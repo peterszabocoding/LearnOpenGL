@@ -1,4 +1,6 @@
 #include "PerformanceLayer.h"
+
+#include <backends/imgui_impl_opengl3_loader.h>
 #include <imgui/imgui.h>
 
 void PerformanceLayer::onImGuiRender()

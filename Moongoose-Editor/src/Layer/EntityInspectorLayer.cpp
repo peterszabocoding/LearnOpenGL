@@ -168,7 +168,7 @@ void EntityInspectorLayer::onImGuiRender()
 						: Icon::PointLight);
 				}
 
-				GuiWidgets::DrawRGBColorPicker("Color Tint", cBillboard.m_ColorTint, 1.0f, windowSize.x);
+				GuiWidgets::DrawRGBColorPicker("Color Tint", cBillboard.m_TintColor, 1.0f, windowSize.x);
 
 				RenderImageTextButton(
 					ImVec2(50.0f, 50.0f),

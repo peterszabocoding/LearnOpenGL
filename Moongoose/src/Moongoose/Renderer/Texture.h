@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Moongoose/Asset/Asset.h"
-#include "Moongoose/Asset/UUID.h"
 #include "Moongoose/Renderer/Buffer.h"
 #include <glm/glm.hpp>
 

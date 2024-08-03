@@ -1,16 +1,11 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <stdio.h>
 #include <string>
-#include <iostream>
 #include <fstream>
-#include <tuple>
 #include <unordered_map>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 
 #include "Moongoose/Log.h"
 
@@ -119,7 +114,7 @@ namespace Moongoose {
 		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity);
 		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
-		void SetSpotLight(const glm::mat4& transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
+		void SetSpotLight(glm::vec3 direction, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);

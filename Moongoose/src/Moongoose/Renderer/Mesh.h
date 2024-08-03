@@ -1,12 +1,10 @@
 #pragma once
-#include <glad/glad.h>
 #include <string>
 #include <vector>
 
 #include "Moongoose/Core.h"
 #include "Moongoose/Asset/Asset.h"
 #include "Moongoose/Renderer/Buffer.h"
-#include "Moongoose/Renderer/VertexArray.h"
 #include "Moongoose/Renderer/Bounds.h"
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/SubMesh.h"
