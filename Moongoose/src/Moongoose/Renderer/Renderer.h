@@ -13,7 +13,7 @@ namespace Moongoose {
 	class Renderer {
 
 	public:
-		static void SetResolution(glm::uvec2 resolution);
+		static void SetResolution(glm::uvec2 newResolution);
 		static void RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world);
 
 		static Ref<Framebuffer> GetRenderBuffer() { return m_RenderBuffer; }

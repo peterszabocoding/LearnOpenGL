@@ -21,6 +21,7 @@ private:
 	void RenderToolbarMenu() const;
 	void RenderGizmo();
 	void RenderDebugInfo(float posX, float posY) const;
+	void CalculateWindowMousePosition();
 
 	bool IsMouseInWindow() const;
 	virtual bool onKeyPressed(Moongoose::KeyPressedEvent& event) override;

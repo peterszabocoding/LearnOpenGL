@@ -188,6 +188,8 @@ void GuiWidgets::DrawColorDragControl(const std::string& label, glm::vec3& value
 }
 
 void GuiWidgets::DrawSingleSelectDropdown(const char* title, std::vector<std::string> options, int currentSelected, std::function<void(int)> onItemSelected) {
+	if (options.size() == 0) return;
+
 	std::string currentSelectedString = options.at(currentSelected);
 
 	ImGui::PushID(title);

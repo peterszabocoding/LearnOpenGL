@@ -22,8 +22,16 @@ void RenderLayer::onAttach()
 	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
 	ShaderManager::AssignShaderToType(ShaderType::BILLBOARD, "shader\\billboard.vs", "shader\\billboard.fs");
 	ShaderManager::AssignShaderToType(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\atmos_scattering.frag");
+}
 
-	Renderer::SetResolution(m_WindowSize);
+void RenderLayer::CalculateWindowMousePosition()
+{
+	auto [mx, my] = ImGui::GetMousePos();
+	mx -= m_ViewportBounds[0].x;
+	my -= m_ViewportBounds[0].y;
+	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+	my = viewportSize.y - my;
+	m_WindowMousePos = { mx, my };
 }
 
 void RenderLayer::onUpdate(const float deltaTime)
@@ -35,13 +43,8 @@ void RenderLayer::onUpdate(const float deltaTime)
 
 	Renderer::RenderWorld(m_EditorCamera, m_WorldManager->GetLoadedWorld());
 
-	auto [mx, my] = ImGui::GetMousePos();
-	mx -= m_ViewportBounds[0].x;
-	my -= m_ViewportBounds[0].y;
-	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
-	my = viewportSize.y - my;
+	CalculateWindowMousePosition();
 
-	m_WindowMousePos = { mx, my };
 	if (IsMouseInWindow())
 	{
 		Renderer::GetRenderBuffer()->Bind();
@@ -77,7 +80,6 @@ void RenderLayer::onImGuiRender()
 	{
 		m_WindowSize = { windowSize.x, windowSize.y };
 		m_EditorCamera->SetRenderResolution(m_WindowSize.x, m_WindowSize.y);
-		Renderer::SetResolution(m_WindowSize);
 	}
 
 	const ImVec2 viewportMinRegion = ImGui::GetWindowContentRegionMin();
@@ -86,14 +88,17 @@ void RenderLayer::onImGuiRender()
 
 	m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
 	m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-	
-	ImGui::Image((void*) Renderer::GetRenderBuffer()->GetColorAttachments()[0],
-		windowSize,
-		ImVec2(0, 1),
-		ImVec2(1, 0));
 
-	RenderGizmo();
-	RenderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
+	if (Renderer::GetRenderBuffer())
+	{
+		ImGui::Image((void*)Renderer::GetRenderBuffer()->GetColorAttachments()[0],
+			windowSize,
+			ImVec2(0, 1),
+			ImVec2(1, 0));
+
+		RenderGizmo();
+		RenderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
+	}
 
 	ImGui::End();
 }

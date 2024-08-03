@@ -9,6 +9,13 @@ void FramebufferViewerLayer::onImGuiRender()
 	ImGui::Begin("FBO Preview");
 
 	std::vector<Ref<Framebuffer>> framebuffers = GetApplication()->GetFramebufferManager()->GetFramebuffers();
+	if (framebuffers.empty())
+	{
+		ImGui::End();
+		return;
+	}
+
+
 	std::vector<std::string> framebufferNames;
 
 	for (Ref<Framebuffer> buffer : framebuffers) framebufferNames.push_back(buffer->m_Name);
