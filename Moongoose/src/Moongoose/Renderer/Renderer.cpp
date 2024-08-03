@@ -37,7 +37,6 @@ namespace Moongoose {
 	{
 		SetResolution(camera->GetResolution());
 
-
 		world->GetSystem<AtmosphericsSystem>()->Update(camera, m_Resolution);
 
 		m_RenderBuffer->Bind();

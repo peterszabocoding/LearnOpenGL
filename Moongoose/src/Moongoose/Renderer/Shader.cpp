@@ -1,15 +1,13 @@
 #include "mgpch.h"
 #include "Shader.h"
-
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 namespace Moongoose {
 
 	constexpr size_t MAX_POINT_LIGHTS = 4;
 	constexpr size_t MAX_SPOT_LIGHTS = 4;
 
-	Shader::Shader(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation)
+	Shader::Shader(const ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation)
 	{
 		shaderID = 0;
 		shaderType = type;
@@ -37,7 +35,7 @@ namespace Moongoose {
 		}
 	}
 	
-	void Shader::Bind()
+	void Shader::Bind() const
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, polygonMode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
 
@@ -97,20 +95,33 @@ namespace Moongoose {
 		UploadUniformMat4("model", model);
 	}
 
-	void Shader::SetEntityID(const size_t entityId)
+	void Shader::SetEntityId(const size_t entityId)
 	{
 		UploadUniformInt("aEntityID", entityId);
 	}
 
-	void Shader::SetPolygonMode(PolygonMode mode)
+	void Shader::SetPolygonMode(const PolygonMode mode)
 	{
 		polygonMode = mode;
 	}
 
-	void Shader::SetDepthTest(bool enabled)
+	void Shader::SetDepthTest(const bool enabled)
 	{
 		if (enabled) glEnable(GL_DEPTH_TEST);
 		else glDisable(GL_DEPTH_TEST);
+	}
+
+	void Shader::SetBlendMode(const bool enabled)
+	{
+		if (enabled)
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		else 
+		{
+			glDisable(GL_BLEND);
+		}
 	}
 
 	void Shader::ResetLights()
@@ -123,26 +134,26 @@ namespace Moongoose {
 		UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 	}
 
-	void Shader::BindTexture(size_t textureUnit, uint32_t textureID)
+	void Shader::BindTexture(const size_t textureUnit, const uint32_t textureID)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 	}
 
-	void Shader::BindCubeMapTexture(size_t textureUnit, uint32_t textureID)
+	void Shader::BindCubeMapTexture(const size_t textureUnit, const uint32_t textureId)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 	}
 	
-	void Shader::SetDirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity)
+	void Shader::SetDirectionalLight(const glm::vec3 direction, const glm::vec3 color, const float intensity)
 	{
 		UploadUniformFloat3("directionalLight.base.color", color);
 		UploadUniformFloat("directionalLight.base.intensity", intensity);
 		UploadUniformFloat3("directionalLight.direction", direction);
 	}
 
-	void Shader::SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius)
+	void Shader::SetPointLight(const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius)
 	{
 		glUniform1i(uniformPointLightCount, 1);
 
@@ -152,7 +163,7 @@ namespace Moongoose {
 		UploadUniformFloat("pointLights[0].attenuationRadius", attenuationRadius);
 	}
 
-	void Shader::SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle)
+	void Shader::SetSpotLight(const glm::mat4& transform, const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius, const float attenuationAngle)
 	{
 		glUniform1i(uniformSpotLightCount, 1);
 

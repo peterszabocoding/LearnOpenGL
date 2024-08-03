@@ -11,6 +11,10 @@ enum class Icon : uint16_t
 	EnvMap,
 	DirectionalLight,
 	PointLight,
+	FolderOpen,
+	FolderClose,
+	EntityCubeWhite,
+	EntityCubeBlack
 };
 
 class ResourceManager

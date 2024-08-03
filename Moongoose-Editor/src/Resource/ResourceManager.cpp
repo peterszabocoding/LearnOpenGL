@@ -10,6 +10,11 @@ void ResourceManager::LoadResources()
 	m_Icons[Icon::Material] = assetManager.CreateAsset<Moongoose::Texture2D>("iconAssetMaterial", "res\\icon\\icon_asset_material.png");
 	m_Icons[Icon::DirectionalLight] = assetManager.CreateAsset<Moongoose::Texture2D>("iconDirectionalLight", "res\\icon\\icon_light_directional.png");
 	m_Icons[Icon::PointLight] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_light_point.png");
+	m_Icons[Icon::FolderClose] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_folder_bw.png");
+	m_Icons[Icon::FolderOpen] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_folder_open_bw.png");
+	m_Icons[Icon::FolderOpen] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_folder_open_bw.png");
+	m_Icons[Icon::EntityCubeBlack] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_entity_cube_lines_black.png");
+	m_Icons[Icon::EntityCubeWhite] = assetManager.CreateAsset<Moongoose::Texture2D>("iconPointLight", "res\\icon\\icon_entity_cube_lines_white.png");
 }
 
 Ref<Moongoose::Texture2D> ResourceManager::GetIcon(Icon icon)

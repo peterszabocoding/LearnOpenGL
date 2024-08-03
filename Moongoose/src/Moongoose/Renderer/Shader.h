@@ -100,16 +100,17 @@ namespace Moongoose {
 		
 		ShaderType GetShaderType() const { return shaderType; }
 
-		void Bind();
+		void Bind() const;
 		void Unbind();
 		void BindTexture(size_t textureUnit, uint32_t textureID);
-		void BindCubeMapTexture(size_t textureUnit, uint32_t textureID);
+		void BindCubeMapTexture(size_t textureUnit, uint32_t textureId);
 
 		void SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection);
 		void SetModelTransform(const glm::mat4& model);
-		void SetEntityID(const size_t entityId);
+		void SetEntityId(const size_t entityId);
 		void SetPolygonMode(PolygonMode mode);
 		void SetDepthTest(bool enabled);
+		void SetBlendMode(bool enabled);
 
 		void ResetLights();
 
@@ -118,7 +119,7 @@ namespace Moongoose {
 		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity);
 		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
-		void SetSpotLight(glm::mat4 transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
+		void SetSpotLight(const glm::mat4& transform, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);

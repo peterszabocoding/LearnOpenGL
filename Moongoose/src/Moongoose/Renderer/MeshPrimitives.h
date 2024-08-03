@@ -36,6 +36,52 @@ namespace Moongoose {
 		return mesh;
 	}
 
+	static Mesh QuadMeshWorld(float scale = 1.0f) {
+		// Position - UVs
+		GLfloat vertices[] = {
+			-scale, -scale, 0.0f,	0.0f, 1.0f,
+			 scale, -scale, 0.0f,	1.0f, 1.0f,
+			-scale,  scale, 0.0f,	0.0f, 0.0f,
+			 scale,  scale, 0.0f,	1.0f, 0.0f,
+		};
+
+		unsigned int indices[] = {
+			0, 3, 2,
+			0, 1, 3
+		};
+		Mesh mesh;
+		mesh.AddSubmesh(0, vertices, indices, 4 * 5, 6,
+			{
+				{ ShaderDataType::Float3, "aPos" },
+				{ ShaderDataType::Float2, "aTexCoords" }
+			});
+		return mesh;
+	}
+
+	static Ref<Mesh> QuadMeshRef(float scale = 1.0f)
+	{
+		// Position - UVs
+		GLfloat vertices[] = {
+			-scale, -scale, 0.0f,	0.0f, 1.0f,
+			 scale, -scale, 0.0f,	1.0f, 1.0f,
+			-scale,  scale, 0.0f,	0.0f, 0.0f,
+			 scale,  scale, 0.0f,	1.0f, 0.0f,
+		};
+
+		unsigned int indices[] = {
+			0, 3, 2,
+			0, 1, 3
+		};
+
+		Ref<Mesh> mesh = CreateRef<Mesh>();
+		mesh->AddSubmesh(0, vertices, indices, 4 * 5, 6,
+			{
+				{ ShaderDataType::Float3, "aPos" },
+				{ ShaderDataType::Float2, "aTexCoords" }
+			});
+		return mesh;
+	}
+
 	static Mesh Triangle() {
 		// Position - UVs
 		GLfloat vertices[] = {

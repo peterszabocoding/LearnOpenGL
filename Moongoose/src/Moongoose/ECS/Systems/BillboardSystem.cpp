@@ -37,10 +37,15 @@ namespace Moongoose
 			shader->Bind();
 			shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 			shader->SetModelTransform(TransformComponent::GetModelMatrix(transformComponent));
-			shader->SetEntityID(entity);
+			shader->SetEntityId(entity);
+			shader->SetBlendMode(true);
+
+			shader->UploadUniformFloat3("TintColor", billboardComponent.m_ColorTint);
 
 			billboardComponent.m_BillboardTexture->bind(0);
-			Renderer::RenderMesh(QuadMesh(0.75f).GetSubmeshes()[0]->vertexArray);
+			Renderer::RenderMesh(QuadMeshWorld(0.75f).GetSubmeshes()[0]->vertexArray);
+
+			shader->SetBlendMode(false);
 			shader->Unbind();
 		}
 	}

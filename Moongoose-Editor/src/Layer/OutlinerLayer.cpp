@@ -3,6 +3,8 @@
 #include "Moongoose/ECS/WorldManager.h"
 #include <imgui/imgui.h>
 
+#include "Resource/ResourceManager.h"
+
 using namespace Moongoose;
 
 unsigned int OutlinerLayer::m_NewEntityCounter = 0;
@@ -28,10 +30,27 @@ void OutlinerLayer::onImGuiRender()
 	if (ImGui::Button("Delete Entity")) world->DestroyEntity(world->GetSelectedEntity());
 
 
-	GuiWidgets::DrawList("##hierarchyList", tags, itemCurrentIdx, [&](const int selected) {
-		itemCurrentIdx = selected;
-		world->SetSelectedEntity(selected);
-	});
+	const ImVec2 size = ImGui::GetContentRegionAvail();
+	if (ImGui::BeginListBox("##hierarchyList", size))
+	{
+		for (int n = 0; n < tags.size(); n++)
+		{
+			const bool isSelected = (itemCurrentIdx == n);
+
+			ImGui::Image(ResourceManager::GetIcon(Icon::EntityCubeWhite)->GetPointerToData(), ImVec2(15.0f, 15.0f));
+			ImGui::SameLine();
+			if (ImGui::Selectable(tags[n].c_str(), isSelected)) {
+				itemCurrentIdx = n;
+				world->SetSelectedEntity(itemCurrentIdx);
+			}
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (isSelected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndListBox();
+	}
 
 	ImGui::End();
 }

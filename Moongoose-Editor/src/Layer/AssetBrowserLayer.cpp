@@ -187,6 +187,8 @@ void AssetBrowserLayer::RenderFolder(const FileStructureNode& folder, const bool
     ImGuiTreeNodeFlags flags = (folder.path == m_SelectedFolder) ? ImGuiTreeNodeFlags_Selected : 0;
     flags |= ImGuiTreeNodeFlags_OpenOnArrow;
 
+    ImGui::Image(ResourceManager::GetIcon(openOnStart ? Icon::FolderOpen : Icon::FolderClose)->GetPointerToData(), ImVec2(12.5f, 12.5f));
+    ImGui::SameLine();
     ImGui::SetNextItemOpen(openOnStart, ImGuiCond_Once);
     const bool opened = ImGui::TreeNodeEx(folder.path.string().c_str(), flags);
 

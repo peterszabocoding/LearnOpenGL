@@ -59,7 +59,7 @@ namespace Moongoose {
 				shader->Bind();
 				shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 				shader->SetModelTransform(TransformComponent::GetModelMatrix(transformComponent));
-				shader->SetEntityID(entity);
+				shader->SetEntityId(entity);
 				shader->Unbind();
 			}
 

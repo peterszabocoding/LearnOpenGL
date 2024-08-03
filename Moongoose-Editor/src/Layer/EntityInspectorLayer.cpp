@@ -154,6 +154,7 @@ void EntityInspectorLayer::onImGuiRender()
 	{
 		if (world->HasComponent<BillboardComponent>(selectedEntity))
 		{
+			auto windowSize = ImGui::GetWindowSize();
 			auto& cBillboard = world->GetComponent<BillboardComponent>(selectedEntity);
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			if (ImGui::TreeNode("Billboard")) {
@@ -166,6 +167,8 @@ void EntityInspectorLayer::onImGuiRender()
 						? Icon::DirectionalLight 
 						: Icon::PointLight);
 				}
+
+				GuiWidgets::DrawRGBColorPicker("Color Tint", cBillboard.m_ColorTint, 1.0f, windowSize.x);
 
 				RenderImageTextButton(
 					ImVec2(50.0f, 50.0f),
@@ -219,7 +222,7 @@ void EntityInspectorLayer::DrawMaterialControls(const Ref<Mesh>& mesh, const uns
 	ImGui::PushID(material->m_Id);
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
-	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo ? albedo : ResourceManager::GetIcon(Icon::Material), matName);
 
 	ImGui::PopID();
 }

@@ -29,6 +29,7 @@ private:
 
 private:
 	Moongoose::WorldManager* m_WorldManager;
+	Moongoose::AssetManager* m_AssetManager;
 
 	glm::uvec2 m_WindowSize = { 1280, 720 };
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
