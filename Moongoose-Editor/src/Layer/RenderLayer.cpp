@@ -127,13 +127,6 @@ void RenderLayer::RenderToolbarMenu() const
 			{
 				const std::string worldFilePath = FileDialogs::OpenFile(".mgworld");
 				if (!worldFilePath.empty()) m_WorldManager->LoadWorld(worldFilePath);
-
-				Entity plane = m_WorldManager->GetLoadedWorld()->CreateEntity("Plane Mesh");
-
-
-				Ref<Mesh> planeMesh = QuadMeshRef(5.0f);
-				planeMesh->AddMaterial(m_AssetManager->GetDefaultAsset<Material>());
-				m_WorldManager->GetLoadedWorld()->AddComponent<MeshComponent>(plane, MeshComponent(planeMesh));
 			}
 
 			if (ImGui::MenuItem("Save World", "", false, m_WorldManager->IsWorldOpened()))

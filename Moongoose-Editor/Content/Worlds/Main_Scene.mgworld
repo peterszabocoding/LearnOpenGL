@@ -190,35 +190,6 @@
                     "z": 1.0
                 }
             }
-        },
-        {
-            "IDComponent": {
-                "id": "6150976978391957954"
-            },
-            "MeshComponent": {
-                "asset": "0",
-                "assetDecl": ""
-            },
-            "TagComponent": {
-                "tag": "Plane Mesh"
-            },
-            "TransformComponent": {
-                "position": {
-                    "x": 0.0,
-                    "y": 5.960464477539063e-08,
-                    "z": -4.770445346832275
-                },
-                "rotation": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0
-                },
-                "scale": {
-                    "x": 1.0,
-                    "y": 1.0,
-                    "z": 1.0
-                }
-            }
         }
     ],
     "name": "Main_Scene"
