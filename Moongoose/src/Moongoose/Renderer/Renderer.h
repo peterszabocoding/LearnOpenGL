@@ -9,6 +9,7 @@
 #include "Shader.h"
 
 namespace Moongoose {
+	enum class LightType : uint8_t;
 
 	class Framebuffer;
 	class World;
@@ -81,12 +82,18 @@ namespace Moongoose {
 		static void BeginScene();
 		static void EndScene();
 	private:
+		static void InitShadowBuffer();
 		static void SetResolution(glm::uvec2 newResolution);
 
 		static void PrepareLights();
+		static void RenderShadowMaps();
 
 		static void ExecuteMeshRenderCommand(const Ref<PerspectiveCamera>& camera, const MeshRenderCmd& cmd);
 		static void ExecuteBillboardRenderCommand(const Ref<PerspectiveCamera>& camera, const BillboardCmd& cmd);
+
+		static glm::mat4 GetDirectionalLightProjection(const DirectionalLight& light);
+		static glm::mat4 GetPointLightProjection(const PointLight& light);
+		static glm::mat4 GetSpotLightProjection(const SpotLight& light);
 
 	private:
 		static std::vector<DirectionalLight> m_DirectionalLights;
@@ -97,6 +104,7 @@ namespace Moongoose {
 		static std::vector<BillboardCmd> m_BillboardRenderCmds;
 
 		static Ref<Framebuffer> m_RenderBuffer;
+		static Ref<Framebuffer> m_ShadowBuffer;
 		static glm::uvec2 m_Resolution;
 	};
 

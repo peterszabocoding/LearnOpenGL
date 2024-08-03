@@ -18,11 +18,6 @@ void RenderLayer::onAttach()
 	m_AssetManager = GetApplication()->GetAssetManager();
 
 	CreateCamera();
-
-	AssetManager::Get().BuildAssetRegistry();
-	ShaderManager::AssignShaderToType(ShaderType::STATIC, "shader\\shader.vert", "shader\\shader.frag");
-	ShaderManager::AssignShaderToType(ShaderType::BILLBOARD, "shader\\billboard.vs", "shader\\billboard.fs");
-	ShaderManager::AssignShaderToType(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\atmos_scattering.frag");
 }
 
 void RenderLayer::CalculateWindowMousePosition()
@@ -229,11 +224,13 @@ bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 
 bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 {
-	const bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
+	//const bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
 	const bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
 
-	if (mouseHoveredOverEntity && entitySelectButtonsPressed) WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
-
+	if (WorldManager::GetLoadedWorld() && IsMouseInWindow() && entitySelectButtonsPressed)
+	{
+		WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
+	}
 	return false;
 }
 

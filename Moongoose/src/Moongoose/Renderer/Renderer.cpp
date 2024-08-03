@@ -16,6 +16,7 @@ namespace Moongoose {
 
 	glm::uvec2 Renderer::m_Resolution;
 	Ref<Framebuffer> Renderer::m_RenderBuffer;
+	Ref<Framebuffer> Renderer::m_ShadowBuffer;
 
 	std::vector<Renderer::DirectionalLight> Renderer::m_DirectionalLights;
 	std::vector<Renderer::PointLight> Renderer::m_PointLights;
@@ -26,6 +27,7 @@ namespace Moongoose {
 
 	void Renderer::SetResolution(const glm::uvec2 newResolution)
 	{
+		if (!m_ShadowBuffer) InitShadowBuffer();
 		if (newResolution == m_Resolution) return;
 
 		FramebufferSpecs specs;
@@ -50,10 +52,10 @@ namespace Moongoose {
 
 		if (!m_DirectionalLights.empty())
 		{
-			shader->SetDirectionalLight(
-				m_DirectionalLights[0].direction, 
-				m_DirectionalLights[0].color, 
-				m_DirectionalLights[0].intensity);
+			const DirectionalLight light = m_DirectionalLights[0];
+			shader->UploadUniformMat4("lightTransform", GetDirectionalLightProjection(light) * lookAt(light.direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+			shader->SetDirectionalLight(light.direction, light.color, light.intensity, light.isShadowCasting, true);
+			shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 		}
 
 		for (const auto& pointLight : m_PointLights)
@@ -79,27 +81,57 @@ namespace Moongoose {
 		shader->Unbind();
 	}
 
+	void Renderer::RenderShadowMaps()
+	{
+		if (!m_DirectionalLights.empty())
+		{
+			const DirectionalLight& light = m_DirectionalLights[0];
+			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP);
+			const glm::mat4 projection = GetDirectionalLightProjection(light);
+
+			m_ShadowBuffer->Bind();
+
+			RenderCommand::SetClearColor(m_ShadowBuffer->GetSpecs().ClearColor);
+			RenderCommand::Clear();
+
+			shader->Bind();
+			shader->UploadUniformMat4("lightTransform", projection * glm::lookAt(light.direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+			shader->EnablePolygonOffset(true);
+			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
+
+			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+			{
+				shader->SetModelTransform(cmd.transform);
+				RenderMesh(cmd.vertexArray);
+			}
+
+			shader->EnablePolygonOffset(false);
+			shader->Unbind();
+			m_ShadowBuffer->Unbind();
+		}
+	}
+
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
 	{
 		SetResolution(camera->GetResolution());
 		BeginScene();
 
 		world->GetSystem<AtmosphericsSystem>()->Update(camera, m_Resolution);
+		world->GetSystem<LightSystem>()->Run(camera, world);
+		world->GetSystem<RenderSystem>()->Run(camera, world);
+		world->GetSystem<BillboardSystem>()->Run(camera, world);
+
+		RenderShadowMaps();
 
 		m_RenderBuffer->Bind();
-
 		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().ClearColor);
 		RenderCommand::Clear();
 
 		world->GetSystem<AtmosphericsSystem>()->Run(camera);
-		world->GetSystem<LightSystem>()->Run(camera, world);
 
 		m_RenderBuffer->ClearAttachment(1, -1);
-		world->GetSystem<RenderSystem>()->Run(camera, world);
-		world->GetSystem<BillboardSystem>()->Run(camera, world);
 
 		PrepareLights();
-
 		for (const auto& cmd : m_MeshRenderCmds)
 			ExecuteMeshRenderCommand(camera, cmd);
 
@@ -153,7 +185,6 @@ namespace Moongoose {
 
 	void Renderer::PushDirectionalLight(const DirectionalLight& directionalLight)
 	{
-		
 		m_DirectionalLights.push_back(directionalLight);
 	}
 
@@ -179,6 +210,20 @@ namespace Moongoose {
 
 	void Renderer::EndScene(){}
 
+	void Renderer::InitShadowBuffer()
+	{
+		FramebufferSpecs specs;
+		specs.Width = 4096;
+		specs.Height = 4096;
+		specs.HasShadowMapAttachment = true;
+		specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		specs.Attachments = {
+			FramebufferTextureFormat::RGBA8
+		};
+
+		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer", specs);
+	}
+
 	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
 	{
 		vertexArray->Bind();
@@ -186,4 +231,17 @@ namespace Moongoose {
 		vertexArray->Unbind();
 	}
 
+	glm::mat4 Renderer::GetDirectionalLightProjection(const DirectionalLight& light)
+	{
+		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
+	}
+
+	glm::mat4 Renderer::GetPointLightProjection(const PointLight& light)
+	{
+		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
+	}
+
+	glm::mat4 Renderer::GetSpotLightProjection(const SpotLight& light) {
+		return glm::perspective(light.attenuationAngle, (float) 4096 / 4096, 0.1f, 1000.0f);
+	}
 };

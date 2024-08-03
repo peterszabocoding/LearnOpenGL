@@ -14,23 +14,6 @@
 
 namespace Moongoose {
 
-	namespace Utils {
-
-		static glm::mat4 GetLightProjection(LightType type) {
-			switch (type) {
-			case LightType::Directional:
-				return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
-			case LightType::Point:
-				return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
-			case LightType::Spot:
-				return glm::perspective(30.0f, (float) 4096 / (float) 4096, 0.1f, 1000.0f);
-			default:
-				MG_ASSERT(false, "Unknown light type")
-				return {1.0};
-			}
-		}
-	}
-
 	Signature RenderSystem::GetSystemSignature(World* world)
 	{
 		Signature signature;

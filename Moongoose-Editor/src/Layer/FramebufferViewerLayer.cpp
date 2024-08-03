@@ -44,14 +44,20 @@ void FramebufferViewerLayer::onImGuiRender()
 		bufferAttachments.push_back(std::to_string(i + 1) + ": " + attachmentName);
 	}
 
-	GuiWidgets::DrawSingleSelectDropdown("Color Attachments: ", bufferAttachments, selectedAttachment, [&](const int selected) {
-		selectedAttachment = selected;
-	});
+	if (!selectedBuffer->GetColorAttachments().empty())
+	{
+		GuiWidgets::DrawSingleSelectDropdown("Color Attachments: ", bufferAttachments, selectedAttachment, [&](const int selected) {
+			selectedAttachment = selected;
+		});
 
-	// Draw selected color attachment
-	ImGui::Image((void*)selectedBuffer->GetColorAttachments()[selectedAttachment], imageSize, ImVec2(0, 1), ImVec2(1, 0));
+		// Draw selected color attachment
+		if (selectedBuffer->GetColorAttachments()[selectedAttachment] != 0)
+		{
+			ImGui::Image((void*)selectedBuffer->GetColorAttachments()[selectedAttachment], imageSize, ImVec2(0, 1), ImVec2(1, 0));
+		}
+	}
 	
-	// Dra
+	// Draw depth attachment
 	if (selectedBuffer->GetDepthAttachment() != 0)
 	{
 		ImGui::Text("Depth Attachment:");

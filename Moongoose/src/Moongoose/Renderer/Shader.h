@@ -104,6 +104,8 @@ namespace Moongoose {
 		void SetModelTransform(const glm::mat4& model);
 		void SetEntityId(const size_t entityId);
 		void SetPolygonMode(PolygonMode mode);
+		void EnablePolygonOffset(bool enable);
+		void SetPolygonOffset(glm::vec2 offset);
 		void SetDepthTest(bool enabled);
 		void SetBlendMode(bool enabled);
 
@@ -112,7 +114,7 @@ namespace Moongoose {
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		unsigned int GetDirectionLocation() const;
-		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, float intensity);
+		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, const float intensity, bool isShadowCasting, bool useSoftShadow);
 		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
 		void SetSpotLight(glm::vec3 direction, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
 		

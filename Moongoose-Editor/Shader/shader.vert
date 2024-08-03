@@ -6,6 +6,7 @@ layout (location = 2) in vec3 aNormal;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent;
 
+out vec4 WorldPos;
 out vec3 FragPos;
 out vec2 TexCoord;
 out vec3 Normal;
@@ -31,6 +32,7 @@ void main()
 
    gl_Position = projection * view * world_pos;
 
+   WorldPos = world_pos;
    FragPos = world_pos.xyz;
    TexCoord = aTexCoords;
    Normal = normalize(transpose(inverse(mat3(model))) * aNormal);

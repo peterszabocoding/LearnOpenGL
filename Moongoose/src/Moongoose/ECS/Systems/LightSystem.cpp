@@ -31,7 +31,7 @@ namespace Moongoose
 					Renderer::PushDirectionalLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						false,
+						true,
 						cTransform.GetForwardDirection()
 					});
 					break;

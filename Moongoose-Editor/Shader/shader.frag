@@ -3,6 +3,7 @@
 const int MAX_POINT_LIGHTS = 10;
 const int MAX_SPOT_LIGHTS = 10;
 
+in vec4 WorldPos;
 in vec3 FragPos;
 in vec2 TexCoord;
 in vec3 Normal;
@@ -17,6 +18,8 @@ layout(binding = 0) uniform sampler2D AlbedoTexture;
 layout(binding = 1) uniform sampler2D NormalTexture;
 layout(binding = 2) uniform sampler2D MetallicTexture;
 layout(binding = 3) uniform sampler2D RoughnessTexture;
+
+layout(binding = 4) uniform sampler2DShadow ShadowMapTexture;
 
 struct Light {
 	vec3 color;
@@ -53,6 +56,8 @@ uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform Material material;
+
+uniform mat4 lightTransform;
 
 vec3 normalizedNormal;
 
@@ -112,6 +117,31 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
 
 // ------------------------ LIGHTS --------------------------------------------
 
+float CalcPCFSoftShadow(sampler2DShadow shadowMap, vec3 projectedCoords) {
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	for(int x = -1; x <= 1; ++x) {
+		for(int y = -1; y <= 1; ++y) {
+			shadow += texture(shadowMap, vec3(projectedCoords.xy + vec2(x,y) * texelSize, projectedCoords.z)).r;
+		}
+	}
+	return shadow / 9.0;
+}
+
+float CalcShadowFactor(sampler2DShadow shadowMap, Light light) {
+	if (!light.isShadowCasting) return 1.0;
+
+	vec4 lightSpacePos = lightTransform * WorldPos;
+	vec3 projCoords = lightSpacePos.rgb / lightSpacePos.a;
+	projCoords = (projCoords * 0.5) + 0.5;
+	
+	if (projCoords.z > 1.0) return 1.0;
+
+	return light.useSoftShadow 
+		? CalcPCFSoftShadow(shadowMap, projCoords) 
+		: texture(shadowMap, projCoords);
+}
+
 float CalcLightAttenuation(vec3 fragPos, vec3 lightPos, float rmax)
 {
 	vec3 ldir = lightPos - fragPos;
@@ -134,8 +164,8 @@ vec4 CalcLightByDirection(Light light, vec3 direction, float shadowFactor)
 
 vec4 CalcDirectionalLight() 
 {
-	//float shadowFactor = CalcShadowFactor(directionalShadowMap, directionalLight.base);
-	return CalcLightByDirection(directionalLight.base, directionalLight.direction, 1.0f);
+	float shadowFactor = CalcShadowFactor(ShadowMapTexture, directionalLight.base);
+	return CalcLightByDirection(directionalLight.base, directionalLight.direction, shadowFactor);
 }
 
 vec4 CalcPointLight(PointLight pLight) 
@@ -145,11 +175,6 @@ vec4 CalcPointLight(PointLight pLight)
 	direction = normalize(direction);
 
 	vec4 color = CalcLightByDirection(pLight.base, direction, 1.0);
-	/*
-	float attenuation = pLight.exponent * dist * dist 
-						+ pLight.linear * dist 
-						+ pLight.constant;
-	*/
 	float attenuation = CalcLightAttenuation(FragPos, pLight.position, pLight.attenuationRadius);
 	return color * attenuation;
 }

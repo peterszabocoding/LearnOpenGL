@@ -4,6 +4,10 @@
 
 #include "glad/glad.h"
 #include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
 
 namespace Moongoose {
 
@@ -108,6 +112,17 @@ namespace Moongoose {
 		polygonMode = mode;
 	}
 
+	void Shader::EnablePolygonOffset(const bool enable)
+	{
+		if (enable) glEnable(GL_POLYGON_OFFSET_FILL);
+		else glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+
+	void Shader::SetPolygonOffset(const glm::vec2 offset)
+	{
+		glPolygonOffset(offset.x, offset.y);
+	}
+
 	void Shader::SetDepthTest(const bool enabled)
 	{
 		if (enabled) glEnable(GL_DEPTH_TEST);
@@ -149,10 +164,12 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 	}
 	
-	void Shader::SetDirectionalLight(const glm::vec3 direction, const glm::vec3 color, const float intensity)
+	void Shader::SetDirectionalLight(const glm::vec3 direction, const glm::vec3 color, const float intensity, bool isShadowCasting, bool useSoftShadow)
 	{
 		UploadUniformFloat3("directionalLight.base.color", color);
 		UploadUniformFloat("directionalLight.base.intensity", intensity);
+		UploadUniformFloat("directionalLight.base.isShadowCasting", isShadowCasting);
+		UploadUniformFloat("directionalLight.base.useSoftShadow", useSoftShadow);
 		UploadUniformFloat3("directionalLight.direction", direction);
 	}
 
