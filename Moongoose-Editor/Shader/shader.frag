@@ -124,6 +124,11 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
 
 // ------------------------ LIGHTS --------------------------------------------
 
+float CalculateBias(Light light, vec3 lightDirection)
+{
+	return max(0.00025f * (1.0 - dot(Normal, lightDirection)), light.bias);
+}
+
 vec2 CalculateShadowMapRatio(vec2 shadowMapSize)
 {
 	return vec2(shadowMapSize.x / shadowMapTextureSize.x, shadowMapSize.y / shadowMapTextureSize.y);
@@ -158,17 +163,17 @@ float CalcPCFSoftShadow(Light light, sampler2DShadow shadowMap, vec3 projectedCo
 	return shadow / 25.0;
 } 
 
-float CalcShadowFactor(sampler2DShadow shadowMap, Light light) {
+float CalcShadowFactor(sampler2DShadow shadowMap, Light light, float bias) {
 	if (!light.isShadowCasting) return 1.0;
 
 	vec4 lightSpacePos = light.lightTransform * WorldPos;
 	vec3 projCoords = lightSpacePos.rgb / lightSpacePos.a;
 	projCoords = (projCoords * 0.5) + 0.5;
 
-	if (projCoords.z - light.bias > 1.0) return 1.0;
+	if (projCoords.z - bias > 1.0) return 1.0;
 
 	float shadowFactor = light.useSoftShadow 
-		? CalcPCFSoftShadow(light, shadowMap, projCoords, light.bias) 
+		? CalcPCFSoftShadow(light, shadowMap, projCoords, bias) 
 		: ReadShadowMap(shadowMap, vec2(0.0, 0.0), vec2(0.0, 0.0), projCoords);
 
 	return shadowFactor;
@@ -196,7 +201,7 @@ vec4 CalcLightByDirection(Light light, vec3 direction, float shadowFactor)
 
 vec4 CalcDirectionalLight() 
 {
-	float shadowFactor = CalcShadowFactor(ShadowMapTexture, directionalLight.base);
+	float shadowFactor = CalcShadowFactor(ShadowMapTexture, directionalLight.base, directionalLight.base.bias);
 	return vec4(directionalLight.ambientColor, 1.0) * directionalLight.ambientIntensity
 	 + CalcLightByDirection(directionalLight.base, directionalLight.direction, shadowFactor);
 }
@@ -206,6 +211,7 @@ vec4 CalcPointLight(PointLight pLight)
 	vec3 direction = pLight.position - FragPos;
 	float dist = length(direction);
 	direction = normalize(direction);
+	float bias = CalculateBias(pLight.base, direction);
 
 	vec4 color = CalcLightByDirection(pLight.base, direction, 1.0);
 	float attenuation = CalcLightAttenuation(FragPos, pLight.position, pLight.attenuationRadius);
@@ -218,7 +224,8 @@ vec4 CalcSpotLight(SpotLight sLight)
 	float slFactor = dot(rayDirection, sLight.direction);
 
 	if (slFactor > sLight.attenuationAngle) {
-		float shadowFactor = CalcShadowFactor(ShadowMapTexture, sLight.base.base);
+		float bias = CalculateBias(sLight.base.base, rayDirection);
+		float shadowFactor = CalcShadowFactor(ShadowMapTexture, sLight.base.base, bias);
 		vec4 color = CalcPointLight(sLight.base) * shadowFactor;
 		return color * (1.0 - (1.0 - slFactor) * (1.0/(1 - sLight.attenuationAngle)));
 	} else {

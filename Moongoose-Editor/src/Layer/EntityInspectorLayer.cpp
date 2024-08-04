@@ -1,7 +1,7 @@
 #include <imgui/imgui.h>
 #include "EntityInspectorLayer.h"
 #include "GUI/GuiWidgets.h"
-
+#include "Moongoose/Renderer/Light.h"
 #include "Resource/ResourceManager.h"
 
 using namespace Moongoose;

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <unordered_map>
 
+#include "Light.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -115,12 +116,9 @@ namespace Moongoose {
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		unsigned int GetDirectionLocation() const;
-		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, glm::vec3 ambientColor, const glm::mat4& lightTransform,
-		                         const float intensity, const float ambientIntensity, const bool isShadowCasting, const bool useSoftShadow);
-		void SetPointLight(glm::vec3 position, glm::vec3 color, const glm::mat4& lightTransform, const float intensity, const float attenuationRadius);
-		void SetSpotLight(glm::vec3 direction, glm::vec3 position, glm::vec3 color, const glm::mat4& lightTransform, const float intensity, const float
-		                  attenuationRadius, float
-		                  attenuationAngle, const bool isShadowCasting = false, const bool useSoftShadow = false);
+		void SetDirectionalLight(const ::DirectionalLight& directionalLight, const glm::mat4& lightTransform);
+		void SetPointLight(const ::PointLight& pointLight, const glm::mat4& lightTransform);
+		void SetSpotLight(const ::SpotLight& spotLight, const glm::mat4& lightTransform);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);

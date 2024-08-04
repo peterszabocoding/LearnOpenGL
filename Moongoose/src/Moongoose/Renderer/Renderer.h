@@ -1,26 +1,15 @@
 #pragma once
 
-#include "Moongoose/Core.h"
-#include "VertexArray.h"
 #include <glm/glm.hpp>
 
+#include "VertexArray.h"
+#include "Shader.h"
 #include "Material.h"
 #include "PerspectiveCamera.h"
-#include "Shader.h"
+#include "Moongoose/Core.h"
+#include "Light.h"
 
 namespace Moongoose {
-	enum class LightType : uint8_t;
-
-	enum class ShadowMapResolution : uint16_t
-	{
-		ULTRA_LOW = 128,
-		LOW = 256,
-		MEDIUM = 512,
-		HIGH = 1024,
-		VERY_HIGH = 2048,
-		ULTRA_HIGH = 4096
-	};
-
 	class Framebuffer;
 	class World;
 
@@ -32,34 +21,6 @@ namespace Moongoose {
 		{
 			glm::uvec2 topLeft;
 			glm::uvec2 bottomRight;
-		};
-
-		struct Light
-		{
-			glm::vec3 color = glm::vec3(1.0f);
-			float intensity = 1.0f;
-			bool isShadowCasting = false;
-			ShadowMapResolution shadowMapResolution = ShadowMapResolution::MEDIUM;
-		};
-
-		struct DirectionalLight: Light
-		{
-			glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);
-			glm::vec3 ambientColor = glm::vec3(1.0f);
-			float ambientIntensity = 0.1f;
-			
-		};
-
-		struct PointLight: Light
-		{
-			glm::vec3 position = glm::vec3(0.0f);
-			float attenuationRadius = 10.0f;
-		};
-
-		struct SpotLight: PointLight
-		{
-			glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);
-			float attenuationAngle = 0.75f;
 		};
 
 		struct MeshRenderCmd
@@ -127,7 +88,7 @@ namespace Moongoose {
 		static std::vector<AtlasBox> AllocateTextureAtlas(glm::uvec2 const& atlasSize, std::vector<uint16_t> const& textureSizes);
 
 	private:
-		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = { 8192, 8192 };
+		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = { 8192, 4096 };
 
 		static std::vector<DirectionalLight> m_DirectionalLights;
 		static std::vector<PointLight> m_PointLights;

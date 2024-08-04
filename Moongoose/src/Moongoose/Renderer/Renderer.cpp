@@ -11,6 +11,7 @@
 #include "Moongoose/ECS/Systems/LightSystem.h"
 #include "Moongoose/ECS/Systems/RenderSystem.h"
 #include "Moongoose/Renderer/Framebuffer.h"
+#include "Light.h"
 
 namespace Moongoose {
 
@@ -20,13 +21,13 @@ namespace Moongoose {
 
 	std::vector<Renderer::AtlasBox>				Renderer::m_ShadowMapAtlas;
 
-	std::vector<Renderer::DirectionalLight>		Renderer::m_DirectionalLights;
-	std::vector<Renderer::PointLight>			Renderer::m_PointLights;
-	std::vector<Renderer::SpotLight>			Renderer::m_SpotLights;
+	std::vector<DirectionalLight>				Renderer::m_DirectionalLights;
+	std::vector<PointLight>						Renderer::m_PointLights;
+	std::vector<SpotLight>						Renderer::m_SpotLights;
 
-	std::vector<Renderer::DirectionalLight>		Renderer::m_ShadowCastingDirectionalLights;
-	std::vector<Renderer::PointLight>			Renderer::m_ShadowCastingPointLights;
-	std::vector<Renderer::SpotLight>			Renderer::m_ShadowCastingSpotLights;
+	std::vector<DirectionalLight>				Renderer::m_ShadowCastingDirectionalLights;
+	std::vector<PointLight>						Renderer::m_ShadowCastingPointLights;
+	std::vector<SpotLight>						Renderer::m_ShadowCastingSpotLights;
 
 	std::vector<Renderer::MeshRenderCmd>		Renderer::m_MeshRenderCmds;
 	std::vector<Renderer::BillboardCmd>			Renderer::m_BillboardRenderCmds;
@@ -66,51 +67,32 @@ namespace Moongoose {
 
 	void Renderer::PrepareDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader)
 	{
-		shader->SetDirectionalLight(
-			light.direction, 
-			light.color, 
-			light.ambientColor, 
-			GetDirectionalLightTransform(light), 
-			light.intensity, 
-			light.ambientIntensity, 
-			light.isShadowCasting, 
-			true);
+		shader->SetDirectionalLight(light, GetDirectionalLightTransform(light));
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 
-		if (light.isShadowCasting && !m_ShadowMapAtlas.empty())
+		if (light.shadowType != ShadowType::NONE && !m_ShadowMapAtlas.empty())
 		{
 			const AtlasBox& shadowMapAtlas = m_ShadowMapAtlas[0];
-			const auto topLeft = glm::vec2(shadowMapAtlas.topLeft.x, shadowMapAtlas.topLeft.y);
 			const auto shadowMapSize = glm::vec2(
 				shadowMapAtlas.bottomRight.x - shadowMapAtlas.topLeft.x,
 				shadowMapAtlas.bottomRight.y - shadowMapAtlas.topLeft.y
 			);
 
-			shader->UploadUniformFloat2("directionalLight.base.shadowMapTopLeft", topLeft);
+			shader->UploadUniformFloat2("directionalLight.base.shadowMapTopLeft", shadowMapAtlas.topLeft);
 			shader->UploadUniformFloat2("directionalLight.base.shadowMapSize", shadowMapSize);
 		}
 	}
 
 	void Renderer::PreparePointLight(const PointLight& light, const Ref<Shader>& shader)
 	{
-		shader->SetPointLight(
-			light.position,
-			light.color,
-			GetPointLightTransform(light),
-			light.intensity, light.attenuationRadius);
+		shader->SetPointLight(light, GetPointLightTransform(light));
 	}
 
 	void Renderer::PrepareSpotLight(const SpotLight& light, const Ref<Shader>& shader)
 	{
-		shader->SetSpotLight(
-			light.direction,
-			light.position,
-			light.color,
-			GetSpotLightTransform(light),
-			light.intensity,
-			light.attenuationRadius, light.attenuationAngle, light.isShadowCasting, true);
+		shader->SetSpotLight(light, GetSpotLightTransform(light));
 
-		if (light.isShadowCasting && m_ShadowMapAtlas.size() > 1)
+		if (light.shadowType != ShadowType::NONE && m_ShadowMapAtlas.size() > 1)
 		{
 			const AtlasBox& shadowMapAtlas = m_ShadowMapAtlas[1];
 			const auto shadowMapSize = glm::vec2(
@@ -146,10 +128,9 @@ namespace Moongoose {
 		{
 			const DirectionalLight& light = m_ShadowCastingDirectionalLights[0];
 			auto& [topLeft, bottomRight] = m_ShadowMapAtlas[0];
-			if (light.isShadowCasting)
+			if (light.shadowType != ShadowType::NONE)
 			{
 				const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_DIRECTIONAL);
-				const glm::mat4 projection = GetDirectionalLightProjection(light);
 
 				m_ShadowBuffer->Bind(
 					topLeft.x, topLeft.y,
@@ -157,7 +138,7 @@ namespace Moongoose {
 					bottomRight.y - topLeft.y);
 
 				shader->Bind();
-				shader->UploadUniformMat4("lightTransform", projection * lookAt(light.direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
+				shader->UploadUniformMat4("lightTransform", GetDirectionalLightTransform(light));
 				shader->EnablePolygonOffset(true);
 				shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
@@ -172,11 +153,10 @@ namespace Moongoose {
 			}
 		}
 
-		
 		if (!m_ShadowCastingSpotLights.empty())
 		{
 			const SpotLight& light = m_ShadowCastingSpotLights[0];
-			if (light.isShadowCasting)
+			if (light.shadowType != ShadowType::NONE)
 			{
 				auto& [topLeft, bottomRight] = m_ShadowMapAtlas[1];
 				const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_SPOT);
@@ -282,19 +262,19 @@ namespace Moongoose {
 	void Renderer::PushDirectionalLight(const DirectionalLight& directionalLight)
 	{
 		m_DirectionalLights.push_back(directionalLight);
-		if (directionalLight.isShadowCasting) m_ShadowCastingDirectionalLights.push_back(directionalLight);
+		if (directionalLight.shadowType != ShadowType::NONE) m_ShadowCastingDirectionalLights.push_back(directionalLight);
 	}
 
 	void Renderer::PushPointLight(const PointLight& pointLight)
 	{
 		m_PointLights.push_back(pointLight);
-		if (pointLight.isShadowCasting) m_ShadowCastingPointLights.push_back(pointLight);
+		if (pointLight.shadowType != ShadowType::NONE) m_ShadowCastingPointLights.push_back(pointLight);
 	}
 
 	void Renderer::PushSpotLight(const SpotLight& spotLight)
 	{
 		m_SpotLights.push_back(spotLight);
-		if (spotLight.isShadowCasting) m_ShadowCastingSpotLights.push_back(spotLight);
+		if (spotLight.shadowType != ShadowType::NONE) m_ShadowCastingSpotLights.push_back(spotLight);
 	}
 
 	void Renderer::BeginScene()
@@ -318,8 +298,8 @@ namespace Moongoose {
 	void Renderer::InitShadowBuffer()
 	{
 		FramebufferSpecs specs;
-		specs.Width = 8196;
-		specs.Height = 8196;
+		specs.Width = SHADOW_BUFFER_RESOLUTION.x;
+		specs.Height = SHADOW_BUFFER_RESOLUTION.y;
 
 		specs.HasShadowMapAttachment = true;
 		specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
