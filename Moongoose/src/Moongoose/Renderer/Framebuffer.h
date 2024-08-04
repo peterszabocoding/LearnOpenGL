@@ -74,6 +74,7 @@ namespace Moongoose {
 
 		void Bind();
 		void Bind(uint32_t viewportWidth, uint32_t viewportHeight);
+		void Bind(uint32_t startPosX, uint32_t startPosY, uint32_t viewportWidth, uint32_t viewportHeight);
 		void Unbind();
 		void Resize(uint32_t width, uint32_t height);
 		int ReadPixel(uint32_t attachmentIndex, int x, int y);

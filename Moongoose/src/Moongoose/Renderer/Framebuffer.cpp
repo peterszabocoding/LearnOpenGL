@@ -149,8 +149,32 @@ namespace Moongoose {
 
 	void Framebuffer::Bind(uint32_t viewportWidth, uint32_t viewportHeight)
 	{
+		int attachmentSize = m_ColorAttachments.size();
+		std::vector<unsigned int> attachments;
+		attachments.reserve(attachmentSize);
+
+		for (size_t i = 0; i < attachmentSize; i++) {
+			attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferID);
+		glDrawBuffers(attachmentSize, attachments.data());
 		RenderCommand::SetViewport(0, 0, viewportWidth, viewportHeight);
+	}
+
+	void Framebuffer::Bind(uint32_t startPosX, uint32_t startPosY, uint32_t viewportWidth, uint32_t viewportHeight)
+	{
+		int attachmentSize = m_ColorAttachments.size();
+		std::vector<unsigned int> attachments;
+		attachments.reserve(attachmentSize);
+
+		for (size_t i = 0; i < attachmentSize; i++) {
+			attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_FramebufferID);
+		glDrawBuffers(attachmentSize, attachments.data());
+		RenderCommand::SetViewport(startPosX, startPosY, viewportWidth, viewportHeight);
 	}
 
 	void Framebuffer::Unbind() {

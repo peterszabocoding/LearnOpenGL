@@ -12,6 +12,7 @@
 
 #include "Moongoose/Renderer/Mesh.h"
 #include "Moongoose/Renderer/Material.h"
+#include "Moongoose/Renderer/Renderer.h"
 
 namespace Moongoose {
 
@@ -189,6 +190,8 @@ namespace Moongoose {
 		float m_AmbientIntensity = 0.15f;
 		float m_AttenuationRadius = 10.0f;
 		float m_AttenuationAngle = 0.75f;
+		bool m_IsShadowCasting = false;
+		ShadowMapResolution m_ShadowMapResolution = ShadowMapResolution::MEDIUM;
 	};
 
 	struct BillboardComponent : Component

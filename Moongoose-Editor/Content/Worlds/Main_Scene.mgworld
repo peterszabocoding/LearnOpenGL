@@ -2,7 +2,7 @@
     "entities": [
         {
             "IDComponent": {
-                "id": "17137804326559430334"
+                "id": "14709337136393087278"
             },
             "MeshComponent": {
                 "asset": "14136211866202430725",
@@ -31,7 +31,7 @@
         },
         {
             "IDComponent": {
-                "id": "16093475032648978342"
+                "id": "11031241063496130104"
             },
             "MeshComponent": {
                 "asset": "17706748999392867240",
@@ -60,7 +60,7 @@
         },
         {
             "IDComponent": {
-                "id": "3392832405684462871"
+                "id": "17214824349175129664"
             },
             "TagComponent": {
                 "tag": "Billboard_Test"
@@ -85,9 +85,10 @@
         },
         {
             "IDComponent": {
-                "id": "16997338568663320689"
+                "id": "6733812801935416019"
             },
             "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
                 "attenuationAngle": 1.0,
                 "attenuationRadius": 24.600000381469727,
                 "color": {
@@ -96,6 +97,8 @@
                     "r": 0.9215686321258545
                 },
                 "intensity": 1.0,
+                "isShadowCasting": false,
+                "shadowResolution": 512,
                 "type": 1
             },
             "TagComponent": {
@@ -121,9 +124,10 @@
         },
         {
             "IDComponent": {
-                "id": "13511359537075712051"
+                "id": "9356955528964897257"
             },
             "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
                 "attenuationAngle": 0.5600000023841858,
                 "attenuationRadius": 26.299999237060547,
                 "color": {
@@ -132,6 +136,8 @@
                     "r": 0.37484532594680786
                 },
                 "intensity": 4.900000095367432,
+                "isShadowCasting": false,
+                "shadowResolution": 512,
                 "type": 2
             },
             "TagComponent": {
@@ -157,9 +163,10 @@
         },
         {
             "IDComponent": {
-                "id": "11123744477241322034"
+                "id": "18343218621128195033"
             },
             "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
                 "attenuationAngle": 0.75,
                 "attenuationRadius": 10.0,
                 "color": {
@@ -168,6 +175,8 @@
                     "r": 1.0
                 },
                 "intensity": 0.6000000238418579,
+                "isShadowCasting": true,
+                "shadowResolution": 512,
                 "type": 0
             },
             "TagComponent": {

@@ -6,6 +6,56 @@
 
 using namespace Moongoose;
 
+static uint8_t GetResolutionPositionInList(ShadowMapResolution resolution)
+{
+	switch (resolution)
+	{
+	case ShadowMapResolution::ULTRA_LOW:
+		return 0;
+	case ShadowMapResolution::LOW:
+		return 1;
+	case ShadowMapResolution::MEDIUM:
+		return 2;
+	case ShadowMapResolution::HIGH:
+		return 3;
+	case ShadowMapResolution::VERY_HIGH:
+		return 4;
+	case ShadowMapResolution::ULTRA_HIGH:
+		return 5;
+	}
+	return 0;
+}
+
+static ShadowMapResolution GetResolutionFromPositionInList(uint8_t pos)
+{
+	switch (pos)
+	{
+		case 0: return ShadowMapResolution::ULTRA_LOW;
+		case 1: return ShadowMapResolution::LOW;
+		case 2: return ShadowMapResolution::MEDIUM;
+		case 3: return ShadowMapResolution::HIGH;
+		case 4: return ShadowMapResolution::VERY_HIGH;
+		case 5: return ShadowMapResolution::ULTRA_HIGH;
+	}
+}
+
+static std::string ShadowMapResolutionToString(ShadowMapResolution resolution)
+{
+	return std::to_string((uint16_t)resolution);
+}
+
+static std::vector<std::string> GetShadowMapResolutionStrings()
+{
+	return {
+		ShadowMapResolutionToString(ShadowMapResolution::ULTRA_LOW),
+		ShadowMapResolutionToString(ShadowMapResolution::LOW),
+		ShadowMapResolutionToString(ShadowMapResolution::MEDIUM),
+		ShadowMapResolutionToString(ShadowMapResolution::HIGH),
+		ShadowMapResolutionToString(ShadowMapResolution::VERY_HIGH),
+		ShadowMapResolutionToString(ShadowMapResolution::ULTRA_HIGH)
+	};
+}
+
 void EntityInspectorLayer::onAttach()
 {
 	m_AssetManager = GetApplication()->GetAssetManager();
@@ -142,10 +192,18 @@ void EntityInspectorLayer::onImGuiRender()
 					cLight.m_Type = (LightType)selected;
 				});
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
-			GuiWidgets::DrawFloatControl("Ambient Intensity", cLight.m_AmbientIntensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
+			GuiWidgets::DrawFloatControl("Ambient Intensity", cLight.m_AmbientIntensity, 0.0f, 10000.0f, 0.01f, 1.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Attenuation Radius", cLight.m_AttenuationRadius, 0.0f, 10000.0f, 0.1f, 50.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Attenuation Angle", cLight.m_AttenuationAngle, 0.0f, 1.0f, 0.005f, 0.75f, windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
+			GuiWidgets::DrawCheckBox("Cast Shadow", &cLight.m_IsShadowCasting);
+
+			GuiWidgets::DrawSingleSelectDropdown("Shadow Map Resolution", GetShadowMapResolutionStrings(), GetResolutionPositionInList(cLight.m_ShadowMapResolution), [&](int selected)
+			{
+				ShadowMapResolution resolution = GetResolutionFromPositionInList(selected);
+				cLight.m_ShadowMapResolution = resolution;
+			});
+
 
 			ImGui::TreePop();
 		}

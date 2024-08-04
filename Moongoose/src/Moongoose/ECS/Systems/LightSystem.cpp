@@ -31,7 +31,8 @@ namespace Moongoose
 					Renderer::PushDirectionalLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						true,
+						cLight.m_IsShadowCasting,
+						cLight.m_ShadowMapResolution,
 						cTransform.GetForwardDirection(),
 						cLight.m_Color,
 						cLight.m_Intensity * cLight.m_AmbientIntensity
@@ -41,7 +42,8 @@ namespace Moongoose
 					Renderer::PushPointLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						false,
+						cLight.m_IsShadowCasting,
+						cLight.m_ShadowMapResolution,
 						cTransform.m_Position,
 						cLight.m_AttenuationRadius
 					});
@@ -50,7 +52,8 @@ namespace Moongoose
 					Renderer::PushSpotLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						false,
+						cLight.m_IsShadowCasting,
+						cLight.m_ShadowMapResolution,
 						cTransform.m_Position,
 						cLight.m_AttenuationRadius,
 						cTransform.GetForwardDirection(),

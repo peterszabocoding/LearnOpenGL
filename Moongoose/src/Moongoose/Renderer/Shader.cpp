@@ -180,7 +180,7 @@ namespace Moongoose {
 		const bool useSoftShadow)
 	{
 		UploadUniformFloat3("directionalLight.base.color", color);
-		UploadUniformFloat("directionalLight.base.intensity", intensity);
+		UploadUniformFloat("directionalLight.base.intensity", intensity); 
 		UploadUniformFloat("directionalLight.base.isShadowCasting", isShadowCasting);
 		UploadUniformFloat("directionalLight.base.useSoftShadow", useSoftShadow);
 		UploadUniformFloat3("directionalLight.direction", direction);

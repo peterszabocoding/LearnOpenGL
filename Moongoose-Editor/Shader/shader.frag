@@ -26,6 +26,9 @@ struct Light {
 	float intensity;
 	bool isShadowCasting;
 	bool useSoftShadow;
+
+	vec2 shadowMapTopLeft;
+	vec2 shadowMapSize;
 };
 
 struct DirectionalLight {
@@ -62,6 +65,7 @@ uniform Material material;
 uniform mat4 lightTransform;
 
 vec3 normalizedNormal;
+vec2 shadowMapTextureSize;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -119,21 +123,39 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
 
 // ------------------------ LIGHTS --------------------------------------------
 
+vec2 CalculateShadowMapRatio(vec2 shadowMapSize)
+{
+	return vec2(shadowMapSize.x / shadowMapTextureSize.x, shadowMapSize.y / shadowMapTextureSize.y);
+}
+
+float ReadShadowMap(sampler2DShadow shadowMap, vec2 shadowMapPosition, vec2 shadowMapSize, vec3 projCoords)
+{
+	vec3 offset = vec3(shadowMapPosition.x / shadowMapTextureSize.x, shadowMapPosition.y / shadowMapTextureSize.y, 0.0);
+	vec3 ratio = vec3(CalculateShadowMapRatio(shadowMapSize), 1.0);
+
+	vec3 newProjCoords = offset + projCoords * ratio;
+
+	return texture(shadowMap, newProjCoords);
+}
+
 float rand(vec2 co){
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 float CalcPCFSoftShadow(sampler2DShadow shadowMap, vec3 projectedCoords, float bias) {
 	float shadow = 0.0;
-	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	vec2 texelSize = 1.0 / directionalLight.base.shadowMapSize;
 	for(int x = -2; x <= 2; ++x) {
 		for(int y = -2; y <= 2; ++y) {
 			float randomFactor = 0.15;
-			shadow += texture(shadowMap, vec3(projectedCoords.xy + vec2(x + randomFactor * rand(gl_FragCoord.xy),y + randomFactor * rand(gl_FragCoord.xy)) * texelSize, projectedCoords.z - bias)).r;
+			vec3 projCoords = vec3(projectedCoords.xy + vec2(x + randomFactor * rand(gl_FragCoord.xy),y + randomFactor * rand(gl_FragCoord.xy)) * texelSize, projectedCoords.z - bias);
+			
+			if (projCoords.x < 0 || projCoords.y < 0 || projCoords.x > 1.0 || projCoords.y > 1.0) return 1.0;
+			shadow += ReadShadowMap(shadowMap, directionalLight.base.shadowMapTopLeft, directionalLight.base.shadowMapSize, projCoords).r;
 		}
 	}
 	return shadow / 25.0;
-}
+} 
 
 float CalcShadowFactor(sampler2DShadow shadowMap, Light light) {
 	if (!light.isShadowCasting) return 1.0;
@@ -148,7 +170,7 @@ float CalcShadowFactor(sampler2DShadow shadowMap, Light light) {
 
 	float shadowFactor = light.useSoftShadow 
 		? CalcPCFSoftShadow(shadowMap, projCoords, bias) 
-		: texture(shadowMap, projCoords);
+		: ReadShadowMap(shadowMap, vec2(0.0, 0.0), vec2(0.0, 0.0), projCoords);
 
 	return shadowFactor;
 }
@@ -230,6 +252,8 @@ void main()
     vec3 ambient = vec3(0.05f, 0.05f, 0.05f);
     float diff = max(dot(Normal, vec3(1.0f, 1.0f, 1.0f)), 0.0);
     vec3 diffuse = diff * vec3(1.0f, 1.0f, 1.0f);
+
+	shadowMapTextureSize = textureSize(ShadowMapTexture, 0);
 
 	//vec3 n = texture(NormalTexture, TexCoord).rgb;
 	vec3 n = vec3(0.5, 0.5, 1);
