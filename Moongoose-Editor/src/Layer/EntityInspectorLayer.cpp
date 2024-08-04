@@ -136,15 +136,16 @@ void EntityInspectorLayer::onImGuiRender()
 		if (world->HasComponent<LightComponent>(selectedEntity) && ImGui::TreeNode("Light"))
 		{
 			auto& cLight = world->GetComponent<LightComponent>(selectedEntity);
-			auto windowSize = ImGui::GetWindowSize();
+
+			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int)cLight.m_Type, [&](int selected)
+				{
+					cLight.m_Type = (LightType)selected;
+				});
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
+			GuiWidgets::DrawFloatControl("Ambient Intensity", cLight.m_AmbientIntensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Attenuation Radius", cLight.m_AttenuationRadius, 0.0f, 10000.0f, 0.1f, 50.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Attenuation Angle", cLight.m_AttenuationAngle, 0.0f, 1.0f, 0.005f, 0.75f, windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
-			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int) cLight.m_Type, [&](int selected)
-				{
-					cLight.m_Type = (LightType) selected;
-				});
 
 			ImGui::TreePop();
 		}
@@ -154,7 +155,6 @@ void EntityInspectorLayer::onImGuiRender()
 	{
 		if (world->HasComponent<BillboardComponent>(selectedEntity))
 		{
-			auto windowSize = ImGui::GetWindowSize();
 			auto& cBillboard = world->GetComponent<BillboardComponent>(selectedEntity);
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 			if (ImGui::TreeNode("Billboard")) {

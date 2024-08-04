@@ -114,7 +114,8 @@ namespace Moongoose {
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		unsigned int GetDirectionLocation() const;
-		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, const float intensity, bool isShadowCasting, bool useSoftShadow);
+		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, glm::vec3 ambientColor, const float intensity, 
+			const float ambientIntensity, const bool isShadowCasting, const bool useSoftShadow);
 		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
 		void SetSpotLight(glm::vec3 direction, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
 		

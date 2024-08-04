@@ -32,7 +32,9 @@ namespace Moongoose
 						cLight.m_Color,
 						cLight.m_Intensity,
 						true,
-						cTransform.GetForwardDirection()
+						cTransform.GetForwardDirection(),
+						cLight.m_Color,
+						cLight.m_Intensity * cLight.m_AmbientIntensity
 					});
 					break;
 				case LightType::Point:

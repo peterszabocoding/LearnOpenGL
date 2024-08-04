@@ -54,7 +54,7 @@ namespace Moongoose {
 		{
 			const DirectionalLight light = m_DirectionalLights[0];
 			shader->UploadUniformMat4("lightTransform", GetDirectionalLightProjection(light) * lookAt(light.direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-			shader->SetDirectionalLight(light.direction, light.color, light.intensity, light.isShadowCasting, true);
+			shader->SetDirectionalLight(light.direction, light.color, light.ambientColor, light.intensity, light.ambientIntensity, light.isShadowCasting, true);
 			shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 		}
 
@@ -213,8 +213,12 @@ namespace Moongoose {
 	void Renderer::InitShadowBuffer()
 	{
 		FramebufferSpecs specs;
-		specs.Width = 4096;
-		specs.Height = 4096;
+		//specs.Width = 4096;
+		//specs.Height = 4096;
+
+		specs.Width = 2048;
+		specs.Height = 2048;
+
 		specs.HasShadowMapAttachment = true;
 		specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 		specs.Attachments = {

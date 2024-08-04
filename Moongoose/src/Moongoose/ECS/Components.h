@@ -186,6 +186,7 @@ namespace Moongoose {
 		LightType m_Type = LightType::Point;
 		glm::vec3 m_Color = glm::vec3(1.0f);
 		float m_Intensity = 1.0f;
+		float m_AmbientIntensity = 0.15f;
 		float m_AttenuationRadius = 10.0f;
 		float m_AttenuationAngle = 0.75f;
 	};

@@ -41,7 +41,7 @@ void RenderLayer::onUpdate(const float deltaTime)
 
 	CalculateWindowMousePosition();
 
-	if (IsMouseInWindow())
+	if (IsMouseInWindow() && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT))
 	{
 		Renderer::GetRenderBuffer()->Bind();
 		m_HoveredEntityId = Renderer::GetRenderBuffer()->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);

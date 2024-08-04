@@ -8,6 +8,12 @@
 #include "Moongoose/Application.h"
 #include "Moongoose/Application.h"
 #include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
 
 namespace Moongoose {
 
@@ -164,13 +170,22 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 	}
 	
-	void Shader::SetDirectionalLight(const glm::vec3 direction, const glm::vec3 color, const float intensity, bool isShadowCasting, bool useSoftShadow)
+	void Shader::SetDirectionalLight(
+		const glm::vec3 direction, 
+		const glm::vec3 color,
+		const glm::vec3 ambientColor,
+		const float intensity, 
+		const float ambientIntensity,
+		const bool isShadowCasting, 
+		const bool useSoftShadow)
 	{
 		UploadUniformFloat3("directionalLight.base.color", color);
 		UploadUniformFloat("directionalLight.base.intensity", intensity);
 		UploadUniformFloat("directionalLight.base.isShadowCasting", isShadowCasting);
 		UploadUniformFloat("directionalLight.base.useSoftShadow", useSoftShadow);
 		UploadUniformFloat3("directionalLight.direction", direction);
+		UploadUniformFloat3("directionalLight.ambientColor", ambientColor);
+		UploadUniformFloat("directionalLight.ambientIntensity", ambientIntensity);
 	}
 
 	void Shader::SetPointLight(const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius)

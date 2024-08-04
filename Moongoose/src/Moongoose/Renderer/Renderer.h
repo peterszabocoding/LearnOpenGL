@@ -28,6 +28,8 @@ namespace Moongoose {
 		struct DirectionalLight: Light
 		{
 			glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);
+			glm::vec3 ambientColor = glm::vec3(1.0f);
+			float ambientIntensity = 0.1f;
 		};
 
 		struct PointLight: Light
