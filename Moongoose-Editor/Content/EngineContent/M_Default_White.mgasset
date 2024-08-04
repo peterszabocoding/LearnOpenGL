@@ -1,0 +1,10 @@
+{
+    "albedo": {
+        "ID": "8930786947607938934",
+        "Name": "T_Default_White"
+    },
+    "id": "12248695733264798360",
+    "name": "M_Default_White",
+    "source": "Content\\EngineContent\\",
+    "type": "Material"
+}

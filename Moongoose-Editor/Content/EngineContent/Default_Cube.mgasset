@@ -1,0 +1,12 @@
+{
+    "id": "17706748999392867240",
+    "materials": [
+        [
+            "12295842333264798360",
+            "Material 0"
+        ]
+    ],
+    "name": "Default_Cube",
+    "source": "Content\\EngineContent\\Default_Cube.fbx",
+    "type": "Mesh"
+}

@@ -1,0 +1,10 @@
+{
+    "albedo": {
+        "ID": "8930786947602648694",
+        "Name": "T_Default_Checker"
+    },
+    "id": "12295842333264798360",
+    "name": "M_Default_Checker",
+    "source": "Content\\EngineContent\\",
+    "type": "Material"
+}

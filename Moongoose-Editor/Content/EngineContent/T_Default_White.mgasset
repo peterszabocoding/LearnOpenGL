@@ -1,0 +1,9 @@
+{
+    "id": "8930786947607938934",
+    "name": "T_Default_White",
+    "source": "Content\\EngineContent\\default_white.png",
+	"texture_filter": "Linear",
+    "texture_type": "Texture2D",
+    "texture_wrap": "Repeat",
+    "type": "Texture"
+}

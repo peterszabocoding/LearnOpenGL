@@ -1,0 +1,9 @@
+{
+    "id": "8930786947602648694",
+    "name": "T_Default_Checker",
+    "source": "Content\\EngineContent\\default_checker.png",
+	"texture_filter": "Linear",
+    "texture_type": "Texture2D",
+    "texture_wrap": "Repeat",
+    "type": "Texture"
+}
