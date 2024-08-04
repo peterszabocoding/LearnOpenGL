@@ -60,6 +60,7 @@ struct Material {
 
 uniform int pointLightCount;
 uniform int spotLightCount;
+
 uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];

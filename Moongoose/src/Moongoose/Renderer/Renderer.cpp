@@ -85,12 +85,12 @@ namespace Moongoose {
 
 	void Renderer::PreparePointLight(const PointLight& light, const Ref<Shader>& shader)
 	{
-		shader->SetPointLight(light, GetPointLightTransform(light));
+		shader->AddPointLight(light, GetPointLightTransform(light));
 	}
 
 	void Renderer::PrepareSpotLight(const SpotLight& light, const Ref<Shader>& shader)
 	{
-		shader->SetSpotLight(light, GetSpotLightTransform(light));
+		shader->AddSpotLight(light, GetSpotLightTransform(light));
 
 		if (light.shadowType != ShadowType::NONE && m_ShadowMapAtlas.size() > 1)
 		{

@@ -117,8 +117,8 @@ namespace Moongoose {
 
 		unsigned int GetDirectionLocation() const;
 		void SetDirectionalLight(const ::DirectionalLight& directionalLight, const glm::mat4& lightTransform);
-		void SetPointLight(const ::PointLight& pointLight, const glm::mat4& lightTransform);
-		void SetSpotLight(const ::SpotLight& spotLight, const glm::mat4& lightTransform);
+		void AddPointLight(const ::PointLight& pointLight, const glm::mat4& lightTransform);
+		void AddSpotLight(const ::SpotLight& spotLight, const glm::mat4& lightTransform);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);
@@ -139,6 +139,9 @@ namespace Moongoose {
 		unsigned int GetUniformLocation(const std::string& name);
 
 	private:
+		size_t pointLightCount = 0;
+		size_t spotLightCount = 0;
+
 		ShaderType shaderType;
 		std::string vertexShaderSourcePath;
 		std::string fragmentShaderSourcePath;

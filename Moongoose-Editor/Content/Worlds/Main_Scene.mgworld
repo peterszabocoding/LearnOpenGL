@@ -2,7 +2,7 @@
     "entities": [
         {
             "IDComponent": {
-                "id": "1400018274701566315"
+                "id": "16942636439627434446"
             },
             "MeshComponent": {
                 "asset": "14136211866202430725",
@@ -31,7 +31,7 @@
         },
         {
             "IDComponent": {
-                "id": "12816885940075994201"
+                "id": "2144756791319046851"
             },
             "MeshComponent": {
                 "asset": "17706748999392867240",
@@ -60,7 +60,7 @@
         },
         {
             "IDComponent": {
-                "id": "12491398078575445260"
+                "id": "7805837022922368711"
             },
             "TagComponent": {
                 "tag": "Billboard_Test"
@@ -85,16 +85,16 @@
         },
         {
             "IDComponent": {
-                "id": "2611878064890376377"
+                "id": "7738989644223269066"
             },
             "LightComponent": {
                 "ambientIntensity": 0.15000000596046448,
                 "attenuationAngle": 1.0,
                 "attenuationRadius": 24.600000381469727,
                 "color": {
-                    "b": 0.5254902243614197,
-                    "g": 0.7647058963775635,
-                    "r": 0.9215686321258545
+                    "b": 1.0,
+                    "g": 1.0,
+                    "r": 1.0
                 },
                 "intensity": 1.0,
                 "isShadowCasting": false,
@@ -106,9 +106,9 @@
             },
             "TransformComponent": {
                 "position": {
-                    "x": -2.8781988620758057,
-                    "y": 7.337865352630615,
-                    "z": -3.0750832557678223
+                    "x": -53.314735412597656,
+                    "y": 7.33778715133667,
+                    "z": -48.35136032104492
                 },
                 "rotation": {
                     "x": 0.0,
@@ -124,7 +124,7 @@
         },
         {
             "IDComponent": {
-                "id": "13495599534981004377"
+                "id": "7149617533477417635"
             },
             "LightComponent": {
                 "ambientIntensity": 0.0,
@@ -145,17 +145,17 @@
             },
             "TransformComponent": {
                 "position": {
-                    "x": -0.3096179664134979,
-                    "y": 3.5976927280426025,
-                    "z": 15.879850387573242
+                    "x": -0.9310793876647949,
+                    "y": 3.9033875465393066,
+                    "z": 17.781654357910156
                 },
                 "rotation": {
                     "x": -170.8388671875,
-                    "y": -0.5406290888786316,
-                    "z": -180.0
+                    "y": -0.5406270623207092,
+                    "z": 180.0
                 },
                 "scale": {
-                    "x": 0.9993315935134888,
+                    "x": 0.9993327260017395,
                     "y": 1.0,
                     "z": 0.9965973496437073
                 }
@@ -163,7 +163,7 @@
         },
         {
             "IDComponent": {
-                "id": "11637180979698482882"
+                "id": "13420075066717669042"
             },
             "LightComponent": {
                 "ambientIntensity": 1.3700000047683716,
@@ -196,6 +196,162 @@
                 "scale": {
                     "x": 1.0000001192092896,
                     "y": 0.9999998807907104,
+                    "z": 1.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "16255966330949242945"
+            },
+            "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
+                "attenuationAngle": 0.7699999809265137,
+                "attenuationRadius": 76.0999984741211,
+                "color": {
+                    "b": 1.0,
+                    "g": 1.0,
+                    "r": 1.0
+                },
+                "intensity": 1.0,
+                "isShadowCasting": false,
+                "shadowResolution": 512,
+                "type": 2
+            },
+            "TagComponent": {
+                "tag": "Spot 2"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 24.39261245727539,
+                    "y": 3.429216146469116,
+                    "z": -12.84942626953125
+                },
+                "rotation": {
+                    "x": 20.365121841430664,
+                    "y": -58.91681671142578,
+                    "z": -3.142022978863679e-05
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 0.9999998807907104,
+                    "z": 1.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "11167277619583254807"
+            },
+            "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
+                "attenuationAngle": 0.75,
+                "attenuationRadius": 61.79999923706055,
+                "color": {
+                    "b": 1.0,
+                    "g": 0.0,
+                    "r": 0.7490348815917969
+                },
+                "intensity": 2.799999952316284,
+                "isShadowCasting": false,
+                "shadowResolution": 512,
+                "type": 2
+            },
+            "TagComponent": {
+                "tag": "Spot 3"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 0.0,
+                    "y": 7.134545803070068,
+                    "z": -30.75255584716797
+                },
+                "rotation": {
+                    "x": 18.80803680419922,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "11040049532164980016"
+            },
+            "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
+                "attenuationAngle": 0.75,
+                "attenuationRadius": 20.200000762939453,
+                "color": {
+                    "b": 0.0,
+                    "g": 0.0,
+                    "r": 1.0
+                },
+                "intensity": 5.099999904632568,
+                "isShadowCasting": false,
+                "shadowResolution": 512,
+                "type": 1
+            },
+            "TagComponent": {
+                "tag": "Point 2"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": -22.609325408935547,
+                    "y": 7.091058731079102,
+                    "z": -49.42200469970703
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "4315518074153239155"
+            },
+            "LightComponent": {
+                "ambientIntensity": 0.15000000596046448,
+                "attenuationAngle": 0.5899999737739563,
+                "attenuationRadius": 27.700000762939453,
+                "color": {
+                    "b": 0.015444040298461914,
+                    "g": 1.0,
+                    "r": 0.0
+                },
+                "intensity": 1.7999999523162842,
+                "isShadowCasting": false,
+                "shadowResolution": 512,
+                "type": 1
+            },
+            "TagComponent": {
+                "tag": "Point 3"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 9.632139205932617,
+                    "y": 1.75445556640625,
+                    "z": -49.172393798828125
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 1.0,
+                    "y": 1.0,
                     "z": 1.0
                 }
             }

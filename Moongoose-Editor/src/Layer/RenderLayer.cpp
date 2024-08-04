@@ -40,13 +40,6 @@ void RenderLayer::onUpdate(const float deltaTime)
 	Renderer::RenderWorld(m_EditorCamera, m_WorldManager->GetLoadedWorld());
 
 	CalculateWindowMousePosition();
-
-	if (IsMouseInWindow() && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT))
-	{
-		Renderer::GetRenderBuffer()->Bind();
-		m_HoveredEntityId = Renderer::GetRenderBuffer()->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
-		Renderer::GetRenderBuffer()->Unbind();
-	}
 }
 
 void RenderLayer::onEvent(Event& event)
@@ -224,12 +217,14 @@ bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 
 bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 {
-	//const bool mouseHoveredOverEntity = m_HoveredEntityId != -1;
 	const bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
-
-	if (WorldManager::GetLoadedWorld() && IsMouseInWindow() && entitySelectButtonsPressed)
+	if (m_WorldManager->GetLoadedWorld() && IsMouseInWindow() && entitySelectButtonsPressed)
 	{
-		WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
+		Renderer::GetRenderBuffer()->Bind();
+		m_HoveredEntityId = Renderer::GetRenderBuffer()->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
+		Renderer::GetRenderBuffer()->Unbind();
+
+		m_WorldManager->GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
 	}
 	return false;
 }

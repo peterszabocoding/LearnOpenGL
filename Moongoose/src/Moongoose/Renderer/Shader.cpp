@@ -149,6 +149,9 @@ namespace Moongoose {
 		glUniform1i(uniformPointLightCount, 0);
 		glUniform1i(uniformSpotLightCount, 0);
 
+		spotLightCount = 0;
+		pointLightCount = 0;
+
 		UploadUniformFloat("directionalLight.base.intensity", 0.0f);
 		UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
@@ -180,34 +183,42 @@ namespace Moongoose {
 		UploadUniformFloat("directionalLight.ambientIntensity", directionalLight.ambientIntensity);
 	}
 
-	void Shader::SetPointLight(const PointLight& pointLight, const glm::mat4& lightTransform)
+	void Shader::AddPointLight(const PointLight& pointLight, const glm::mat4& lightTransform)
 	{
-		glUniform1i(uniformPointLightCount, 1);
+		UploadUniformInt("pointLightCount", pointLightCount + 1);
 
-		UploadUniformFloat3("pointLights[0].base.color", pointLight.color);
-		UploadUniformFloat("pointLights[0].base.intensity", pointLight.intensity);
-		UploadUniformMat4("pointLights[0].base.lightTransform", lightTransform);
+		const std::string base = "pointLights[" + std::to_string(pointLightCount) + "]";
 
-		UploadUniformFloat3("pointLights[0].position", pointLight.position);
-		UploadUniformFloat("pointLights[0].attenuationRadius", pointLight.attenuationRadius);
+		UploadUniformFloat3(base + ".base.color", pointLight.color);
+		UploadUniformFloat(base + ".base.intensity", pointLight.intensity);
+		UploadUniformMat4(base + ".base.lightTransform", lightTransform);
+
+		UploadUniformFloat3(base + ".position", pointLight.position);
+		UploadUniformFloat(base + ".attenuationRadius", pointLight.attenuationRadius);
+
+		pointLightCount++;
 	}
 
-	void Shader::SetSpotLight(const SpotLight& spotLight, const glm::mat4& lightTransform)
+	void Shader::AddSpotLight(const SpotLight& spotLight, const glm::mat4& lightTransform)
 	{
-		glUniform1i(uniformSpotLightCount, 1);
+		UploadUniformInt("spotLightCount", spotLightCount + 1);
 
-		UploadUniformFloat3("spotLights[0].base.base.color", spotLight.color);
-		UploadUniformFloat("spotLights[0].base.base.intensity", spotLight.intensity);
-		UploadUniformFloat("spotLights[0].base.base.isShadowCasting", spotLight.shadowType != ShadowType::NONE);
-		UploadUniformFloat("spotLights[0].base.base.useSoftShadow", spotLight.shadowType == ShadowType::SOFT);
-		UploadUniformMat4("spotLights[0].base.base.lightTransform", lightTransform);
-		UploadUniformFloat("spotLights[0].base.base.bias", 0.00005f);
+		const std::string base = "spotLights[" + std::to_string(spotLightCount) + "]";
 
-		UploadUniformFloat3("spotLights[0].base.position", spotLight.position);
-		UploadUniformFloat("spotLights[0].base.attenuationRadius", spotLight.attenuationRadius);
+		UploadUniformFloat3(base + ".base.base.color", spotLight.color);
+		UploadUniformFloat(base + ".base.base.intensity", spotLight.intensity);
+		UploadUniformFloat(base + ".base.base.isShadowCasting", spotLight.shadowType != ShadowType::NONE);
+		UploadUniformFloat(base + ".base.base.useSoftShadow", spotLight.shadowType == ShadowType::SOFT);
+		UploadUniformMat4(base + ".base.base.lightTransform", lightTransform);
+		UploadUniformFloat(base + ".base.base.bias", 0.00005f);
 
-		UploadUniformFloat3("spotLights[0].direction", spotLight.direction);
-		UploadUniformFloat("spotLights[0].attenuationAngle", spotLight.attenuationAngle);
+		UploadUniformFloat3(base + ".base.position", spotLight.position);
+		UploadUniformFloat(base + ".base.attenuationRadius", spotLight.attenuationRadius);
+
+		UploadUniformFloat3(base + ".direction", spotLight.direction);
+		UploadUniformFloat(base + ".attenuationAngle", spotLight.attenuationAngle);
+
+		spotLightCount++;
 	}
 
 	/*
@@ -321,14 +332,8 @@ namespace Moongoose {
 			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].position", i);
 			uniformPointLight[i].uniformPosition = glGetUniformLocation(shaderID, locBuff);
 
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].constant", i);
+			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].attenuationRadius", i);
 			uniformPointLight[i].uniformConstant = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].linear", i);
-			uniformPointLight[i].uniformLinear = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].exponent", i);
-			uniformPointLight[i].uniformExponent = glGetUniformLocation(shaderID, locBuff);
 		}
 
 		uniformSpotLightCount = glGetUniformLocation(shaderID, "spotLightCount");
@@ -350,14 +355,8 @@ namespace Moongoose {
 			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.position", i);
 			uniformSpotLight[i].uniformPosition = glGetUniformLocation(shaderID, locBuff);
 
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.constant", i);
+			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.attenuationRadius", i);
 			uniformSpotLight[i].uniformConstant = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.linear", i);
-			uniformSpotLight[i].uniformLinear = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.exponent", i);
-			uniformSpotLight[i].uniformExponent = glGetUniformLocation(shaderID, locBuff);
 
 			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].direction", i);
 			uniformSpotLight[i].uniformDirection = glGetUniformLocation(shaderID, locBuff);
@@ -368,8 +367,7 @@ namespace Moongoose {
 
 		uniformTexture = glGetUniformLocation(shaderID, "AlbedoTexture");
 		uniformNormalMap = glGetUniformLocation(shaderID, "NormalTexture");
-		uniformDirectionalLightTransform = glGetUniformLocation(shaderID, "directionalLightTransform");
-		uniformDirectionalShadowMap = glGetUniformLocation(shaderID, "directionalShadowMap");
+		//uniformShadowMap = glGetUniformLocation(shaderID, "ShadowMapTexture");
 	}
 
 	void Shader::AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType)
