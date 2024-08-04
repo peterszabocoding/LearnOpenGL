@@ -27,8 +27,11 @@ struct Light {
 	bool isShadowCasting;
 	bool useSoftShadow;
 
+	float bias;
 	vec2 shadowMapTopLeft;
 	vec2 shadowMapSize;
+
+	mat4 lightTransform;
 };
 
 struct DirectionalLight {
@@ -61,8 +64,6 @@ uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform Material material;
-
-uniform mat4 lightTransform;
 
 vec3 normalizedNormal;
 vec2 shadowMapTextureSize;
@@ -142,16 +143,16 @@ float rand(vec2 co){
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-float CalcPCFSoftShadow(sampler2DShadow shadowMap, vec3 projectedCoords, float bias) {
+float CalcPCFSoftShadow(Light light, sampler2DShadow shadowMap, vec3 projectedCoords, float bias) {
 	float shadow = 0.0;
-	vec2 texelSize = 1.0 / directionalLight.base.shadowMapSize;
+	vec2 texelSize = 1.0 / light.shadowMapSize;
 	for(int x = -2; x <= 2; ++x) {
 		for(int y = -2; y <= 2; ++y) {
 			float randomFactor = 0.15;
 			vec3 projCoords = vec3(projectedCoords.xy + vec2(x + randomFactor * rand(gl_FragCoord.xy),y + randomFactor * rand(gl_FragCoord.xy)) * texelSize, projectedCoords.z - bias);
 			
 			if (projCoords.x < 0 || projCoords.y < 0 || projCoords.x > 1.0 || projCoords.y > 1.0) return 1.0;
-			shadow += ReadShadowMap(shadowMap, directionalLight.base.shadowMapTopLeft, directionalLight.base.shadowMapSize, projCoords).r;
+			shadow += ReadShadowMap(shadowMap, light.shadowMapTopLeft, light.shadowMapSize, projCoords).r;
 		}
 	}
 	return shadow / 25.0;
@@ -160,16 +161,14 @@ float CalcPCFSoftShadow(sampler2DShadow shadowMap, vec3 projectedCoords, float b
 float CalcShadowFactor(sampler2DShadow shadowMap, Light light) {
 	if (!light.isShadowCasting) return 1.0;
 
-	vec4 lightSpacePos = lightTransform * WorldPos;
+	vec4 lightSpacePos = light.lightTransform * WorldPos;
 	vec3 projCoords = lightSpacePos.rgb / lightSpacePos.a;
 	projCoords = (projCoords * 0.5) + 0.5;
 
-	float bias = 0.005;
-
-	if (projCoords.z - bias > 1.0) return 1.0;
+	if (projCoords.z - light.bias > 1.0) return 1.0;
 
 	float shadowFactor = light.useSoftShadow 
-		? CalcPCFSoftShadow(shadowMap, projCoords, bias) 
+		? CalcPCFSoftShadow(light, shadowMap, projCoords, light.bias) 
 		: ReadShadowMap(shadowMap, vec2(0.0, 0.0), vec2(0.0, 0.0), projCoords);
 
 	return shadowFactor;
@@ -215,11 +214,12 @@ vec4 CalcPointLight(PointLight pLight)
 
 vec4 CalcSpotLight(SpotLight sLight) 
 {
-	vec3 rayDirection = normalize(FragPos - sLight.base.position);
+	vec3 rayDirection = normalize(sLight.base.position - FragPos);
 	float slFactor = dot(rayDirection, sLight.direction);
 
 	if (slFactor > sLight.attenuationAngle) {
-		vec4 color = CalcPointLight(sLight.base);
+		float shadowFactor = CalcShadowFactor(ShadowMapTexture, sLight.base.base);
+		vec4 color = CalcPointLight(sLight.base) * shadowFactor;
 		return color * (1.0 - (1.0 - slFactor) * (1.0/(1 - sLight.attenuationAngle)));
 	} else {
 		return vec4(0, 0, 0, 0);

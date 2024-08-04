@@ -15,7 +15,8 @@ namespace Moongoose {
 		STATIC = 0,
 		LIGHTING,
 		STATIC_ALPHA,
-		SHADOW_MAP,
+		SHADOW_MAP_DIRECTIONAL,
+		SHADOW_MAP_SPOT,
 		SHADOW_MAP_ALPHA,
 		EQUIRECTANGULAR_TO_CUBE,
 		IRRADIANCE_MAP,
@@ -72,7 +73,7 @@ namespace Moongoose {
 				case ShaderType::STATIC:					return "STATIC";
 				case ShaderType::STATIC_ALPHA:				return "STATIC_ALPHA";
 				case ShaderType::LIGHTING:					return "LIGHTING";
-				case ShaderType::SHADOW_MAP:				return "SHADOW_MAP";
+				case ShaderType::SHADOW_MAP_DIRECTIONAL:				return "SHADOW_MAP_DIRECTIONAL";
 				case ShaderType::SHADOW_MAP_ALPHA:			return "SHADOW_MAP_ALPHA";
 				case ShaderType::EQUIRECTANGULAR_TO_CUBE:	return "EQUIRECTANGULAR_TO_CUBE";
 				case ShaderType::IRRADIANCE_MAP:			return "IRRADIANCE_MAP";
@@ -114,10 +115,12 @@ namespace Moongoose {
 		std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		unsigned int GetDirectionLocation() const;
-		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, glm::vec3 ambientColor, const float intensity, 
-			const float ambientIntensity, const bool isShadowCasting, const bool useSoftShadow);
-		void SetPointLight(glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius);
-		void SetSpotLight(glm::vec3 direction, glm::vec3 position, glm::vec3 color, float intensity, float attenuationRadius, float attenuationAngle);
+		void SetDirectionalLight(glm::vec3 direction, glm::vec3 color, glm::vec3 ambientColor, const glm::mat4& lightTransform,
+		                         const float intensity, const float ambientIntensity, const bool isShadowCasting, const bool useSoftShadow);
+		void SetPointLight(glm::vec3 position, glm::vec3 color, const glm::mat4& lightTransform, const float intensity, const float attenuationRadius);
+		void SetSpotLight(glm::vec3 direction, glm::vec3 position, glm::vec3 color, const glm::mat4& lightTransform, const float intensity, const float
+		                  attenuationRadius, float
+		                  attenuationAngle, const bool isShadowCasting = false, const bool useSoftShadow = false);
 		
 		/*
 		void SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight);

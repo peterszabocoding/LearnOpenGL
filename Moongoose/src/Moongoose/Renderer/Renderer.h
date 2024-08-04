@@ -119,6 +119,11 @@ namespace Moongoose {
 		static glm::mat4 GetDirectionalLightProjection(const DirectionalLight& light);
 		static glm::mat4 GetPointLightProjection(const PointLight& light);
 		static glm::mat4 GetSpotLightProjection(const SpotLight& light);
+
+		static glm::mat4 GetDirectionalLightTransform(const DirectionalLight& light);
+		static glm::mat4 GetPointLightTransform(const PointLight& light);
+		static glm::mat4 GetSpotLightTransform(const SpotLight& light);
+
 		static std::vector<AtlasBox> AllocateTextureAtlas(glm::uvec2 const& atlasSize, std::vector<uint16_t> const& textureSizes);
 
 	private:

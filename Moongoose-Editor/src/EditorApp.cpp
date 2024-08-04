@@ -15,7 +15,9 @@
 #include "Layer/FramebufferViewerLayer.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 
-class EditorApp : public Moongoose::Application
+using namespace Moongoose;
+
+class EditorApp : public Application
 {
 public:
 	EditorApp()
@@ -23,10 +25,11 @@ public:
 		ResourceManager::LoadResources();
 		GetAssetManager()->BuildAssetRegistry();
 
-		Moongoose::ShaderManager::AssignShaderToType(Moongoose::ShaderType::STATIC,		"shader\\shader.vert",					"shader\\shader.frag");
-		Moongoose::ShaderManager::AssignShaderToType(Moongoose::ShaderType::BILLBOARD,	"shader\\billboard.vs",					"shader\\billboard.fs");
-		Moongoose::ShaderManager::AssignShaderToType(Moongoose::ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs",			"shader\\atmos_scattering.fs");
-		Moongoose::ShaderManager::AssignShaderToType(Moongoose::ShaderType::SHADOW_MAP, "shader\\directional_shadow_map.vs",	"shader\\directional_shadow_map.fs");
+		ShaderManager::AssignShaderToType(ShaderType::STATIC,					"shader\\shader.vert",					"shader\\shader.frag");
+		ShaderManager::AssignShaderToType(ShaderType::BILLBOARD,				"shader\\billboard.vs",					"shader\\billboard.fs");
+		ShaderManager::AssignShaderToType(ShaderType::ATMOSPHERE,				"shader\\atmos_scattering.vs",			"shader\\atmos_scattering.fs");
+		ShaderManager::AssignShaderToType(ShaderType::SHADOW_MAP_DIRECTIONAL,	"shader\\shadow_map.vs",				"shader\\directional_shadow_map.fs");
+		ShaderManager::AssignShaderToType(ShaderType::SHADOW_MAP_SPOT,			"shader\\shadow_map.vs",				"shader\\spot_shadow_map.fs");
 
 		PushLayer(new ImGuiConfigLayer());
 		PushLayer(new PerformanceLayer());
@@ -42,7 +45,7 @@ public:
 	~EditorApp() override = default;
 };
 
-Moongoose::Application* Moongoose::CreateApplication()
+Application* Moongoose::CreateApplication()
 {
 	return new EditorApp();
 }

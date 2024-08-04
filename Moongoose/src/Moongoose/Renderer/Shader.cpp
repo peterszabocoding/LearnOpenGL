@@ -14,6 +14,34 @@
 #include "Moongoose/Application.h"
 #include "Moongoose/Application.h"
 #include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
+#include "Moongoose/Application.h"
 
 namespace Moongoose {
 
@@ -169,11 +197,12 @@ namespace Moongoose {
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 	}
-	
+
 	void Shader::SetDirectionalLight(
 		const glm::vec3 direction, 
 		const glm::vec3 color,
 		const glm::vec3 ambientColor,
+		const glm::mat4& lightTransform,
 		const float intensity, 
 		const float ambientIntensity,
 		const bool isShadowCasting, 
@@ -183,29 +212,55 @@ namespace Moongoose {
 		UploadUniformFloat("directionalLight.base.intensity", intensity); 
 		UploadUniformFloat("directionalLight.base.isShadowCasting", isShadowCasting);
 		UploadUniformFloat("directionalLight.base.useSoftShadow", useSoftShadow);
+		UploadUniformMat4("directionalLight.base.lightTransform", lightTransform);
+		UploadUniformFloat("directionalLight.base.bias", 0.005f);
+
 		UploadUniformFloat3("directionalLight.direction", direction);
 		UploadUniformFloat3("directionalLight.ambientColor", ambientColor);
 		UploadUniformFloat("directionalLight.ambientIntensity", ambientIntensity);
 	}
 
-	void Shader::SetPointLight(const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius)
+	void Shader::SetPointLight(
+		const glm::vec3 position, 
+		const glm::vec3 color, 
+		const glm::mat4& lightTransform, 
+		const float intensity, 
+		const float attenuationRadius)
 	{
 		glUniform1i(uniformPointLightCount, 1);
 
 		UploadUniformFloat3("pointLights[0].base.color", color);
 		UploadUniformFloat("pointLights[0].base.intensity", intensity);
+		UploadUniformMat4("pointLights[0].base.lightTransform", lightTransform);
+
 		UploadUniformFloat3("pointLights[0].position", position);
 		UploadUniformFloat("pointLights[0].attenuationRadius", attenuationRadius);
+
 	}
 
-	void Shader::SetSpotLight(const glm::vec3 direction, const glm::vec3 position, const glm::vec3 color, const float intensity, const float attenuationRadius, float attenuationAngle)
+	void Shader::SetSpotLight(
+		const glm::vec3 direction,
+		const glm::vec3 position,
+		const glm::vec3 color,
+		const glm::mat4& lightTransform,
+		const float intensity,
+		const float attenuationRadius,
+		const float attenuationAngle,
+		const bool isShadowCasting,
+		const bool useSoftShadow)
 	{
 		glUniform1i(uniformSpotLightCount, 1);
 
 		UploadUniformFloat3("spotLights[0].base.base.color", color);
 		UploadUniformFloat("spotLights[0].base.base.intensity", intensity);
+		UploadUniformFloat("spotLights[0].base.base.isShadowCasting", isShadowCasting);
+		UploadUniformFloat("spotLights[0].base.base.useSoftShadow", useSoftShadow);
+		UploadUniformMat4("spotLights[0].base.base.lightTransform", lightTransform);
+		UploadUniformFloat("spotLights[0].base.base.bias", 0.00005f);
+
 		UploadUniformFloat3("spotLights[0].base.position", position);
 		UploadUniformFloat("spotLights[0].base.attenuationRadius", attenuationRadius);
+
 		UploadUniformFloat3("spotLights[0].direction", direction);
 		UploadUniformFloat("spotLights[0].attenuationAngle", attenuationAngle);
 	}
