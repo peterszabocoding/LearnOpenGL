@@ -67,10 +67,7 @@ namespace Moongoose {
 		static void SetResolution(glm::uvec2 newResolution);
 
 		static void PrepareLights();
-
 		static void PrepareDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader);
-		static void PreparePointLight(const PointLight& light, const Ref<Shader>& shader);
-		static void PrepareSpotLight(const SpotLight& light, const Ref<Shader>& shader);
 
 		static void RenderShadowMaps();
 
@@ -86,6 +83,12 @@ namespace Moongoose {
 		static glm::mat4 GetSpotLightTransform(const SpotLight& light);
 
 		static std::vector<AtlasBox> AllocateTextureAtlas(glm::uvec2 const& atlasSize, std::vector<uint16_t> const& textureSizes);
+
+		static void SetPointLightCount(const Ref<Shader>& shader, const int lightCount);
+		static void SetSpotLightCount(const Ref<Shader>& shader, const int lightCount);
+
+		static void AddSpotLight(const size_t index, const Ref<Shader>& shader, const SpotLight& spotLight, const glm::mat4& lightTransform);
+		static void AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight, const glm::mat4& lightTransform);
 
 	private:
 		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = { 8192, 4096 };

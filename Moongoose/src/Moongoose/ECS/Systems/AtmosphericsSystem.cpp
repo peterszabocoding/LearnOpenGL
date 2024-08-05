@@ -23,7 +23,6 @@ namespace Moongoose {
 
 		m_MultiScatteringBuffer = FramebufferManager::CreateFramebuffer("MultiScatteringBuffer", specs2);
 
-
 		FramebufferSpecs specs3;
 		specs3.Width = 200;
 		specs3.Height = 200;
@@ -37,7 +36,6 @@ namespace Moongoose {
 		specs4.Attachments = { FramebufferTextureFormat::RGBA8 };
 
 		m_SkyBuffer = FramebufferManager::CreateFramebuffer("SkyBuffer", specs4);
-
 
 		m_TransmittanceShader = CreateRef<Shader>(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\sun_transmittance_lut.fs");
 		m_MultiScatteringShader = CreateRef<Shader>(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\multi-scattering_lut.fs");
@@ -118,7 +116,7 @@ namespace Moongoose {
 		bgShader->Bind();
 		bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
 		bgShader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-		bgShader->SetDepthTest(false);
+		bgShader->DisableFeature(GlFeature::DEPTH_TEST);
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		bgShader->Unbind();
 	}

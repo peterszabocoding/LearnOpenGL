@@ -55,53 +55,66 @@ namespace Moongoose {
 	{
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
 		shader->Bind();
-		shader->ResetLights();
+
+		shader->UploadUniformInt("spotLightCount", 0);
+		shader->UploadUniformInt("pointLightCount", 0);
+
+		shader->UploadUniformFloat("directionalLight.base.intensity", 0.0f);
+		shader->UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		shader->UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 
 		for (const auto& light : m_DirectionalLights) PrepareDirectionalLight(light, shader);
-		for (const auto& light : m_PointLights) PreparePointLight(light, shader);
-		for (const auto& light : m_SpotLights) PrepareSpotLight(light, shader);
 
+		SetPointLightCount(shader, m_PointLights.size());
+		for (size_t i = 0; i < m_PointLights.size(); i++) AddPointLight(i, shader, m_PointLights[i], GetPointLightTransform(m_PointLights[i]));
+
+		SetSpotLightCount(shader, m_SpotLights.size());
+		for (size_t i = 0; i < m_SpotLights.size(); i++)
+		{
+			AddSpotLight(i, shader, m_SpotLights[i], GetSpotLightTransform(m_SpotLights[i]));
+
+			if (m_SpotLights[i].shadowType != ShadowType::NONE && m_ShadowMapAtlas.size() > 1)
+			{
+				const auto& [topLeft, bottomRight] = m_ShadowMapAtlas[1];
+				const auto shadowMapSize = glm::vec2(
+					bottomRight.x - topLeft.x,
+					bottomRight.y - topLeft.y
+				);
+
+				shader->UploadUniformFloat2("spotLights[0].base.base.shadowMapTopLeft", topLeft);
+				shader->UploadUniformFloat2("spotLights[0].base.base.shadowMapSize", shadowMapSize);
+			}
+		}
 		shader->Unbind();
 	}
 
 	void Renderer::PrepareDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader)
 	{
-		shader->SetDirectionalLight(light, GetDirectionalLightTransform(light));
+		shader->UploadUniformFloat3("directionalLight.base.color", light.color);
+		shader->UploadUniformFloat("directionalLight.base.intensity", light.intensity);
+		shader->UploadUniformFloat("directionalLight.base.isShadowCasting", light.shadowType != ShadowType::NONE);
+		shader->UploadUniformFloat("directionalLight.base.useSoftShadow", light.shadowType != ShadowType::NONE);
+		shader->UploadUniformMat4("directionalLight.base.lightTransform", GetDirectionalLightTransform(light));
+		shader->UploadUniformFloat("directionalLight.base.bias", 0.005f);
+
+		shader->UploadUniformFloat3("directionalLight.direction", light.direction);
+		shader->UploadUniformFloat3("directionalLight.ambientColor", light.ambientColor);
+		shader->UploadUniformFloat("directionalLight.ambientIntensity", light.ambientIntensity);
+
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 
 		if (light.shadowType != ShadowType::NONE && !m_ShadowMapAtlas.empty())
 		{
-			const AtlasBox& shadowMapAtlas = m_ShadowMapAtlas[0];
+			const auto& [topLeft, bottomRight] = m_ShadowMapAtlas[0];
 			const auto shadowMapSize = glm::vec2(
-				shadowMapAtlas.bottomRight.x - shadowMapAtlas.topLeft.x,
-				shadowMapAtlas.bottomRight.y - shadowMapAtlas.topLeft.y
+				bottomRight.x - topLeft.x,
+				bottomRight.y - topLeft.y
 			);
 
-			shader->UploadUniformFloat2("directionalLight.base.shadowMapTopLeft", shadowMapAtlas.topLeft);
+			shader->UploadUniformFloat2("directionalLight.base.shadowMapTopLeft", topLeft);
 			shader->UploadUniformFloat2("directionalLight.base.shadowMapSize", shadowMapSize);
-		}
-	}
-
-	void Renderer::PreparePointLight(const PointLight& light, const Ref<Shader>& shader)
-	{
-		shader->AddPointLight(light, GetPointLightTransform(light));
-	}
-
-	void Renderer::PrepareSpotLight(const SpotLight& light, const Ref<Shader>& shader)
-	{
-		shader->AddSpotLight(light, GetSpotLightTransform(light));
-
-		if (light.shadowType != ShadowType::NONE && m_ShadowMapAtlas.size() > 1)
-		{
-			const AtlasBox& shadowMapAtlas = m_ShadowMapAtlas[1];
-			const auto shadowMapSize = glm::vec2(
-				shadowMapAtlas.bottomRight.x - shadowMapAtlas.topLeft.x,
-				shadowMapAtlas.bottomRight.y - shadowMapAtlas.topLeft.y
-			);
-
-			shader->UploadUniformFloat2("spotLights[0].base.base.shadowMapTopLeft", shadowMapAtlas.topLeft);
-			shader->UploadUniformFloat2("spotLights[0].base.base.shadowMapSize", shadowMapSize);
 		}
 	}
 
@@ -139,16 +152,16 @@ namespace Moongoose {
 
 				shader->Bind();
 				shader->UploadUniformMat4("lightTransform", GetDirectionalLightTransform(light));
-				shader->EnablePolygonOffset(true);
+				shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 				shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
 				for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
 				{
-					shader->SetModelTransform(cmd.transform);
+					shader->UploadUniformMat4("model", cmd.transform);
 					RenderMesh(cmd.vertexArray);
 				}
 
-				shader->EnablePolygonOffset(false);
+				shader->DisableFeature(GlFeature::POLYGON_OFFSET);
 				shader->Unbind();
 			}
 		}
@@ -170,16 +183,17 @@ namespace Moongoose {
 				shader->UploadUniformMat4("lightTransform", GetSpotLightTransform(light));
 				shader->UploadUniformFloat("farPlane", light.attenuationRadius * 1.5f);
 				shader->UploadUniformFloat("nearPlane", 0.1f);
-				shader->EnablePolygonOffset(true);
+
+				shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 				shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
 				for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
 				{
-					shader->SetModelTransform(cmd.transform);
+					shader->UploadUniformMat4("model", cmd.transform);
 					RenderMesh(cmd.vertexArray);
 				}
 
-				shader->EnablePolygonOffset(false);
+				shader->DisableFeature(GlFeature::POLYGON_OFFSET);
 				shader->Unbind();
 			}
 		}
@@ -223,8 +237,8 @@ namespace Moongoose {
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(cmd.material->GetShaderType());
 		shader->Bind();
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-		shader->SetModelTransform(cmd.transform);
-		shader->SetEntityId(cmd.id);
+		shader->UploadUniformMat4("model", cmd.transform);
+		shader->UploadUniformInt("aEntityID", cmd.id);
 
 		if (cmd.material) cmd.material->Bind();
 		RenderMesh(cmd.vertexArray);
@@ -237,15 +251,18 @@ namespace Moongoose {
 
 		shader->Bind();
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-		shader->SetModelTransform(cmd.transform);
-		shader->SetEntityId(cmd.id);
-		shader->SetBlendMode(true);
+
+		shader->UploadUniformMat4("model", cmd.transform);
+		shader->UploadUniformInt("aEntityID", cmd.id);
+
+		shader->EnableFeature(GlFeature::BLEND);
+		shader->SetBlendMode(GlBlendOption::SRC_ALPHA, GlBlendOption::ONE_MINUS_SRC_ALPHA);
 		shader->UploadUniformFloat3("TintColor", cmd.tintColor);
 		cmd.texture->bind(0);
 
 		RenderMesh(QuadMeshWorld(cmd.scale).GetSubmeshes()[0]->vertexArray);
 
-		shader->SetBlendMode(false);
+		shader->DisableFeature(GlFeature::BLEND);
 		shader->Unbind();
 	}
 
@@ -343,7 +360,7 @@ namespace Moongoose {
 
 	glm::mat4 Renderer::GetSpotLightTransform(const SpotLight& light)
 	{
-		return GetSpotLightProjection(light) * lookAt(light.position, light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
+		return GetSpotLightProjection(light) * lookAt(light.position, light.position - light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
 	/*
@@ -394,5 +411,45 @@ namespace Moongoose {
 		}
 
 		return result;
+	}
+
+	void Renderer::SetPointLightCount(const Ref<Shader>& shader, const int lightCount)
+	{
+		shader->UploadUniformInt("pointLightCount", lightCount);
+	}
+
+	void Renderer::SetSpotLightCount(const Ref<Shader>& shader, const int lightCount)
+	{
+		shader->UploadUniformInt("spotLightCount", lightCount);
+	}
+
+	void Renderer::AddSpotLight(const size_t index, const Ref<Shader>& shader, const SpotLight& spotLight, const glm::mat4& lightTransform)
+	{
+		const std::string base = "spotLights[" + std::to_string(index) + "]";
+
+		shader->UploadUniformFloat3(base + ".base.base.color", spotLight.color);
+		shader->UploadUniformFloat(base + ".base.base.intensity", spotLight.intensity);
+		shader->UploadUniformFloat(base + ".base.base.isShadowCasting", spotLight.shadowType != ShadowType::NONE);
+		shader->UploadUniformFloat(base + ".base.base.useSoftShadow", spotLight.shadowType == ShadowType::SOFT);
+		shader->UploadUniformMat4(base + ".base.base.lightTransform", lightTransform);
+		shader->UploadUniformFloat(base + ".base.base.bias", 0.00005f);
+
+		shader->UploadUniformFloat3(base + ".base.position", spotLight.position);
+		shader->UploadUniformFloat(base + ".base.attenuationRadius", spotLight.attenuationRadius);
+
+		shader->UploadUniformFloat3(base + ".direction", spotLight.direction);
+		shader->UploadUniformFloat(base + ".attenuationAngle", spotLight.attenuationAngle);
+	}
+
+	void Renderer::AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight, const glm::mat4& lightTransform)
+	{
+		const std::string base = "pointLights[" + std::to_string(index) + "]";
+
+		shader->UploadUniformFloat3(base + ".base.color", pointLight.color);
+		shader->UploadUniformFloat(base + ".base.intensity", pointLight.intensity);
+		shader->UploadUniformMat4(base + ".base.lightTransform", lightTransform);
+
+		shader->UploadUniformFloat3(base + ".position", pointLight.position);
+		shader->UploadUniformFloat(base + ".attenuationRadius", pointLight.attenuationRadius);
 	}
 };

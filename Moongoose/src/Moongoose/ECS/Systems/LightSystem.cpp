@@ -17,10 +17,6 @@ namespace Moongoose
 
 	void LightSystem::Run(const Ref<PerspectiveCamera>& camera, const Ref<World>& world) const
 	{
-		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
-		shader->Bind();
-		shader->ResetLights();
-
 		for (auto const& entity : m_Entities)
 		{
 			const auto cLight = world->GetComponent<LightComponent>(entity);
@@ -62,7 +58,5 @@ namespace Moongoose
 					break;
 			}
 		}
-
-		shader->Unbind();
 	}
 }

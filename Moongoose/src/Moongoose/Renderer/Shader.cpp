@@ -5,20 +5,12 @@
 #include "Light.h"
 #include "glad/glad.h"
 #include "Moongoose/Application.h"
-#include "Moongoose/Application.h"
-#include "Moongoose/Application.h"
-#include "Moongoose/Application.h"
-#include "Moongoose/Application.h"
-#include "Moongoose/Application.h"
 
 namespace Moongoose {
 
-	constexpr size_t MAX_POINT_LIGHTS = 4;
-	constexpr size_t MAX_SPOT_LIGHTS = 4;
-
 	Shader::Shader(const ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation)
 	{
-		shaderID = 0;
+		shaderId = 0;
 		shaderType = type;
 
 		vertexShaderSourcePath = vertexShaderLocation;
@@ -38,28 +30,33 @@ namespace Moongoose {
 
 	void Shader::ClearShader()
 	{
-		if (shaderID != 0) {
-			glDeleteProgram(shaderID);
-			shaderID = 0;
+		if (shaderId != 0) {
+			glDeleteProgram(shaderId);
+			shaderId = 0;
 		}
 	}
-	
+
+	ShaderType Shader::GetShaderType() const
+	{
+		return shaderType;
+	}
+
 	void Shader::Bind() const
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, polygonMode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
 
 		if (polygonMode == PolygonMode::WIREFRAME)
 		{
-			glLineWidth(2.0f);
-			glDisable(GL_CULL_FACE);
+			SetLineWidth(2.0f);
+			DisableFeature(GlFeature::CULL_FACE);
 		} 
 		else 
 		{
-			glLineWidth(1.0f);
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
+			SetLineWidth(1.0f);
+			EnableFeature(GlFeature::DEPTH_TEST);
+			EnableFeature(GlFeature::CULL_FACE);
 		}
-		glUseProgram(shaderID);
+		glUseProgram(shaderId);
 	}
 
 	void Shader::Unbind()
@@ -77,7 +74,7 @@ namespace Moongoose {
 			return "";
 		}
 
-		std::string line = "";
+		std::string line;
 		while (!fileStream.eof()) {
 			std::getline(fileStream, line);
 			content.append(line + "\n");
@@ -87,11 +84,6 @@ namespace Moongoose {
 		return content;
 	}
 
-	unsigned int Shader::GetDirectionLocation() const
-	{
-		return uniformDirectionalLight.uniformDirection;
-	}
-
 	void Shader::SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection)
 	{
 		UploadUniformMat4("projection", projection);
@@ -99,68 +91,40 @@ namespace Moongoose {
 		UploadUniformFloat3("eyePosition", cameraPosition);
 	}
 
-	void Shader::SetModelTransform(const glm::mat4& model)
-	{
-		UploadUniformMat4("model", model);
-	}
-
-	void Shader::SetEntityId(const size_t entityId)
-	{
-		UploadUniformInt("aEntityID", entityId);
-	}
-
 	void Shader::SetPolygonMode(const PolygonMode mode)
 	{
 		polygonMode = mode;
 	}
 
-	void Shader::EnablePolygonOffset(const bool enable)
+	void Shader::SetLineWidth(const float lineWidth)
 	{
-		if (enable) glEnable(GL_POLYGON_OFFSET_FILL);
-		else glDisable(GL_POLYGON_OFFSET_FILL);
+		glLineWidth(lineWidth);
 	}
+
+	void Shader::EnableFeature(GlFeature feature)
+	{
+		glEnable((int) feature);
+	}
+
+	void Shader::DisableFeature(GlFeature feature)
+	{
+		glDisable((int) feature);
+	}	
 
 	void Shader::SetPolygonOffset(const glm::vec2 offset)
 	{
 		glPolygonOffset(offset.x, offset.y);
 	}
 
-	void Shader::SetDepthTest(const bool enabled)
+	void Shader::SetBlendMode(GlBlendOption source, GlBlendOption destination)
 	{
-		if (enabled) glEnable(GL_DEPTH_TEST);
-		else glDisable(GL_DEPTH_TEST);
+		glBlendFunc((int) source, (int) destination);
 	}
 
-	void Shader::SetBlendMode(const bool enabled)
-	{
-		if (enabled)
-		{
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
-		else 
-		{
-			glDisable(GL_BLEND);
-		}
-	}
-
-	void Shader::ResetLights()
-	{
-		glUniform1i(uniformPointLightCount, 0);
-		glUniform1i(uniformSpotLightCount, 0);
-
-		spotLightCount = 0;
-		pointLightCount = 0;
-
-		UploadUniformFloat("directionalLight.base.intensity", 0.0f);
-		UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-		UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
-	}
-
-	void Shader::BindTexture(const size_t textureUnit, const uint32_t textureID)
+	void Shader::BindTexture(const size_t textureUnit, const uint32_t textureId)
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
-		glBindTexture(GL_TEXTURE_2D, textureID);
+		glBindTexture(GL_TEXTURE_2D, textureId);
 	}
 
 	void Shader::BindCubeMapTexture(const size_t textureUnit, const uint32_t textureId)
@@ -169,210 +133,40 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 	}
 
-	void Shader::SetDirectionalLight(const DirectionalLight& directionalLight, const glm::mat4& lightTransform)
-	{
-		UploadUniformFloat3("directionalLight.base.color", directionalLight.color);
-		UploadUniformFloat("directionalLight.base.intensity", directionalLight.intensity);
-		UploadUniformFloat("directionalLight.base.isShadowCasting", directionalLight.shadowType != ShadowType::NONE);
-		UploadUniformFloat("directionalLight.base.useSoftShadow", directionalLight.shadowType != ShadowType::NONE);
-		UploadUniformMat4("directionalLight.base.lightTransform", lightTransform);
-		UploadUniformFloat("directionalLight.base.bias", 0.005f);
-
-		UploadUniformFloat3("directionalLight.direction", directionalLight.direction);
-		UploadUniformFloat3("directionalLight.ambientColor", directionalLight.ambientColor);
-		UploadUniformFloat("directionalLight.ambientIntensity", directionalLight.ambientIntensity);
-	}
-
-	void Shader::AddPointLight(const PointLight& pointLight, const glm::mat4& lightTransform)
-	{
-		UploadUniformInt("pointLightCount", pointLightCount + 1);
-
-		const std::string base = "pointLights[" + std::to_string(pointLightCount) + "]";
-
-		UploadUniformFloat3(base + ".base.color", pointLight.color);
-		UploadUniformFloat(base + ".base.intensity", pointLight.intensity);
-		UploadUniformMat4(base + ".base.lightTransform", lightTransform);
-
-		UploadUniformFloat3(base + ".position", pointLight.position);
-		UploadUniformFloat(base + ".attenuationRadius", pointLight.attenuationRadius);
-
-		pointLightCount++;
-	}
-
-	void Shader::AddSpotLight(const SpotLight& spotLight, const glm::mat4& lightTransform)
-	{
-		UploadUniformInt("spotLightCount", spotLightCount + 1);
-
-		const std::string base = "spotLights[" + std::to_string(spotLightCount) + "]";
-
-		UploadUniformFloat3(base + ".base.base.color", spotLight.color);
-		UploadUniformFloat(base + ".base.base.intensity", spotLight.intensity);
-		UploadUniformFloat(base + ".base.base.isShadowCasting", spotLight.shadowType != ShadowType::NONE);
-		UploadUniformFloat(base + ".base.base.useSoftShadow", spotLight.shadowType == ShadowType::SOFT);
-		UploadUniformMat4(base + ".base.base.lightTransform", lightTransform);
-		UploadUniformFloat(base + ".base.base.bias", 0.00005f);
-
-		UploadUniformFloat3(base + ".base.position", spotLight.position);
-		UploadUniformFloat(base + ".base.attenuationRadius", spotLight.attenuationRadius);
-
-		UploadUniformFloat3(base + ".direction", spotLight.direction);
-		UploadUniformFloat(base + ".attenuationAngle", spotLight.attenuationAngle);
-
-		spotLightCount++;
-	}
-
-	/*
-	void Shader::SetPointLights(std::vector<std::tuple<Transform*, Ref<Light>>> pLight)
-	{
-		size_t lightCount = pLight.size();
-		if (lightCount > MAX_POINT_LIGHTS) lightCount = MAX_POINT_LIGHTS;
-
-		glUniform1i(uniformPointLightCount, lightCount);
-
-		for (size_t i = 0; i < lightCount; i++) {
-			const auto& pointLight = std::get<1>(pLight[i]);
-			const auto& position = std::get<0>(pLight[i])->position;
-			const auto& color = pointLight->GetColor();
-
-			glUniform3f(uniformPointLight[i].uniformColor, color.x, color.y, color.z);
-			glUniform1f(uniformPointLight[i].uniformAmbientIntensity, pointLight->GetAmbientIntensity());
-			glUniform1f(uniformPointLight[i].uniformDiffuseIntensity, pointLight->GetDiffuseIntensity());
-
-			glUniform1f(uniformPointLight[i].uniformIsShadowCasting, pointLight->IsShadowCasting());
-			glUniform1f(uniformPointLight[i].uniformUseSoftShadow, pointLight->UseSoftShadow());
-
-			glUniform3f(uniformPointLight[i].uniformPosition, position.x, position.y, position.z);
-
-			glUniform1f(uniformPointLight[i].uniformConstant, pointLight->GetAttenuationParams().constant);
-			glUniform1f(uniformPointLight[i].uniformLinear, pointLight->GetAttenuationParams().linear);
-			glUniform1f(uniformPointLight[i].uniformExponent, pointLight->GetAttenuationParams().exponent);
-		}
-	}
-
-	void Shader::SetSpotLights(std::vector<std::tuple<Transform*, Ref<Light>>> sLight)
-	{
-		size_t lightCount = sLight.size();
-		if (lightCount > MAX_SPOT_LIGHTS) lightCount = MAX_SPOT_LIGHTS;
-
-		glUniform1i(uniformSpotLightCount, lightCount);
-
-		for (size_t i = 0; i < lightCount; i++) {
-			Transform* transform = std::get<0>(sLight[i]);
-			auto& spotLight = std::get<1>(sLight[i]);
-
-			auto& color = spotLight->GetColor();
-			auto direction = spotLight->GetDirection(transform);
-
-			glUniform3f(uniformSpotLight[i].uniformColor, color.x, color.y, color.z);
-			glUniform1f(uniformSpotLight[i].uniformAmbientIntensity, spotLight->GetAmbientIntensity());
-			glUniform1f(uniformSpotLight[i].uniformDiffuseIntensity, spotLight->GetDiffuseIntensity());
-
-			glUniform1f(uniformSpotLight[i].uniformIsShadowCasting, spotLight->IsShadowCasting());
-			glUniform1f(uniformSpotLight[i].uniformUseSoftShadow, spotLight->UseSoftShadow());
-
-			glUniform3f(uniformSpotLight[i].uniformPosition, transform->position.x, transform->position.y, transform->position.z);
-
-			glUniform1f(uniformSpotLight[i].uniformConstant, spotLight->GetAttenuationParams().constant);
-			glUniform1f(uniformSpotLight[i].uniformLinear, spotLight->GetAttenuationParams().linear);
-			glUniform1f(uniformSpotLight[i].uniformExponent, spotLight->GetAttenuationParams().exponent);
-
-			glUniform1f(uniformSpotLight[i].uniformAttenuationAngle, spotLight->GetAttenuationAngle());
-			glUniform3f(uniformSpotLight[i].uniformDirection, direction.x, direction.y, direction.z);
-		}
-	}
-	*/
-
 	void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
 	{
-		shaderID = glCreateProgram();
+		shaderId = glCreateProgram();
 
-		if (!shaderID) {
+		if (!shaderId) {
 			LOG_CORE_ERROR("Error creating shader program!");
 			return;
 		}
 
-		AddShader(shaderID, vertexCode, GL_VERTEX_SHADER);
-		AddShader(shaderID, fragmentCode, GL_FRAGMENT_SHADER);
+		AddShader(shaderId, vertexCode, GL_VERTEX_SHADER);
+		AddShader(shaderId, fragmentCode, GL_FRAGMENT_SHADER);
 
 		int result = 0;
 		char eLog[1024] = { 0 };
 
-		glLinkProgram(shaderID);
-		glGetProgramiv(shaderID, GL_LINK_STATUS, &result);
+		glLinkProgram(shaderId);
+		glGetProgramiv(shaderId, GL_LINK_STATUS, &result);
 		if (!result) {
-			glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
+			glGetProgramInfoLog(shaderId, sizeof(eLog), nullptr, eLog);
 			printf("Error linking program: '%s'\n", eLog);
 			return;
 		}
 
-		glValidateProgram(shaderID);
-		glGetProgramiv(shaderID, GL_VALIDATE_STATUS, &result);
+		glValidateProgram(shaderId);
+		glGetProgramiv(shaderId, GL_VALIDATE_STATUS, &result);
 		if (!result) {
-			glGetProgramInfoLog(shaderID, sizeof(eLog), NULL, eLog);
+			glGetProgramInfoLog(shaderId, sizeof(eLog), nullptr, eLog);
 			printf("Error validating program: '%s'\n", eLog);
-			return;
 		}
-
-		uniformPointLightCount = glGetUniformLocation(shaderID, "pointLightCount");
-		for (size_t i = 0; i < MAX_POINT_LIGHTS; i++) {
-			char locBuff[100] = { '\0' };
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.color", i);
-			uniformPointLight[i].uniformColor = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.intensity", i);
-			uniformPointLight[i].uniformIntensity = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.isShadowCasting", i);
-			uniformPointLight[i].uniformIsShadowCasting = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].base.useSoftShadow", i);
-			uniformPointLight[i].uniformUseSoftShadow = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].position", i);
-			uniformPointLight[i].uniformPosition = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "pointLights[%d].attenuationRadius", i);
-			uniformPointLight[i].uniformConstant = glGetUniformLocation(shaderID, locBuff);
-		}
-
-		uniformSpotLightCount = glGetUniformLocation(shaderID, "spotLightCount");
-		for (size_t i = 0; i < MAX_SPOT_LIGHTS; i++) {
-			char locBuff[100] = { '\0' };
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.base.color", i);
-			uniformSpotLight[i].uniformColor = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.base.intensity", i);
-			uniformSpotLight[i].uniformIntensity = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.isShadowCasting", i);
-			uniformSpotLight[i].uniformIsShadowCasting = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.useSoftShadow", i);
-			uniformSpotLight[i].uniformUseSoftShadow = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.position", i);
-			uniformSpotLight[i].uniformPosition = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].base.attenuationRadius", i);
-			uniformSpotLight[i].uniformConstant = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].direction", i);
-			uniformSpotLight[i].uniformDirection = glGetUniformLocation(shaderID, locBuff);
-
-			snprintf(locBuff, sizeof(locBuff), "spotLights[%d].attenuationAngle", i);
-			uniformSpotLight[i].uniformAttenuationAngle = glGetUniformLocation(shaderID, locBuff);
-		}
-
-		uniformTexture = glGetUniformLocation(shaderID, "AlbedoTexture");
-		uniformNormalMap = glGetUniformLocation(shaderID, "NormalTexture");
-		//uniformShadowMap = glGetUniformLocation(shaderID, "ShadowMapTexture");
 	}
 
-	void Shader::AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType)
+	void Shader::AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType) const
 	{
-		unsigned int shader = glCreateShader(shaderType);
+		const unsigned int shader = glCreateShader(shaderType);
 		const char* code[1];
 		code[0] = shaderCode;
 
@@ -387,12 +181,12 @@ namespace Moongoose {
 
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
 		if (!result) {
-			glGetShaderInfoLog(shader, sizeof(eLog), NULL, eLog);
+			glGetShaderInfoLog(shader, sizeof(eLog), nullptr, eLog);
 			printf("Error compiling the %d shader: '%s'\n", shaderType, eLog);
 			return;
 		}
 
-		glAttachShader(shaderID, shader);
+		glAttachShader(shaderId, shader);
 	}
 
 	unsigned int Shader::GetUniformLocation(const std::string& name)
@@ -404,24 +198,24 @@ namespace Moongoose {
 			location = it->second;
 		}
 		else {
-			location = glGetUniformLocation(shaderID, name.c_str());
+			location = glGetUniformLocation(shaderId, name.c_str());
 			uniformLocationCache[name] = location;
 		}
 
 		return location;
 	}
 
-	void Shader::UploadUniformInt(const std::string& name, int value)
+	void Shader::UploadUniformInt(const std::string& name, const int value)
 	{
 		glUniform1i(GetUniformLocation(name), value);
 	}
 
-	void Shader::UploadUniformIntArray(const std::string& name, int* values, uint32_t count)
+	void Shader::UploadUniformIntArray(const std::string& name, const int* values, const uint32_t count)
 	{
 		glUniform1iv(GetUniformLocation(name), count, values);
 	}
 
-	void Shader::UploadUniformFloat(const std::string& name, float value)
+	void Shader::UploadUniformFloat(const std::string& name, const float value)
 	{
 		glUniform1f(GetUniformLocation(name), value);
 	}
