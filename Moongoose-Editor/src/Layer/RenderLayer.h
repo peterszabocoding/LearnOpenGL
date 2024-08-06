@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Moongoose.h>
+#include <ImGuizmo.h>
 
 class RenderLayer: public Moongoose::Layer
 {
@@ -19,7 +20,7 @@ private:
 	void CreateCamera();
 
 	void RenderToolbarMenu() const;
-	void RenderGizmo();
+	void RenderGizmo() const;
 	void RenderDebugInfo(float posX, float posY) const;
 	void CalculateWindowMousePosition();
 
@@ -34,7 +35,8 @@ private:
 	glm::uvec2 m_WindowSize = { 1920, 1080 };
 	Ref<Moongoose::PerspectiveCamera> m_EditorCamera;
 
-	size_t m_GizmoMode = 7;
+	ImGuizmo::OPERATION m_GizmoMode = ImGuizmo::TRANSLATE;
+	ImGuizmo::MODE m_GizmoTransformMode = ImGuizmo::WORLD;
 	int m_HoveredEntityId = -1;
 
 	glm::ivec2 m_WindowMousePos = { 0, 0 };

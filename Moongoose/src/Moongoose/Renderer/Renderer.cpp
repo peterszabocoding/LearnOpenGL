@@ -19,14 +19,14 @@ namespace Moongoose {
 	Ref<Framebuffer> Renderer::m_RenderBuffer;
 	Ref<Framebuffer> Renderer::m_ShadowBuffer;
 
-	TextureAtlas								Renderer::m_TextureAtlas;
+	TextureAtlas Renderer::m_TextureAtlas;
 
-	std::vector<DirectionalLight>				Renderer::m_DirectionalLights;
-	std::vector<PointLight>						Renderer::m_PointLights;
-	std::vector<SpotLight>						Renderer::m_SpotLights;
+	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
+	std::vector<PointLight>	Renderer::m_PointLights;
+	std::vector<SpotLight> Renderer::m_SpotLights;
 
-	std::vector<Renderer::MeshRenderCmd>		Renderer::m_MeshRenderCmds;
-	std::vector<Renderer::BillboardCmd>			Renderer::m_BillboardRenderCmds;
+	std::vector<Renderer::MeshRenderCmd> Renderer::m_MeshRenderCmds;
+	std::vector<Renderer::BillboardCmd> Renderer::m_BillboardRenderCmds;
 
 	void Renderer::SetResolution(const glm::uvec2 newResolution)
 	{
@@ -114,6 +114,28 @@ namespace Moongoose {
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
 			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t) light.shadowMapResolution);
+
+			auto& [topLeft, bottomRight] = *light.shadowMapRegion;
+			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_DIRECTIONAL);
+
+			m_ShadowBuffer->Bind(
+				topLeft.x, topLeft.y,
+				bottomRight.x - topLeft.x,
+				bottomRight.y - topLeft.y);
+
+			shader->Bind();
+			shader->UploadUniformMat4("lightTransform", GetDirectionalLightTransform(light));
+			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
+			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
+
+			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+			{
+				shader->UploadUniformMat4("model", cmd.transform);
+				RenderMesh(cmd.vertexArray);
+			}
+
+			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
+			shader->Unbind();
 		}
 
 		for (auto& light : m_PointLights)
@@ -126,65 +148,31 @@ namespace Moongoose {
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
 			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
-		}
 
-		if (!m_DirectionalLights.empty())
-		{
-			if (const DirectionalLight& light = m_DirectionalLights[0]; light.shadowType != ShadowType::NONE)
+			auto& [topLeft, bottomRight] = *light.shadowMapRegion;
+			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_SPOT);
+
+			m_ShadowBuffer->Bind(
+				topLeft.x, topLeft.y,
+				bottomRight.x - topLeft.x,
+				bottomRight.y - topLeft.y);
+
+			shader->Bind();
+			shader->UploadUniformMat4("lightTransform", GetSpotLightTransform(light));
+			shader->UploadUniformFloat("farPlane", light.attenuationRadius * 1.5f);
+			shader->UploadUniformFloat("nearPlane", 0.1f);
+
+			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
+			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
+
+			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
 			{
-				auto& [topLeft, bottomRight] = *light.shadowMapRegion;
-				const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_DIRECTIONAL);
-
-				m_ShadowBuffer->Bind(
-					topLeft.x, topLeft.y,
-					bottomRight.x - topLeft.x,
-					bottomRight.y - topLeft.y);
-
-				shader->Bind();
-				shader->UploadUniformMat4("lightTransform", GetDirectionalLightTransform(light));
-				shader->EnableFeature(GlFeature::POLYGON_OFFSET);
-				shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
-
-				for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
-				{
-					shader->UploadUniformMat4("model", cmd.transform);
-					RenderMesh(cmd.vertexArray);
-				}
-
-				shader->DisableFeature(GlFeature::POLYGON_OFFSET);
-				shader->Unbind();
+				shader->UploadUniformMat4("model", cmd.transform);
+				RenderMesh(cmd.vertexArray);
 			}
-		}
 
-		for (const auto& light : m_SpotLights)
-		{
-			if (light.shadowType != ShadowType::NONE)
-			{
-				auto& [topLeft, bottomRight] = *light.shadowMapRegion;
-				const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_SPOT);
-
-				m_ShadowBuffer->Bind(
-					topLeft.x, topLeft.y,
-					bottomRight.x - topLeft.x,
-					bottomRight.y - topLeft.y);
-
-				shader->Bind();
-				shader->UploadUniformMat4("lightTransform", GetSpotLightTransform(light));
-				shader->UploadUniformFloat("farPlane", light.attenuationRadius * 1.5f);
-				shader->UploadUniformFloat("nearPlane", 0.1f);
-
-				shader->EnableFeature(GlFeature::POLYGON_OFFSET);
-				shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
-
-				for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
-				{
-					shader->UploadUniformMat4("model", cmd.transform);
-					RenderMesh(cmd.vertexArray);
-				}
-
-				shader->DisableFeature(GlFeature::POLYGON_OFFSET);
-				shader->Unbind();
-			}
+			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
+			shader->Unbind();
 		}
 		
 		m_ShadowBuffer->Unbind();
@@ -395,10 +383,7 @@ namespace Moongoose {
 			shader->UploadUniformFloat2(base + ".base.base.shadowMapTopLeft", topLeft);
 			shader->UploadUniformFloat2(base + ".base.base.shadowMapSize", shadowMapSize);
 		}
-
 	}
-
-
 
 	void Renderer::AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight, const glm::mat4& lightTransform)
 	{
@@ -411,4 +396,4 @@ namespace Moongoose {
 		shader->UploadUniformFloat3(base + ".position", pointLight.position);
 		shader->UploadUniformFloat(base + ".attenuationRadius", pointLight.attenuationRadius);
 	}
-};
+}

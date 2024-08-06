@@ -131,7 +131,7 @@ void RenderLayer::RenderToolbarMenu() const
 	}
 }
 
-void RenderLayer::RenderGizmo()
+void RenderLayer::RenderGizmo() const
 {
 	const Entity selectedEntity = WorldManager::GetLoadedWorld()->GetSelectedEntity();
 	if (selectedEntity != -1)
@@ -152,8 +152,8 @@ void RenderLayer::RenderGizmo()
 		Manipulate(
 			value_ptr(m_EditorCamera->GetViewMatrix()),
 			value_ptr(m_EditorCamera->GetProjection()),
-			ImGuizmo::OPERATION(m_GizmoMode),
-			ImGuizmo::LOCAL,
+			m_GizmoMode,
+			m_GizmoTransformMode,
 			value_ptr(transform),
 			nullptr,
 			nullptr);
@@ -203,6 +203,14 @@ bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 	if (event.getKeyCode() == MG_KEY_R)
 	{
 		m_GizmoMode = ImGuizmo::OPERATION::ROTATE;
+		return false;
+	}
+
+	if (event.getKeyCode() == MG_KEY_GRAVE_ACCENT)
+	{
+		m_GizmoTransformMode = m_GizmoTransformMode == ImGuizmo::MODE::LOCAL
+		? ImGuizmo::MODE::WORLD
+		: ImGuizmo::MODE::LOCAL;
 		return false;
 	}
 
