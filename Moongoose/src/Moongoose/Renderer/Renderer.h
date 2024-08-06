@@ -8,6 +8,7 @@
 #include "PerspectiveCamera.h"
 #include "Moongoose/Core.h"
 #include "Light.h"
+#include "TextureAtlas.h"
 
 namespace Moongoose {
 	class Framebuffer;
@@ -56,9 +57,9 @@ namespace Moongoose {
 		static void PushMeshRenderCommand(const MeshRenderCmd& cmd);
 		static void PushBillboardRenderCommand(const BillboardCmd& cmd);
 
-		static void PushDirectionalLight(const DirectionalLight& directionalLight);
-		static void PushPointLight(const PointLight& pointLight);
-		static void PushSpotLight(const SpotLight& spotLight);
+		static void PushDirectionalLight(const DirectionalLight& light);
+		static void PushPointLight(const PointLight& light);
+		static void PushSpotLight(const SpotLight& light);
 
 		static void BeginScene();
 		static void EndScene();
@@ -97,10 +98,6 @@ namespace Moongoose {
 		static std::vector<PointLight> m_PointLights;
 		static std::vector<SpotLight> m_SpotLights;
 
-		static std::vector<DirectionalLight> m_ShadowCastingDirectionalLights;
-		static std::vector<PointLight> m_ShadowCastingPointLights;
-		static std::vector<SpotLight> m_ShadowCastingSpotLights;
-
 		static std::vector<MeshRenderCmd> m_MeshRenderCmds;
 		static std::vector<BillboardCmd> m_BillboardRenderCmds;
 
@@ -108,7 +105,7 @@ namespace Moongoose {
 		static Ref<Framebuffer> m_ShadowBuffer;
 		static glm::uvec2 m_Resolution;
 
-		static std::vector<AtlasBox> m_ShadowMapAtlas;
+		static TextureAtlas m_TextureAtlas;
 	};
 
 }

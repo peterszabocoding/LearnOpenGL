@@ -190,7 +190,7 @@ namespace Moongoose {
 		float m_AmbientIntensity = 0.15f;
 		float m_AttenuationRadius = 10.0f;
 		float m_AttenuationAngle = 0.75f;
-		bool m_IsShadowCasting = false;
+		ShadowType m_ShadowType = ShadowType::NONE;
 		ShadowMapResolution m_ShadowMapResolution = ShadowMapResolution::MEDIUM;
 	};
 

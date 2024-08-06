@@ -95,7 +95,7 @@ namespace Moongoose {
 				cLight.m_AttenuationRadius = jLightComponent.contains("attenuationRadius") ? jLightComponent["attenuationRadius"] : 10.0f;
 				cLight.m_AttenuationAngle = jLightComponent.contains("attenuationAngle") ? jLightComponent["attenuationAngle"] : 0.75f;
 				cLight.m_AmbientIntensity = jLightComponent.contains("ambientIntensity") ? jLightComponent["ambientIntensity"] : 0.15f;
-				cLight.m_IsShadowCasting = jLightComponent.contains("isShadowCasting") ? jLightComponent["isShadowCasting"] : false;
+				cLight.m_ShadowType = jLightComponent.contains("shadowType") ? jLightComponent["shadowType"] : ShadowType::NONE;
 				cLight.m_ShadowMapResolution = jLightComponent.contains("shadowResolution")
 				? ShadowMapResolution(jLightComponent["shadowResolution"])
 				: ShadowMapResolution::MEDIUM;
@@ -180,7 +180,7 @@ namespace Moongoose {
 				jLight["attenuationRadius"] = cLight.m_AttenuationRadius;
 				jLight["attenuationAngle"] = cLight.m_AttenuationAngle;
 				jLight["ambientIntensity"] = cLight.m_AmbientIntensity;
-				jLight["isShadowCasting"] = cLight.m_IsShadowCasting;
+				jLight["shadowType"] = cLight.m_ShadowType;
 				jLight["shadowResolution"] = cLight.m_ShadowMapResolution;
 
 				entityObj["LightComponent"] = jLight;

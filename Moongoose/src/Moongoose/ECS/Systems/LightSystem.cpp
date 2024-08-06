@@ -2,7 +2,6 @@
 #include "LightSystem.h"
 
 #include "Moongoose/Renderer/Renderer.h"
-#include "Moongoose/Renderer/ShaderManager.h"
 
 namespace Moongoose
 {
@@ -24,11 +23,12 @@ namespace Moongoose
 			switch (cLight.m_Type)
 			{
 				case LightType::Directional:
-					Renderer::PushDirectionalLight({ 
+					Renderer::PushDirectionalLight({
 						cLight.m_Color,
 						cLight.m_Intensity,
-						ShadowType::SOFT,
+						cLight.m_ShadowType,
 						cLight.m_ShadowMapResolution,
+						nullptr,
 						cTransform.GetForwardDirection(),
 						cLight.m_Color,
 						cLight.m_Intensity * cLight.m_AmbientIntensity
@@ -38,8 +38,9 @@ namespace Moongoose
 					Renderer::PushPointLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						ShadowType::NONE,
+						cLight.m_ShadowType,
 						cLight.m_ShadowMapResolution,
+						nullptr,
 						cTransform.m_Position,
 						cLight.m_AttenuationRadius
 					});
@@ -48,8 +49,9 @@ namespace Moongoose
 					Renderer::PushSpotLight({ 
 						cLight.m_Color,
 						cLight.m_Intensity,
-						ShadowType::SOFT,
+						cLight.m_ShadowType,
 						cLight.m_ShadowMapResolution,
+						nullptr,
 						cTransform.m_Position,
 						cLight.m_AttenuationRadius,
 						cTransform.GetForwardDirection(),

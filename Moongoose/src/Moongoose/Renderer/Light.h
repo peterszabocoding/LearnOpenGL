@@ -1,4 +1,5 @@
 #pragma once
+#include "TextureAtlas.h"
 #include "glm/vec3.hpp"
 
 enum class ShadowType: uint8_t
@@ -24,6 +25,7 @@ struct Light
 	float intensity = 1.0f;
 	ShadowType shadowType = ShadowType::NONE;
 	ShadowMapResolution shadowMapResolution = ShadowMapResolution::MEDIUM;
+	TextureAtlas::AtlasBox* shadowMapRegion = nullptr;
 };
 
 struct DirectionalLight : Light

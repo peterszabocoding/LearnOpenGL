@@ -56,6 +56,57 @@ static std::vector<std::string> GetShadowMapResolutionStrings()
 	};
 }
 
+
+
+static uint8_t GetShadowTypePositionInList(ShadowType shadowType)
+{
+	switch (shadowType)
+	{
+		case ShadowType::NONE:
+			return 0;
+		case ShadowType::HARD:
+			return 1;
+		case ShadowType::SOFT:
+			return 2;
+	}
+}
+
+static ShadowType GetShadowTypeFromPositionInList(uint8_t pos)
+{
+	switch (pos)
+	{
+		case 0: return ShadowType::NONE;
+		case 1: return ShadowType::HARD;
+		case 2: return ShadowType::SOFT;
+	}
+
+}
+
+static std::string ShadowTypeToString(ShadowType shadowType)
+{
+	switch (shadowType)
+	{
+	case ShadowType::NONE:
+		return "None";
+	case ShadowType::HARD:
+		return "Hard";
+	case ShadowType::SOFT:
+		return "Soft";
+	}
+}
+
+static std::vector<std::string> GetShadowTypeStrings()
+{
+	return {
+		ShadowTypeToString(ShadowType::NONE),
+		ShadowTypeToString(ShadowType::HARD),
+		ShadowTypeToString(ShadowType::SOFT),
+	};
+}
+
+
+
+
 void EntityInspectorLayer::onAttach()
 {
 	m_AssetManager = GetApplication()->GetAssetManager();
@@ -186,24 +237,26 @@ void EntityInspectorLayer::onImGuiRender()
 		if (world->HasComponent<LightComponent>(selectedEntity) && ImGui::TreeNode("Light"))
 		{
 			auto& cLight = world->GetComponent<LightComponent>(selectedEntity);
-
 			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int)cLight.m_Type, [&](int selected)
-				{
-					cLight.m_Type = (LightType)selected;
-				});
+			{
+				cLight.m_Type = (LightType) selected;
+			});
+
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Ambient Intensity", cLight.m_AmbientIntensity, 0.0f, 10000.0f, 0.01f, 1.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Attenuation Radius", cLight.m_AttenuationRadius, 0.0f, 10000.0f, 0.1f, 50.0f, windowSize.x);
 			GuiWidgets::DrawFloatControl("Attenuation Angle", cLight.m_AttenuationAngle, 0.0f, 1.0f, 0.005f, 0.75f, windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
-			GuiWidgets::DrawCheckBox("Cast Shadow", &cLight.m_IsShadowCasting);
 
-			GuiWidgets::DrawSingleSelectDropdown("Shadow Map Resolution", GetShadowMapResolutionStrings(), GetResolutionPositionInList(cLight.m_ShadowMapResolution), [&](int selected)
+			GuiWidgets::DrawSingleSelectDropdown("Shadow Type", GetShadowTypeStrings(), GetShadowTypePositionInList(cLight.m_ShadowType), [&](const int selected)
 			{
-				ShadowMapResolution resolution = GetResolutionFromPositionInList(selected);
-				cLight.m_ShadowMapResolution = resolution;
+					cLight.m_ShadowType = GetShadowTypeFromPositionInList(selected);
 			});
 
+			GuiWidgets::DrawSingleSelectDropdown("Shadow Map Resolution", GetShadowMapResolutionStrings(), GetResolutionPositionInList(cLight.m_ShadowMapResolution), [&](const int selected)
+			{
+				cLight.m_ShadowMapResolution = GetResolutionFromPositionInList(selected);
+			});
 
 			ImGui::TreePop();
 		}

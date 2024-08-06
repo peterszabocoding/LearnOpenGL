@@ -19,15 +19,11 @@ namespace Moongoose {
 	Ref<Framebuffer> Renderer::m_RenderBuffer;
 	Ref<Framebuffer> Renderer::m_ShadowBuffer;
 
-	std::vector<Renderer::AtlasBox>				Renderer::m_ShadowMapAtlas;
+	TextureAtlas								Renderer::m_TextureAtlas;
 
 	std::vector<DirectionalLight>				Renderer::m_DirectionalLights;
 	std::vector<PointLight>						Renderer::m_PointLights;
 	std::vector<SpotLight>						Renderer::m_SpotLights;
-
-	std::vector<DirectionalLight>				Renderer::m_ShadowCastingDirectionalLights;
-	std::vector<PointLight>						Renderer::m_ShadowCastingPointLights;
-	std::vector<SpotLight>						Renderer::m_ShadowCastingSpotLights;
 
 	std::vector<Renderer::MeshRenderCmd>		Renderer::m_MeshRenderCmds;
 	std::vector<Renderer::BillboardCmd>			Renderer::m_BillboardRenderCmds;
@@ -74,18 +70,6 @@ namespace Moongoose {
 		for (size_t i = 0; i < m_SpotLights.size(); i++)
 		{
 			AddSpotLight(i, shader, m_SpotLights[i], GetSpotLightTransform(m_SpotLights[i]));
-
-			if (m_SpotLights[i].shadowType != ShadowType::NONE && m_ShadowMapAtlas.size() > 1)
-			{
-				const auto& [topLeft, bottomRight] = m_ShadowMapAtlas[1];
-				const auto shadowMapSize = glm::vec2(
-					bottomRight.x - topLeft.x,
-					bottomRight.y - topLeft.y
-				);
-
-				shader->UploadUniformFloat2("spotLights[0].base.base.shadowMapTopLeft", topLeft);
-				shader->UploadUniformFloat2("spotLights[0].base.base.shadowMapSize", shadowMapSize);
-			}
 		}
 		shader->Unbind();
 	}
@@ -105,9 +89,9 @@ namespace Moongoose {
 
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 
-		if (light.shadowType != ShadowType::NONE && !m_ShadowMapAtlas.empty())
+		if (light.shadowType != ShadowType::NONE && light.shadowMapRegion)
 		{
-			const auto& [topLeft, bottomRight] = m_ShadowMapAtlas[0];
+			const auto& [topLeft, bottomRight] = *light.shadowMapRegion;
 			const auto shadowMapSize = glm::vec2(
 				bottomRight.x - topLeft.x,
 				bottomRight.y - topLeft.y
@@ -124,25 +108,31 @@ namespace Moongoose {
 		RenderCommand::SetClearColor(m_ShadowBuffer->GetSpecs().ClearColor);
 		RenderCommand::Clear();
 
-		std::vector<uint16_t> shadowMapSizes;
-		for (const auto& light : m_ShadowCastingDirectionalLights)
-			shadowMapSizes.push_back(static_cast<uint16_t>(light.shadowMapResolution));
+		m_TextureAtlas.AllocateTextureAtlas(SHADOW_BUFFER_RESOLUTION);
 
-		for (const auto& light : m_ShadowCastingPointLights)
-			shadowMapSizes.push_back(static_cast<uint16_t>(light.shadowMapResolution));
-
-		for (const auto& light : m_ShadowCastingSpotLights)
-			shadowMapSizes.push_back(static_cast<uint16_t>(light.shadowMapResolution));
-
-		if (shadowMapSizes.empty()) return;
-
-		m_ShadowMapAtlas = AllocateTextureAtlas(SHADOW_BUFFER_RESOLUTION, shadowMapSizes);
-		if (!m_ShadowCastingDirectionalLights.empty())
+		for (auto& light : m_DirectionalLights)
 		{
-			const DirectionalLight& light = m_ShadowCastingDirectionalLights[0];
-			auto& [topLeft, bottomRight] = m_ShadowMapAtlas[0];
-			if (light.shadowType != ShadowType::NONE)
+			if (light.shadowType == ShadowType::NONE) continue;
+			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t) light.shadowMapResolution);
+		}
+
+		for (auto& light : m_PointLights)
+		{
+			if (light.shadowType == ShadowType::NONE) continue;
+			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
+		}
+
+		for (auto& light : m_SpotLights)
+		{
+			if (light.shadowType == ShadowType::NONE) continue;
+			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
+		}
+
+		if (!m_DirectionalLights.empty())
+		{
+			if (const DirectionalLight& light = m_DirectionalLights[0]; light.shadowType != ShadowType::NONE)
 			{
+				auto& [topLeft, bottomRight] = *light.shadowMapRegion;
 				const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_DIRECTIONAL);
 
 				m_ShadowBuffer->Bind(
@@ -166,12 +156,11 @@ namespace Moongoose {
 			}
 		}
 
-		if (!m_ShadowCastingSpotLights.empty())
+		for (const auto& light : m_SpotLights)
 		{
-			const SpotLight& light = m_ShadowCastingSpotLights[0];
 			if (light.shadowType != ShadowType::NONE)
 			{
-				auto& [topLeft, bottomRight] = m_ShadowMapAtlas[1];
+				auto& [topLeft, bottomRight] = *light.shadowMapRegion;
 				const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_SPOT);
 
 				m_ShadowBuffer->Bind(
@@ -276,35 +265,40 @@ namespace Moongoose {
 		m_BillboardRenderCmds.push_back(cmd);
 	}
 
-	void Renderer::PushDirectionalLight(const DirectionalLight& directionalLight)
+	void Renderer::PushDirectionalLight(const DirectionalLight& light)
 	{
-		m_DirectionalLights.push_back(directionalLight);
-		if (directionalLight.shadowType != ShadowType::NONE) m_ShadowCastingDirectionalLights.push_back(directionalLight);
+		m_DirectionalLights.push_back(light);
+		if (light.shadowType != ShadowType::NONE)
+		{
+			m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
+		}
 	}
 
-	void Renderer::PushPointLight(const PointLight& pointLight)
+	void Renderer::PushPointLight(const PointLight& light)
 	{
-		m_PointLights.push_back(pointLight);
-		if (pointLight.shadowType != ShadowType::NONE) m_ShadowCastingPointLights.push_back(pointLight);
+		m_PointLights.push_back(light);
+		if (light.shadowType != ShadowType::NONE)
+		{
+			m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
+		}
 	}
 
-	void Renderer::PushSpotLight(const SpotLight& spotLight)
+	void Renderer::PushSpotLight(const SpotLight& light)
 	{
-		m_SpotLights.push_back(spotLight);
-		if (spotLight.shadowType != ShadowType::NONE) m_ShadowCastingSpotLights.push_back(spotLight);
+		m_SpotLights.push_back(light);
+		if (light.shadowType != ShadowType::NONE)
+		{
+			m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
+		}
 	}
 
 	void Renderer::BeginScene()
 	{
-		m_ShadowMapAtlas.clear();
+		m_TextureAtlas.Clear();
 
 		m_DirectionalLights.clear();
 		m_PointLights.clear();
 		m_SpotLights.clear();
-
-		m_ShadowCastingDirectionalLights.clear();
-		m_ShadowCastingPointLights.clear();
-		m_ShadowCastingSpotLights.clear();
 
 		m_MeshRenderCmds.clear();
 		m_BillboardRenderCmds.clear();
@@ -363,56 +357,6 @@ namespace Moongoose {
 		return GetSpotLightProjection(light) * lookAt(light.position, light.position - light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
-	/*
-	 *	Credit:
-	 *	https://lisyarus.github.io/blog/posts/texture-packing.html
-	 */
-	std::vector<Renderer::AtlasBox> Renderer::AllocateTextureAtlas(glm::uvec2 const& atlasSize, std::vector<uint16_t> const& textureSizes)
-	{
-		// we have to separately sort the indices so that the i-th region
-		// of the output corresponds to the i-th texture size of the input
-		std::vector<uint16_t> sorted(textureSizes.size());
-		for (uint16_t i = 0; i < sorted.size(); ++i)
-			sorted[i] = i;
-
-		// sort in descending order
-		std::sort(sorted.begin(), sorted.end(), [&](const unsigned int i, const unsigned int j) {
-			return textureSizes[i] > textureSizes[j];
-		});
-
-		glm::uvec2 pen{ 0, 0 };
-		std::vector<glm::uvec2> ladder;
-		std::vector<AtlasBox> result(textureSizes.size());
-
-		for (const unsigned int i : sorted)
-		{
-			int const size = textureSizes[i];
-
-			// allocate a texture region
-			result[i] = { {pen.x, pen.y}, {pen.x + size, pen.y + size} };
-
-			// shift the pen to the right
-			pen.x += size;
-
-			// update the ladder
-			if (!ladder.empty() && ladder.back().y == pen.y + size)
-				ladder.back().x = pen.x;
-			else
-				ladder.emplace_back(pen.x, pen.y + size);
-
-			if (pen.x == atlasSize.x)
-			{
-				// the pen hit the right edge of the atlas
-				ladder.pop_back();
-
-				pen.x = !ladder.empty() ? ladder.back().x : 0;
-				pen.y += size;
-			}
-		}
-
-		return result;
-	}
-
 	void Renderer::SetPointLightCount(const Ref<Shader>& shader, const int lightCount)
 	{
 		shader->UploadUniformInt("pointLightCount", lightCount);
@@ -439,7 +383,22 @@ namespace Moongoose {
 
 		shader->UploadUniformFloat3(base + ".direction", spotLight.direction);
 		shader->UploadUniformFloat(base + ".attenuationAngle", spotLight.attenuationAngle);
+
+		if (spotLight.shadowType != ShadowType::NONE && spotLight.shadowMapRegion)
+		{
+			const auto& [topLeft, bottomRight] = *spotLight.shadowMapRegion;
+			const auto shadowMapSize = glm::vec2(
+				bottomRight.x - topLeft.x,
+				bottomRight.y - topLeft.y
+			);
+
+			shader->UploadUniformFloat2(base + ".base.base.shadowMapTopLeft", topLeft);
+			shader->UploadUniformFloat2(base + ".base.base.shadowMapSize", shadowMapSize);
+		}
+
 	}
+
+
 
 	void Renderer::AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight, const glm::mat4& lightTransform)
 	{
