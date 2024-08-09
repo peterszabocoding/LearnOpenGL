@@ -70,6 +70,17 @@ uniform Material material;
 vec3 normalizedNormal;
 vec2 shadowMapTextureSize;
 
+
+vec3 sampleOffsetDirections[20] = vec3[]
+(
+   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+); 
+
+
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
 
@@ -171,7 +182,27 @@ float CalcPCFSoftShadow(Light light, sampler2DShadow shadowMap, vec3 projectedCo
 		}
 	}
 	return shadow / 25.0;
-} 
+}
+
+float CalcPointPCFSoftShadow(PointLight light, samplerCube shadowMap, float bias)
+{
+	float shadow = 0.0;
+	int samples = 20;
+	vec3 fragToLight = FragPos - light.position; 
+	float currentDepth = length(fragToLight);
+
+	float diskRadius = (1.0 + (currentDepth / light.attenuationRadius * 1.5)) / 25.0;
+
+	//float diskRadius = 0.05;
+	for(int i = 0; i < samples; ++i)
+	{
+		float closestDepth = texture(shadowMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r * light.attenuationRadius * 1.5;
+		if (currentDepth - bias < closestDepth) shadow += 1.0;
+	}
+	shadow /= float(samples);
+
+	return shadow;
+}
 
 float CalcShadowFactor(sampler2DShadow shadowMap, Light light, float bias) {
 	if (!light.isShadowCasting) return 1.0;
@@ -192,7 +223,7 @@ float CalcShadowFactor(sampler2DShadow shadowMap, Light light, float bias) {
 float CalcPointShadowFactor(samplerCube shadowMap, PointLight light, float bias)
 {
 	vec3 fragToLight = FragPos - light.position; 
-	float closestDepth = texture(shadowMap, normalize(fragToLight)).r * light.attenuationRadius * 1.5;
+	float closestDepth = texture(shadowMap, fragToLight).r * light.attenuationRadius * 1.5;
 	float currentDepth = length(fragToLight);  
 
 	return (currentDepth - bias) > closestDepth ? 0.0 : 1.0;
@@ -237,7 +268,9 @@ vec4 CalcPointLight(PointLight pLight)
 	if (pLight.base.isShadowCasting)
 	{
 		float bias = CalculatePointBias(pLight.base, direction);
-		shadowFactor = CalcPointShadowFactor(PointLightShadowMap, pLight, bias);
+		shadowFactor = pLight.base.useSoftShadow 
+			? CalcPointPCFSoftShadow(pLight, PointLightShadowMap, bias) 
+			: CalcPointShadowFactor(PointLightShadowMap, pLight, bias);
 	}
 	
 	return diffuseColor * attenuation * shadowFactor;

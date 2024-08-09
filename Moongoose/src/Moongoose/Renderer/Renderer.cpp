@@ -353,8 +353,8 @@ namespace Moongoose {
 
 
 		FramebufferSpecs pointShadowSpecs;
-		pointShadowSpecs.width = 1024;
-		pointShadowSpecs.height = 1024;
+		pointShadowSpecs.width = CUBE_SHADOW_MAP_RESOLUTION;
+		pointShadowSpecs.height = CUBE_SHADOW_MAP_RESOLUTION;
 
 		pointShadowSpecs.hasShadowMapCubeAttachment = true;
 		pointShadowSpecs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -377,10 +377,9 @@ namespace Moongoose {
 
 	glm::mat4 Renderer::GetPointLightProjection(const PointLight& light)
 	{
-		constexpr float aspect = 1024.0f / 1024.0f;
 		constexpr float nearPlane = 0.1f;
 		const float farPlane = light.attenuationRadius * 1.5f;
-		return glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
+		return glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
 	}
 
 	glm::mat4 Renderer::GetSpotLightProjection(const SpotLight& light) {

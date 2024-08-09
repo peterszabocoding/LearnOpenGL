@@ -94,7 +94,8 @@ namespace Moongoose {
 		static void AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight, const glm::mat4& lightTransform);
 
 	private:
-		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = { 8192, 4096 };
+		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = { 4096, 4096 };
+		static constexpr unsigned int CUBE_SHADOW_MAP_RESOLUTION = 512;
 
 		static std::vector<DirectionalLight> m_DirectionalLights;
 		static std::vector<PointLight> m_PointLights;

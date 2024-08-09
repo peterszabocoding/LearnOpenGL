@@ -73,13 +73,13 @@ namespace Moongoose {
 		Framebuffer(const std::string& name, const FramebufferSpecs& specs);
 		~Framebuffer();
 
-		void Bind();
-		void Bind(uint32_t viewportWidth, uint32_t viewportHeight);
-		void Bind(uint32_t startPosX, uint32_t startPosY, uint32_t viewportWidth, uint32_t viewportHeight);
+		void Bind() const;
+		void Bind(uint32_t viewportWidth, uint32_t viewportHeight) const;
+		void Bind(uint32_t startPosX, uint32_t startPosY, uint32_t viewportWidth, uint32_t viewportHeight) const;
 		void Unbind();
 		void Resize(uint32_t width, uint32_t height);
-		int ReadPixel(uint32_t attachmentIndex, int x, int y);
-		void ClearAttachment(uint32_t attachmentIndex, int value);
+		int ReadPixel(uint32_t attachmentIndex, int x, int y) const;
+		void ClearAttachment(uint32_t attachmentIndex, int value) const;
 
 		FramebufferSpecs GetSpecs() const { return m_Specs; }
 
@@ -93,12 +93,12 @@ namespace Moongoose {
 
 	private:
 		void Invalidate();
-		void DeleteBuffer();
+		void DeleteBuffer() const;
 		void AddShadowMapAttachment();
 		void AddShadowMapCubeAttachment();
 
 		static int TextureFormatToGL(const FramebufferTextureFormat format);
-		static int TextureFormatToInternalGL(const FramebufferTextureFormat format);
+		static int TextureFormatToInternalGl(const FramebufferTextureFormat format);
 
 	public:
 		std::string m_Name;

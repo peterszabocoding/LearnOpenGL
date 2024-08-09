@@ -7,7 +7,7 @@ namespace Moongoose {
 
 	namespace Utils {
 
-		static bool IsDepthFormat(FramebufferTextureFormat format) {
+		static bool IsDepthFormat(const FramebufferTextureFormat format) {
 			switch (format) {
 			case FramebufferTextureFormat::DEPTH24: return true;
 			case FramebufferTextureFormat::DEPTH24STENCIL8: return true;
@@ -15,19 +15,19 @@ namespace Moongoose {
 			return false;
 		}
 
-		static GLenum TextureTarget(bool multisampled) {
+		static GLenum TextureTarget(const bool multisampled) {
 			return multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 		}
 
-		static void CreateTextures(bool multisampled, uint32_t* outID, uint32_t count) {
-			glCreateTextures(TextureTarget(multisampled), count, outID);
+		static void CreateTextures(const bool multisampled, uint32_t* outId, const uint32_t count) {
+			glCreateTextures(TextureTarget(multisampled), count, outId);
 		}
 
-		static void BindTexture(bool multisampled, uint32_t id) {
+		static void BindTexture(const bool multisampled, const uint32_t id) {
 			glBindTexture(TextureTarget(multisampled), id);
 		}
 
-		static void AttachColorTexture(uint32_t id, int samples, GLenum internalFormat, GLenum format, uint32_t width, uint32_t height, int index) {
+		static void AttachColorTexture(const uint32_t id, const int samples, const GLenum internalFormat, const GLenum format, const uint32_t width, const uint32_t height, const int index) {
 			bool multisampled = samples > 1;
 			if (multisampled) {
 				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_FALSE);
@@ -45,7 +45,7 @@ namespace Moongoose {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), id, 0);
 		}
 
-		static void AttachDepthTexture(uint32_t id, int samples, GLenum format, GLenum attachmentType, uint32_t width, uint32_t height) {
+		static void AttachDepthTexture(const uint32_t id, const int samples, const GLenum format, const GLenum attachmentType, const uint32_t width, const uint32_t height) {
 			bool multisampled = samples > 1;
 			if (multisampled) {
 				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_FALSE);
@@ -63,7 +63,7 @@ namespace Moongoose {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, TextureTarget(multisampled), id, 0);
 		}
 
-		static void AttachShadowMapTexture(uint32_t id, int samples, GLenum format, uint32_t width, uint32_t height) {
+		static void AttachShadowMapTexture(const uint32_t id, const int samples, const GLenum format, const uint32_t width, const uint32_t height) {
 			const bool multisampled = samples > 1;
 			if (multisampled) {
 				glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_FALSE);
@@ -84,7 +84,7 @@ namespace Moongoose {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, TextureTarget(multisampled), id, 0);
 		}
 
-		static void LogFramebufferError(GLenum framebufferError) {
+		static void LogFramebufferError(const GLenum framebufferError) {
 			std::string errorType;
 			switch (framebufferError) {
 			case GL_FRAMEBUFFER_UNDEFINED:
@@ -135,8 +135,8 @@ namespace Moongoose {
 		DeleteBuffer();
 	}
 
-	void Framebuffer::Bind() {
-
+	void Framebuffer::Bind() const
+	{
 		int attachmentSize = m_ColorAttachments.size();
 		std::vector<unsigned int> attachments;
 		attachments.reserve(attachmentSize);
@@ -150,7 +150,7 @@ namespace Moongoose {
 		RenderCommand::SetViewport(0, 0, m_Specs.width, m_Specs.height);
 	}
 
-	void Framebuffer::Bind(uint32_t viewportWidth, uint32_t viewportHeight)
+	void Framebuffer::Bind(const uint32_t viewportWidth, const uint32_t viewportHeight) const
 	{
 		int attachmentSize = m_ColorAttachments.size();
 		std::vector<unsigned int> attachments;
@@ -165,7 +165,7 @@ namespace Moongoose {
 		RenderCommand::SetViewport(0, 0, viewportWidth, viewportHeight);
 	}
 
-	void Framebuffer::Bind(uint32_t startPosX, uint32_t startPosY, uint32_t viewportWidth, uint32_t viewportHeight)
+	void Framebuffer::Bind(const uint32_t startPosX, const uint32_t startPosY, const uint32_t viewportWidth, const uint32_t viewportHeight) const
 	{
 		int attachmentSize = m_ColorAttachments.size();
 		std::vector<unsigned int> attachments;
@@ -184,14 +184,14 @@ namespace Moongoose {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void Framebuffer::Resize(uint32_t width, uint32_t height)
+	void Framebuffer::Resize(const uint32_t width, const uint32_t height)
 	{
 		m_Specs.width = width;
 		m_Specs.height = height;
 		Invalidate();
 	}
 
-	int Framebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
+	int Framebuffer::ReadPixel(const uint32_t attachmentIndex, const int x, const int y) const
 	{
 		MG_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex exeeded number of color attachments");
 
@@ -202,7 +202,7 @@ namespace Moongoose {
 		return pixelData;
 	}
 
-	void Framebuffer::ClearAttachment(uint32_t attachmentIndex, int value)
+	void Framebuffer::ClearAttachment(const uint32_t attachmentIndex, const int value) const
 	{
 		MG_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex exeeded number of color attachments");
 
@@ -222,7 +222,7 @@ namespace Moongoose {
 
 		bool multisample = m_Specs.samples > 1;
 
-		if (m_ColorAttachmentSpecs.size()) {
+		if (!m_ColorAttachmentSpecs.empty()) {
 
 			m_ColorAttachments.resize(m_ColorAttachmentSpecs.size());
 			Utils::CreateTextures(multisample, m_ColorAttachments.data(), m_ColorAttachments.size());
@@ -233,7 +233,7 @@ namespace Moongoose {
 				Utils::AttachColorTexture(
 					m_ColorAttachments[i], 
 					m_Specs.samples, 
-					TextureFormatToInternalGL(m_ColorAttachmentSpecs[i].TextureFormat),
+					TextureFormatToInternalGl(m_ColorAttachmentSpecs[i].TextureFormat),
 					TextureFormatToGL(m_ColorAttachmentSpecs[i].TextureFormat),
 					m_Specs.width, 
 					m_Specs.height, 
@@ -266,7 +266,7 @@ namespace Moongoose {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void Framebuffer::DeleteBuffer()
+	void Framebuffer::DeleteBuffer() const
 	{
 		if (!m_FramebufferID) return;
 
@@ -308,16 +308,7 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_ShadowMapCubeAttachment);
 
 		for (int i = 0; i < 6; i++) {
-			glTexImage2D(
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
-				0, 
-				GL_DEPTH_COMPONENT32, 
-				m_Specs.width, 
-				m_Specs.height, 
-				0, 
-				GL_DEPTH_COMPONENT, 
-				GL_FLOAT, 
-				nullptr);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32, m_Specs.width, m_Specs.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		}
 
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -338,7 +329,7 @@ namespace Moongoose {
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_ShadowMapCubeAttachment, 0);
 	}
 
-	int Framebuffer::TextureFormatToInternalGL(const FramebufferTextureFormat format)
+	int Framebuffer::TextureFormatToInternalGl(const FramebufferTextureFormat format)
 	{
 		switch (format) {
 			case FramebufferTextureFormat::RGBA8:
