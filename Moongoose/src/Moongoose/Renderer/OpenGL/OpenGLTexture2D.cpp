@@ -13,7 +13,7 @@ namespace Moongoose {
 		m_TextureID = 0;
 	}
 
-	void OpenGLTexture2D::bind(const uint32_t textureUnit) const
+	void OpenGLTexture2D::Bind(const uint32_t textureUnit) const
 	{
 		glActiveTexture(GL_TEXTURE0 + textureUnit);
 		glBindTexture(GL_TEXTURE_2D, m_TextureID);
@@ -26,32 +26,32 @@ namespace Moongoose {
 	void OpenGLTexture2D::LoadData(const TextureSpecs specs, void* data)
 	{
 		m_TextureSpecs = specs;
-		m_TextureFormat = specs.TextureFormat;
+		m_TextureFormat = specs.textureFormat;
 
 		m_TextureData.Data = data;
-		m_TextureData.Size = m_TextureSpecs.Width * m_TextureSpecs.Height * m_TextureSpecs.BitDepth;
+		m_TextureData.Size = m_TextureSpecs.width * m_TextureSpecs.height * m_TextureSpecs.bitDepth;
 
 		GLenum internalFormat = 0, dataFormat = 0;
 
-		if (m_TextureSpecs.BitDepth == 1) {
+		if (m_TextureSpecs.bitDepth == 1) {
 			internalFormat = GL_R8;
 			dataFormat = GL_RED;
-			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (Red integer)", m_TextureSpecs.FileLocation);
+			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (Red integer)", m_TextureSpecs.fileLocation);
 		}
-		else if (m_TextureSpecs.BitDepth == 4) {
-			internalFormat = GL_RGBA8;
+		else if (m_TextureSpecs.bitDepth == 4) {
+			internalFormat = GL_SRGB8_ALPHA8;
 			dataFormat = GL_RGBA;
-			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGBA)", m_TextureSpecs.FileLocation);
+			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGBA)", m_TextureSpecs.fileLocation);
 		}
-		else if (m_TextureSpecs.BitDepth == 3) {
-			internalFormat = GL_RGB8;
+		else if (m_TextureSpecs.bitDepth == 3) {
+			internalFormat = GL_SRGB8;
 			dataFormat = GL_RGB;
-			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGB)", m_TextureSpecs.FileLocation);
+			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGB)", m_TextureSpecs.fileLocation);
 		}
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_TextureID);
-		glTextureStorage2D(m_TextureID, 1, internalFormat, m_TextureSpecs.Width, m_TextureSpecs.Height);
-		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_TextureSpecs.Width, m_TextureSpecs.Height, dataFormat, GL_UNSIGNED_BYTE, m_TextureData.Data);
+		glTextureStorage2D(m_TextureID, 1, internalFormat, m_TextureSpecs.width, m_TextureSpecs.height);
+		glTextureSubImage2D(m_TextureID, 0, 0, 0, m_TextureSpecs.width, m_TextureSpecs.height, dataFormat, GL_UNSIGNED_BYTE, m_TextureData.Data);
 
 		glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_TextureID, GL_TEXTURE_WRAP_T, GL_REPEAT);

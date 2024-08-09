@@ -10,30 +10,30 @@ namespace Moongoose {
 	AtmosphericsSystem::AtmosphericsSystem()
 	{
 		FramebufferSpecs specs;
-		specs.Width = 256;
-		specs.Height = 64;
-		specs.Attachments = { FramebufferTextureFormat::RGBA32F };
+		specs.width = 256;
+		specs.height = 64;
+		specs.attachments = { FramebufferTextureFormat::RGBA32F };
 
 		m_TransmittanceBuffer = FramebufferManager::CreateFramebuffer("TransmittanceBuffer", specs);
 
 		FramebufferSpecs specs2;
-		specs2.Width = 32;
-		specs2.Height = 32;
-		specs2.Attachments = { FramebufferTextureFormat::RGBA32F };
+		specs2.width = 32;
+		specs2.height = 32;
+		specs2.attachments = { FramebufferTextureFormat::RGBA32F };
 
 		m_MultiScatteringBuffer = FramebufferManager::CreateFramebuffer("MultiScatteringBuffer", specs2);
 
 		FramebufferSpecs specs3;
-		specs3.Width = 200;
-		specs3.Height = 200;
-		specs3.Attachments = { FramebufferTextureFormat::RGBA32F };
+		specs3.width = 200;
+		specs3.height = 200;
+		specs3.attachments = { FramebufferTextureFormat::RGBA32F };
 
 		m_RaymarchingBuffer = FramebufferManager::CreateFramebuffer("RaymarchingBuffer", specs3);
 
 		FramebufferSpecs specs4;
-		specs4.Width = 200;
-		specs4.Height = 200;
-		specs4.Attachments = { FramebufferTextureFormat::RGBA8 };
+		specs4.width = 200;
+		specs4.height = 200;
+		specs4.attachments = { FramebufferTextureFormat::RGBA8 };
 
 		m_SkyBuffer = FramebufferManager::CreateFramebuffer("SkyBuffer", specs4);
 
@@ -55,7 +55,7 @@ namespace Moongoose {
 	void AtmosphericsSystem::Init() const
 	{
 		m_TransmittanceBuffer->Bind();
-		RenderCommand::SetClearColor(m_TransmittanceBuffer->GetSpecs().ClearColor);
+		RenderCommand::SetClearColor(m_TransmittanceBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
 		m_TransmittanceShader->Bind();
@@ -65,7 +65,7 @@ namespace Moongoose {
 		m_TransmittanceBuffer->Unbind();
 
 		m_MultiScatteringBuffer->Bind();
-		RenderCommand::SetClearColor(m_MultiScatteringBuffer->GetSpecs().ClearColor);
+		RenderCommand::SetClearColor(m_MultiScatteringBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
 		m_MultiScatteringShader->Bind();
@@ -79,7 +79,7 @@ namespace Moongoose {
 	void AtmosphericsSystem::Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution) const
 	{
 		m_RaymarchingBuffer->Bind();
-		RenderCommand::SetClearColor(m_RaymarchingBuffer->GetSpecs().ClearColor);
+		RenderCommand::SetClearColor(m_RaymarchingBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
 		m_RaymarchingShader->Bind();
@@ -92,7 +92,7 @@ namespace Moongoose {
 		m_RaymarchingBuffer->Unbind();
 
 		m_SkyBuffer->Bind();
-		RenderCommand::SetClearColor(m_SkyBuffer->GetSpecs().ClearColor);
+		RenderCommand::SetClearColor(m_SkyBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 		m_SkyShader->Bind();
 		m_SkyShader->UploadUniformFloat("u_Time", 10.0f);

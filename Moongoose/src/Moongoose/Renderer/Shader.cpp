@@ -8,7 +8,9 @@
 
 namespace Moongoose {
 
-	Shader::Shader(const ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation)
+	Shader::Shader(const ShaderType type, 
+		const std::string& vertexShaderLocation, 
+		const std::string& fragmentShaderLocation)
 	{
 		shaderId = 0;
 		shaderType = type;
@@ -20,6 +22,26 @@ namespace Moongoose {
 		CompileShader(
 			ReadFile(vertexShaderSourcePath.c_str()).c_str(),
 			ReadFile(fragmentShaderSourcePath.c_str()).c_str()
+		);
+	}
+
+	Shader::Shader(const ShaderType type, 
+	               const std::string& vertexShaderLocation, 
+	               const std::string& fragmentShaderLocation,
+	               const std::string& geometryShaderLocation)
+	{
+		shaderId = 0;
+		shaderType = type;
+
+		vertexShaderSourcePath = vertexShaderLocation;
+		fragmentShaderSourcePath = fragmentShaderLocation;
+		geometryShaderSourcePath = geometryShaderLocation;
+
+		LOG_CORE_INFO("Compile shader: {0} | {1} | {2}", vertexShaderSourcePath, fragmentShaderSourcePath, geometryShaderSourcePath);
+		CompileShader(
+			ReadFile(vertexShaderSourcePath.c_str()).c_str(),
+			ReadFile(fragmentShaderSourcePath.c_str()).c_str(),
+			ReadFile(geometryShaderSourcePath.c_str()).c_str()
 		);
 	}
 
@@ -41,7 +63,7 @@ namespace Moongoose {
 		return shaderType;
 	}
 
-	void Shader::Bind() const
+	void Shader::Bind()
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, polygonMode == PolygonMode::WIREFRAME ? GL_LINE : GL_FILL);
 
@@ -133,7 +155,7 @@ namespace Moongoose {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 	}
 
-	void Shader::CompileShader(const char* vertexCode, const char* fragmentCode)
+	void Shader::CompileShader(const char* vertexCode, const char* fragmentCode, const char* geometryCode)
 	{
 		shaderId = glCreateProgram();
 
@@ -144,6 +166,8 @@ namespace Moongoose {
 
 		AddShader(shaderId, vertexCode, GL_VERTEX_SHADER);
 		AddShader(shaderId, fragmentCode, GL_FRAGMENT_SHADER);
+
+		if (geometryCode) AddShader(shaderId, geometryCode, GL_GEOMETRY_SHADER);
 
 		int result = 0;
 		char eLog[1024] = { 0 };
@@ -193,11 +217,11 @@ namespace Moongoose {
 	{
 		unsigned int location;
 
-		auto it = uniformLocationCache.find(name);
-		if (it != uniformLocationCache.end()) {
+		if (const auto it = uniformLocationCache.find(name); it != uniformLocationCache.end()) {
 			location = it->second;
 		}
-		else {
+		else 
+		{
 			location = glGetUniformLocation(shaderId, name.c_str());
 			uniformLocationCache[name] = location;
 		}

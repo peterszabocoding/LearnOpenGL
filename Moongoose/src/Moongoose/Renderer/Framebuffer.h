@@ -55,15 +55,16 @@ namespace Moongoose {
 	};
 
 	struct FramebufferSpecs {
-		uint32_t Width, Height;
-		uint32_t Samples = 1;
+		uint32_t width, height;
+		uint32_t samples = 1;
 
-		bool HasShadowMapAttachment = false;
-		bool SwapChainTarget = false;
+		bool hasShadowMapAttachment = false;
+		bool hasShadowMapCubeAttachment = false;
+		bool swapChainTarget = false;
 
-		glm::vec4 ClearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec4 clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-		FramebufferAttachmentSpecs Attachments;
+		FramebufferAttachmentSpecs attachments;
 	};
 
 	class Framebuffer {
@@ -87,12 +88,14 @@ namespace Moongoose {
 
 		uint32_t GetDepthAttachment() const { return m_DepthAttachment; }
 		uint32_t GetShadowMapAttachmentID() const { return m_ShadowMapAttachment; }
-		glm::vec2 GetResolution() const { return { m_Specs.Width, m_Specs.Height }; }
+		uint32_t GetShadowMapCubeAttachmentID() const { return m_ShadowMapCubeAttachment; }
+		glm::vec2 GetResolution() const { return { m_Specs.width, m_Specs.height }; }
 
 	private:
 		void Invalidate();
 		void DeleteBuffer();
 		void AddShadowMapAttachment();
+		void AddShadowMapCubeAttachment();
 
 		static int TextureFormatToGL(const FramebufferTextureFormat format);
 		static int TextureFormatToInternalGL(const FramebufferTextureFormat format);
@@ -105,6 +108,7 @@ namespace Moongoose {
 		std::vector<uint32_t> m_ColorAttachments;
 		uint32_t m_DepthAttachment = 0;
 		uint32_t m_ShadowMapAttachment = 0;
+		uint32_t m_ShadowMapCubeAttachment = 0;
 
 		std::vector<FramebufferTextureSpecs> m_ColorAttachmentSpecs;
 		FramebufferTextureSpecs m_DepthAttachmentSpec = FramebufferTextureFormat::None;

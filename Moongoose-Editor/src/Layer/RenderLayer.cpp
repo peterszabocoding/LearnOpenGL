@@ -1,14 +1,13 @@
 #include <imgui/imgui.h>
 
-#include "ImGuizmo.h"
 #include "RenderLayer.h"
+#include "GUI/GuiWidgets.h"
+#include "Platform/PlatformUtils.h"
 #include "Moongoose/Events/Event.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/ECS/WorldManager.h"
 #include "Moongoose/Util/FileSystem.h"
-#include "GUI/GuiWidgets.h"
-#include "Platform/PlatformUtils.h"
 
 using namespace Moongoose;
 
@@ -182,6 +181,8 @@ void RenderLayer::RenderDebugInfo(const float posX, const float posY) const
 	ImGui::Text("Mouse: X: %f Y: %f", m_WindowMousePos.x, m_WindowMousePos.y);
 	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
 	ImGui::Text("Is mouse inside window: %s", IsMouseInWindow() ? "True" : "False");
+	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
+	ImGui::Text("Draw call count: %d", Renderer::GetDrawCount());
 }
 
 bool RenderLayer::onKeyPressed(KeyPressedEvent& event)

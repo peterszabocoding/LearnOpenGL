@@ -29,13 +29,13 @@ void FramebufferViewerLayer::onImGuiRender()
 	const Ref<Framebuffer> selectedBuffer = framebuffers[selectedFramebuffer];
 	const ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
-	const float aspect = (float) selectedBuffer->m_Specs.Height / (float) selectedBuffer->m_Specs.Width;
+	const float aspect = (float) selectedBuffer->m_Specs.height / (float) selectedBuffer->m_Specs.width;
 	const ImVec2 imageSize = { 
 		availableSpace.x, 
 		availableSpace.x * aspect
 	};
 
-	ImGui::Text("Resolution: %d x %d", selectedBuffer->m_Specs.Width, selectedBuffer->m_Specs.Height);
+	ImGui::Text("Resolution: %d x %d", selectedBuffer->m_Specs.width, selectedBuffer->m_Specs.height);
 
 	std::vector<std::string> bufferAttachments;
 	for (size_t i = 0; i < selectedBuffer->m_ColorAttachmentSpecs.size(); i++)

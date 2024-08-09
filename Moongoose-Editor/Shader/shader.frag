@@ -20,6 +20,7 @@ layout(binding = 2) uniform sampler2D MetallicTexture;
 layout(binding = 3) uniform sampler2D RoughnessTexture;
 
 layout(binding = 4) uniform sampler2DShadow ShadowMapTexture;
+layout(binding = 5) uniform samplerCube PointLightShadowMap;
 
 struct Light {
 	vec3 color;
@@ -130,6 +131,11 @@ float CalculateBias(Light light, vec3 lightDirection)
 	return max(0.00025f * (1.0 - dot(Normal, lightDirection)), light.bias);
 }
 
+float CalculatePointBias(Light light, vec3 lightDirection)
+{
+	return max(0.15f * (1.0 - dot(Normal, lightDirection)), light.bias); 
+}
+
 vec2 CalculateShadowMapRatio(vec2 shadowMapSize)
 {
 	return vec2(shadowMapSize.x / shadowMapTextureSize.x, shadowMapSize.y / shadowMapTextureSize.y);
@@ -154,8 +160,11 @@ float CalcPCFSoftShadow(Light light, sampler2DShadow shadowMap, vec3 projectedCo
 	vec2 texelSize = 1.0 / light.shadowMapSize;
 	for(int x = -2; x <= 2; ++x) {
 		for(int y = -2; y <= 2; ++y) {
-			float randomFactor = 0.15;
-			vec3 projCoords = vec3(projectedCoords.xy + vec2(x + randomFactor * rand(gl_FragCoord.xy),y + randomFactor * rand(gl_FragCoord.xy)) * texelSize, projectedCoords.z - bias);
+			float randomFactor = 0.75;
+			//float xOffset = randomFactor * rand(gl_FragCoord.xy);
+			//float yOffset = randomFactor * rand(gl_FragCoord.xy);
+
+			vec3 projCoords = vec3(projectedCoords.xy + vec2(x ,y) * texelSize, projectedCoords.z - bias);
 			
 			if (projCoords.x < 0 || projCoords.y < 0 || projCoords.x > 1.0 || projCoords.y > 1.0) return 1.0;
 			shadow += ReadShadowMap(shadowMap, light.shadowMapTopLeft, light.shadowMapSize, projCoords).r;
@@ -178,6 +187,15 @@ float CalcShadowFactor(sampler2DShadow shadowMap, Light light, float bias) {
 		: ReadShadowMap(shadowMap, vec2(0.0, 0.0), vec2(0.0, 0.0), projCoords);
 
 	return shadowFactor;
+}
+
+float CalcPointShadowFactor(samplerCube shadowMap, PointLight light, float bias)
+{
+	vec3 fragToLight = FragPos - light.position; 
+	float closestDepth = texture(shadowMap, normalize(fragToLight)).r * light.attenuationRadius * 1.5;
+	float currentDepth = length(fragToLight);  
+
+	return (currentDepth - bias) > closestDepth ? 0.0 : 1.0;
 }
 
 float CalcLightAttenuation(vec3 fragPos, vec3 lightPos, float rmax)
@@ -209,25 +227,36 @@ vec4 CalcDirectionalLight()
 
 vec4 CalcPointLight(PointLight pLight) 
 {
-	vec3 direction = pLight.position - FragPos;
-	float dist = length(direction);
-	direction = normalize(direction);
-	float bias = CalculateBias(pLight.base, direction);
+	vec3 direction = normalize(pLight.position - FragPos);
 
-	vec4 color = CalcLightByDirection(pLight.base, direction, 1.0);
+	float diffuseFactor = clamp(dot(Normal, normalize(direction)), 0.0, 1.0);
+	vec4 diffuseColor = vec4(pLight.base.color * pLight.base.intensity * diffuseFactor, 1.0f);
 	float attenuation = CalcLightAttenuation(FragPos, pLight.position, pLight.attenuationRadius);
-	return color * attenuation;
+
+	float shadowFactor = 1.0;
+	if (pLight.base.isShadowCasting)
+	{
+		float bias = CalculatePointBias(pLight.base, direction);
+		shadowFactor = CalcPointShadowFactor(PointLightShadowMap, pLight, bias);
+	}
+	
+	return diffuseColor * attenuation * shadowFactor;
 }
 
 vec4 CalcSpotLight(SpotLight sLight) 
 {
-	vec3 rayDirection = normalize(sLight.base.position - FragPos);
-	float slFactor = dot(rayDirection, sLight.direction);
+	vec3 direction = normalize(sLight.base.position - FragPos);
+	float slFactor = dot(direction, sLight.direction);
 
 	if (slFactor > sLight.attenuationAngle) {
-		float bias = CalculateBias(sLight.base.base, rayDirection);
+		float bias = CalculateBias(sLight.base.base, direction);
 		float shadowFactor = CalcShadowFactor(ShadowMapTexture, sLight.base.base, bias);
-		vec4 color = CalcPointLight(sLight.base) * shadowFactor;
+
+		float diffuseFactor = clamp(dot(Normal, normalize(direction)), 0.0, 1.0);
+		vec4 diffuseColor = vec4(sLight.base.base.color * sLight.base.base.intensity * diffuseFactor, 1.0f);
+		float attenuation = CalcLightAttenuation(FragPos, sLight.base.position, sLight.base.attenuationRadius);
+		vec4 color = diffuseColor * attenuation * shadowFactor;
+		
 		return color * (1.0 - (1.0 - slFactor) * (1.0/(1 - sLight.attenuationAngle)));
 	} else {
 		return vec4(0, 0, 0, 0);
@@ -257,10 +286,7 @@ vec4 CalcSpotLights()
 
 void main()
 {
-    vec3 ambient = vec3(0.05f, 0.05f, 0.05f);
-    float diff = max(dot(Normal, vec3(1.0f, 1.0f, 1.0f)), 0.0);
-    vec3 diffuse = diff * vec3(1.0f, 1.0f, 1.0f);
-
+    oEntityID = EntityID;
 	shadowMapTextureSize = textureSize(ShadowMapTexture, 0);
 
 	//vec3 n = texture(NormalTexture, TexCoord).rgb;
@@ -272,6 +298,7 @@ void main()
     vec4 albedo = texture(AlbedoTexture, TexCoord);
     vec4 color = albedo * (CalcDirectionalLight() + CalcPointLights() + CalcSpotLights());
 
-    FragColor = vec4(color.rgb, 1.0f);
-    oEntityID = EntityID;
+ 	// apply gamma correction
+    float gamma = 2.2;
+    FragColor = vec4(pow(color.rgb, vec3(1.0/gamma)), 1.0f);
 }

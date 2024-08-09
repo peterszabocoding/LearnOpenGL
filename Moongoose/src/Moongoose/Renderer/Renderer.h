@@ -63,6 +63,8 @@ namespace Moongoose {
 
 		static void BeginScene();
 		static void EndScene();
+
+		static unsigned int GetDrawCount() { return prevDrawCount; }
 	private:
 		static void InitShadowBuffer();
 		static void SetResolution(glm::uvec2 newResolution);
@@ -80,7 +82,7 @@ namespace Moongoose {
 		static glm::mat4 GetSpotLightProjection(const SpotLight& light);
 
 		static glm::mat4 GetDirectionalLightTransform(const DirectionalLight& light);
-		static glm::mat4 GetPointLightTransform(const PointLight& light);
+		static std::vector<glm::mat4> GetPointLightTransform(const PointLight& light);
 		static glm::mat4 GetSpotLightTransform(const SpotLight& light);
 
 		static std::vector<AtlasBox> AllocateTextureAtlas(glm::uvec2 const& atlasSize, std::vector<uint16_t> const& textureSizes);
@@ -103,9 +105,13 @@ namespace Moongoose {
 
 		static Ref<Framebuffer> m_RenderBuffer;
 		static Ref<Framebuffer> m_ShadowBuffer;
+		static Ref<Framebuffer> m_PointShadowBuffer;
 		static glm::uvec2 m_Resolution;
 
 		static TextureAtlas m_TextureAtlas;
+
+		static unsigned int prevDrawCount;
+		static unsigned int currentDrawCount;
 	};
 
 }

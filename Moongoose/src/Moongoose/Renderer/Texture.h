@@ -57,13 +57,13 @@ namespace Moongoose {
 	};
 
 	struct TextureSpecs {
-		uint32_t		Width = 0;
-		uint32_t		Height = 0;
-		uint32_t		BitDepth = 0;
-		std::string		FileLocation = "";
-		TextureWrap		TextureWrap = TextureWrap::Repeat;
-		TextureFilter	TextureFilter = TextureFilter::Linear;
-		TextureFormat	TextureFormat = TextureFormat::RGB;
+		uint32_t		width = 0;
+		uint32_t		height = 0;
+		uint32_t		bitDepth = 0;
+		std::string		fileLocation;
+		TextureWrap		textureWrap = TextureWrap::Repeat;
+		TextureFilter	textureFilter = TextureFilter::Linear;
+		TextureFormat	textureFormat = TextureFormat::RGB;
 	};
 
 	namespace Utils {
@@ -77,7 +77,7 @@ namespace Moongoose {
 			MG_ASSERT(false, "Unknown Texture Type");
 			return TextureType::None;
 		}
-		inline const char* TextureTypeToString(TextureType textureType)
+		inline const char* TextureTypeToString(const TextureType textureType)
 		{
 			switch (textureType)
 			{
@@ -100,7 +100,7 @@ namespace Moongoose {
 			MG_ASSERT(false, "Unknown Texture Filter");
 			return TextureFilter::None;
 		}
-		inline const char* TextureFilterToString(TextureFilter textureType)
+		inline const char* TextureFilterToString(const TextureFilter textureType)
 		{
 			switch (textureType)
 			{
@@ -123,7 +123,7 @@ namespace Moongoose {
 			MG_ASSERT(false, "Unknown Texture Wrap");
 			return TextureWrap::None;
 		}
-		inline const char* TextureWrapToString(TextureWrap textureWrap)
+		inline const char* TextureWrapToString(const TextureWrap textureWrap)
 		{
 			switch (textureWrap)
 			{
@@ -139,7 +139,7 @@ namespace Moongoose {
 
 	class Texture: public Asset {
 	public:
-		virtual void bind(uint32_t slot = 0) const = 0;
+		virtual void Bind(uint32_t slot = 0) const = 0;
 
 		virtual TextureFormat getFormat() const = 0;
 		virtual uint32_t getWidth() const = 0;
@@ -161,24 +161,24 @@ namespace Moongoose {
 		virtual void LoadData(TextureSpecs specs, void* data) = 0;
 		virtual void UnloadData() = 0;
 
-		virtual bool IsLoaded() const = 0;
-		virtual const std::string& GetPath() const = 0;
+		[[nodiscard]] virtual bool IsLoaded() const = 0;
+		[[nodiscard]] virtual const std::string& GetPath() const = 0;
 
 		virtual void* GetPointerToData() = 0;
 		virtual Buffer GetBuffer() = 0;
 
-		virtual TextureType getType() const override { return TextureType::Texture2D; }
+		[[nodiscard]] virtual TextureType getType() const override { return TextureType::Texture2D; }
 
-		TextureWrap GetTextureWrap() const { return m_TextureSpecs.TextureWrap; }
+		[[nodiscard]] TextureWrap GetTextureWrap() const { return m_TextureSpecs.textureWrap; }
 		void SetTextureWrap(const TextureWrap textureWrap)
 		{
-			m_TextureSpecs.TextureWrap = textureWrap;
+			m_TextureSpecs.textureWrap = textureWrap;
 		} 
 
-		TextureFilter GetTextureFilter() const { return m_TextureSpecs.TextureFilter; }
+		TextureFilter GetTextureFilter() const { return m_TextureSpecs.textureFilter; }
 		void SetTextureFilter(const TextureFilter textureFilter)
 		{
-			m_TextureSpecs.TextureFilter = textureFilter;
+			m_TextureSpecs.textureFilter = textureFilter;
 		}
 
 		TextureFormat GetTextureFormat() const { return m_TextureFormat; }
@@ -189,7 +189,57 @@ namespace Moongoose {
 	};
 
 	class TextureCube : public Texture {
+	public:
+		static Ref<TextureCube> Create();
 
+		[[nodiscard]] virtual AssetType GetAssetType() const override { return AssetType::CubeMapTexture; }
+		static AssetType GetStaticAssetType() { return AssetType::CubeMapTexture; }
+
+		virtual void LoadData(TextureSpecs specs, void* data) = 0;
+		virtual void UnloadData() = 0;
+
+		virtual void* GetPointerToData() = 0;
+		virtual Buffer GetBuffer() = 0;
+
+		virtual TextureFormat getFormat() const override
+		{
+			return m_TextureFormat;
+		}
+
+		virtual uint32_t getWidth() const override
+		{
+			return m_TextureSpecs.width;
+		}
+
+		virtual uint32_t getHeight() const override
+		{
+			return m_TextureSpecs.height;
+		}
+
+		virtual glm::uvec2 getSize() const override
+		{
+			return { m_TextureSpecs.width, m_TextureSpecs.height };
+		}
+
+		[[nodiscard]] virtual TextureType getType() const override { return TextureType::TextureCube; }
+
+		[[nodiscard]] TextureWrap GetTextureWrap() const { return m_TextureSpecs.textureWrap; }
+		void SetTextureWrap(const TextureWrap textureWrap)
+		{
+			m_TextureSpecs.textureWrap = textureWrap;
+		}
+
+		[[nodiscard]] TextureFilter GetTextureFilter() const { return m_TextureSpecs.textureFilter; }
+		void SetTextureFilter(const TextureFilter textureFilter)
+		{
+			m_TextureSpecs.textureFilter = textureFilter;
+		}
+
+		[[nodiscard]] TextureFormat GetTextureFormat() const { return m_TextureFormat; }
+
+	protected:
+		TextureSpecs m_TextureSpecs;
+		TextureFormat m_TextureFormat = TextureFormat::None;
 	};
 
 }

@@ -13,11 +13,14 @@ namespace Moongoose {
 			return manager;
 		}
 
-		static void AssignShaderToType(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation);
+		static void AssignShaderToType(ShaderType type, 
+			const std::string& vertexShaderLocation, 
+			const std::string& fragmentShaderLocation,
+			const std::string& geometryShaderLocation);
+
 		static Ref<Shader> GetShaderByType(ShaderType type);
 
 	private:
 		static std::unordered_map<ShaderType, Ref<Shader>> s_ShadersByType;
 	};
 }
-

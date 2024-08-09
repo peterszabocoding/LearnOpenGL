@@ -18,6 +18,7 @@ namespace Moongoose {
 	glm::uvec2 Renderer::m_Resolution;
 	Ref<Framebuffer> Renderer::m_RenderBuffer;
 	Ref<Framebuffer> Renderer::m_ShadowBuffer;
+	Ref<Framebuffer> Renderer::m_PointShadowBuffer;
 
 	TextureAtlas Renderer::m_TextureAtlas;
 
@@ -28,20 +29,24 @@ namespace Moongoose {
 	std::vector<Renderer::MeshRenderCmd> Renderer::m_MeshRenderCmds;
 	std::vector<Renderer::BillboardCmd> Renderer::m_BillboardRenderCmds;
 
+	unsigned int Renderer::prevDrawCount = 0;
+	unsigned int Renderer::currentDrawCount = 0;
+
 	void Renderer::SetResolution(const glm::uvec2 newResolution)
 	{
-		if (!m_ShadowBuffer) InitShadowBuffer();
+		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitShadowBuffer();
+
 		if (newResolution == m_Resolution) return;
 
 		FramebufferSpecs specs;
-		specs.Width = newResolution.x;
-		specs.Height = newResolution.y;
-		specs.Attachments = {
+		specs.width = newResolution.x;
+		specs.height = newResolution.y;
+		specs.attachments = {
 			FramebufferTextureFormat::RGBA8,
 			FramebufferTextureFormat::RED_INTEGER,
 			FramebufferTextureFormat::DEPTH24STENCIL8
 		};
-		specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
 		m_Resolution = newResolution;
@@ -60,11 +65,15 @@ namespace Moongoose {
 		shader->UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
+		shader->BindCubeMapTexture(5, m_PointShadowBuffer->GetShadowMapCubeAttachmentID());
 
 		for (const auto& light : m_DirectionalLights) PrepareDirectionalLight(light, shader);
 
 		SetPointLightCount(shader, m_PointLights.size());
-		for (size_t i = 0; i < m_PointLights.size(); i++) AddPointLight(i, shader, m_PointLights[i], GetPointLightTransform(m_PointLights[i]));
+		for (size_t i = 0; i < m_PointLights.size(); i++)
+		{
+			AddPointLight(i, shader, m_PointLights[i], GetPointLightTransform(m_PointLights[i])[0]);
+		}
 
 		SetSpotLightCount(shader, m_SpotLights.size());
 		for (size_t i = 0; i < m_SpotLights.size(); i++)
@@ -105,7 +114,7 @@ namespace Moongoose {
 	void Renderer::RenderShadowMaps()
 	{
 		m_ShadowBuffer->Bind();
-		RenderCommand::SetClearColor(m_ShadowBuffer->GetSpecs().ClearColor);
+		RenderCommand::SetClearColor(m_ShadowBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
 		m_TextureAtlas.AllocateTextureAtlas(SHADOW_BUFFER_RESOLUTION);
@@ -136,12 +145,6 @@ namespace Moongoose {
 
 			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
 			shader->Unbind();
-		}
-
-		for (auto& light : m_PointLights)
-		{
-			if (light.shadowType == ShadowType::NONE) continue;
-			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
 		}
 
 		for (auto& light : m_SpotLights)
@@ -176,6 +179,45 @@ namespace Moongoose {
 		}
 		
 		m_ShadowBuffer->Unbind();
+
+
+		m_PointShadowBuffer->Bind();
+		RenderCommand::SetClearColor(m_PointShadowBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+
+		for (auto& light : m_PointLights)
+		{
+			if (light.shadowType == ShadowType::NONE) continue;
+			auto shadowMatrices = GetPointLightTransform(light);
+
+			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_POINT);
+			shader->Bind();
+
+			shader->UploadUniformMat4("shadowMatrices[0]", shadowMatrices[0]);
+			shader->UploadUniformMat4("shadowMatrices[1]", shadowMatrices[1]);
+			shader->UploadUniformMat4("shadowMatrices[2]", shadowMatrices[2]);
+			shader->UploadUniformMat4("shadowMatrices[3]", shadowMatrices[3]);
+			shader->UploadUniformMat4("shadowMatrices[4]", shadowMatrices[4]);
+			shader->UploadUniformMat4("shadowMatrices[5]", shadowMatrices[5]);
+
+			shader->UploadUniformFloat3("lightPos", light.position);
+
+			shader->UploadUniformFloat("farPlane", light.attenuationRadius * 1.5f);
+			shader->UploadUniformFloat("nearPlane", 0.1f);
+
+			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
+			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
+
+			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+			{
+				shader->UploadUniformMat4("model", cmd.transform);
+				RenderMesh(cmd.vertexArray);
+			}
+
+			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
+			shader->Unbind();
+		}
+		m_PointShadowBuffer->Unbind();
 	}
 
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
@@ -191,7 +233,7 @@ namespace Moongoose {
 		RenderShadowMaps();
 
 		m_RenderBuffer->Bind();
-		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().ClearColor);
+		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
 		world->GetSystem<AtmosphericsSystem>()->Run(camera);
@@ -213,6 +255,7 @@ namespace Moongoose {
 	{
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(cmd.material->GetShaderType());
 		shader->Bind();
+
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 		shader->UploadUniformMat4("model", cmd.transform);
 		shader->UploadUniformInt("aEntityID", cmd.id);
@@ -227,15 +270,16 @@ namespace Moongoose {
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
 
 		shader->Bind();
+		shader->EnableFeature(GlFeature::BLEND);
+		shader->SetBlendMode(GlBlendOption::SRC_ALPHA, GlBlendOption::ONE_MINUS_SRC_ALPHA);
+
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 
 		shader->UploadUniformMat4("model", cmd.transform);
 		shader->UploadUniformInt("aEntityID", cmd.id);
 
-		shader->EnableFeature(GlFeature::BLEND);
-		shader->SetBlendMode(GlBlendOption::SRC_ALPHA, GlBlendOption::ONE_MINUS_SRC_ALPHA);
 		shader->UploadUniformFloat3("TintColor", cmd.tintColor);
-		cmd.texture->bind(0);
+		cmd.texture->Bind(0);
 
 		RenderMesh(QuadMeshWorld(cmd.scale).GetSubmeshes()[0]->vertexArray);
 
@@ -265,10 +309,6 @@ namespace Moongoose {
 	void Renderer::PushPointLight(const PointLight& light)
 	{
 		m_PointLights.push_back(light);
-		if (light.shadowType != ShadowType::NONE)
-		{
-			m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
-		}
 	}
 
 	void Renderer::PushSpotLight(const SpotLight& light)
@@ -282,6 +322,9 @@ namespace Moongoose {
 
 	void Renderer::BeginScene()
 	{
+		prevDrawCount = currentDrawCount;
+		currentDrawCount = 0;
+
 		m_TextureAtlas.Clear();
 
 		m_DirectionalLights.clear();
@@ -297,22 +340,33 @@ namespace Moongoose {
 	void Renderer::InitShadowBuffer()
 	{
 		FramebufferSpecs specs;
-		specs.Width = SHADOW_BUFFER_RESOLUTION.x;
-		specs.Height = SHADOW_BUFFER_RESOLUTION.y;
+		specs.width = SHADOW_BUFFER_RESOLUTION.x;
+		specs.height = SHADOW_BUFFER_RESOLUTION.y;
 
-		specs.HasShadowMapAttachment = true;
-		specs.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-		specs.Attachments = {
+		specs.hasShadowMapAttachment = true;
+		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		specs.attachments = {
 			FramebufferTextureFormat::RGBA8
 		};
 
 		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer", specs);
+
+
+		FramebufferSpecs pointShadowSpecs;
+		pointShadowSpecs.width = 1024;
+		pointShadowSpecs.height = 1024;
+
+		pointShadowSpecs.hasShadowMapCubeAttachment = true;
+		pointShadowSpecs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		m_PointShadowBuffer = FramebufferManager::CreateFramebuffer("PointShadowBuffer", pointShadowSpecs);
 	}
 
 	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
 	{
 		vertexArray->Bind();
 		RenderCommand::DrawIndexed(vertexArray);
+		currentDrawCount++;
 		vertexArray->Unbind();
 	}
 
@@ -323,7 +377,10 @@ namespace Moongoose {
 
 	glm::mat4 Renderer::GetPointLightProjection(const PointLight& light)
 	{
-		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
+		constexpr float aspect = 1024.0f / 1024.0f;
+		constexpr float nearPlane = 0.1f;
+		const float farPlane = light.attenuationRadius * 1.5f;
+		return glm::perspective(glm::radians(90.0f), aspect, nearPlane, farPlane);
 	}
 
 	glm::mat4 Renderer::GetSpotLightProjection(const SpotLight& light) {
@@ -335,9 +392,19 @@ namespace Moongoose {
 		return GetDirectionalLightProjection(light) * lookAt(light.direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 
-	glm::mat4 Renderer::GetPointLightTransform(const PointLight& light)
+	std::vector<glm::mat4> Renderer::GetPointLightTransform(const PointLight& light)
 	{
-		return glm::mat4(1.0f);
+		const glm::mat4 shadowProj = GetPointLightProjection(light);
+		std::vector<glm::mat4> shadowTransforms;
+
+		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+		return shadowTransforms;
 	}
 
 	glm::mat4 Renderer::GetSpotLightTransform(const SpotLight& light)
@@ -391,7 +458,9 @@ namespace Moongoose {
 
 		shader->UploadUniformFloat3(base + ".base.color", pointLight.color);
 		shader->UploadUniformFloat(base + ".base.intensity", pointLight.intensity);
-		shader->UploadUniformMat4(base + ".base.lightTransform", lightTransform);
+		shader->UploadUniformFloat(base + ".base.isShadowCasting", pointLight.shadowType != ShadowType::NONE);
+		shader->UploadUniformFloat(base + ".base.useSoftShadow", pointLight.shadowType == ShadowType::SOFT);
+		shader->UploadUniformFloat(base + ".base.bias", 0.215f);
 
 		shader->UploadUniformFloat3(base + ".position", pointLight.position);
 		shader->UploadUniformFloat(base + ".attenuationRadius", pointLight.attenuationRadius);

@@ -31,7 +31,7 @@ namespace Moongoose {
 		void SetName(const std::string& newName) { m_Name = newName; }
 
 		void Bind() const { 
-			if (m_Albedo) m_Albedo->bind(0);
+			if (m_Albedo) m_Albedo->Bind(0);
 		}
 
 		void SetAlbedo(const Ref<Texture2D>& albedo) {

@@ -4,7 +4,6 @@
 #include <fstream>
 #include <unordered_map>
 
-#include "Light.h"
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -18,6 +17,7 @@ namespace Moongoose {
 		LIGHTING,
 		STATIC_ALPHA,
 		SHADOW_MAP_DIRECTIONAL,
+		SHADOW_MAP_POINT,
 		SHADOW_MAP_SPOT,
 		SHADOW_MAP_ALPHA,
 		EQUIRECTANGULAR_TO_CUBE,
@@ -42,7 +42,8 @@ namespace Moongoose {
 		DEPTH_TEST = GL_DEPTH_TEST,
 		POLYGON_OFFSET = GL_POLYGON_OFFSET_FILL,
 		BLEND = GL_BLEND,
-		CULL_FACE = GL_CULL_FACE
+		CULL_FACE = GL_CULL_FACE,
+		FRAMEBUFFER_SRGB = GL_FRAMEBUFFER_SRGB
 	};
 
 	enum class GlBlendOption : int
@@ -66,9 +67,6 @@ namespace Moongoose {
 		bool uniformUseSoftShadow;
 
 		unsigned int uniformPosition;
-		unsigned int uniformConstant;
-		unsigned int uniformLinear;
-		unsigned int uniformExponent;
 	};
 
 	struct UniformSpotLight {
@@ -89,6 +87,7 @@ namespace Moongoose {
 				case ShaderType::STATIC_ALPHA:				return "STATIC_ALPHA";
 				case ShaderType::LIGHTING:					return "LIGHTING";
 				case ShaderType::SHADOW_MAP_DIRECTIONAL:	return "SHADOW_MAP_DIRECTIONAL";
+				case ShaderType::SHADOW_MAP_POINT:			return "SHADOW_MAP_POINT";
 				case ShaderType::SHADOW_MAP_ALPHA:			return "SHADOW_MAP_ALPHA";
 				case ShaderType::EQUIRECTANGULAR_TO_CUBE:	return "EQUIRECTANGULAR_TO_CUBE";
 				case ShaderType::IRRADIANCE_MAP:			return "IRRADIANCE_MAP";
@@ -105,26 +104,32 @@ namespace Moongoose {
 	{
 
 	public:
-		Shader(ShaderType type, const std::string& vertexShaderLocation, const std::string& fragmentShaderLocation);
+		Shader(ShaderType type, 
+			const std::string& vertexShaderLocation, 
+			const std::string& fragmentShaderLocation);
+		Shader(ShaderType type, 
+			const std::string& vertexShaderLocation, 
+			const std::string& fragmentShaderLocation, 
+			const std::string& geometryShaderLocation);
 		virtual ~Shader();
 		void ClearShader();
 
 		[[nodiscard]] ShaderType GetShaderType() const;
 
-		void Bind() const;
+		void Bind();
 		void Unbind();
 		void BindTexture(size_t textureUnit, uint32_t textureId);
 		void BindCubeMapTexture(size_t textureUnit, uint32_t textureId);
 
 		void SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection);
 
-		static void EnableFeature(GlFeature feature);
-		static void DisableFeature(GlFeature feature);
+		void EnableFeature(GlFeature feature);
+		void DisableFeature(GlFeature feature);
 
 		void SetPolygonMode(PolygonMode mode);
-		static void SetLineWidth(float lineWidth);
-		static void SetPolygonOffset(glm::vec2 offset);
-		static void SetBlendMode(GlBlendOption source, GlBlendOption destination);
+		void SetLineWidth(float lineWidth);
+		void SetPolygonOffset(glm::vec2 offset);
+		void SetBlendMode(GlBlendOption source, GlBlendOption destination);
 
 		[[nodiscard]] std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
@@ -138,7 +143,7 @@ namespace Moongoose {
 
 	private:
 		static std::string ReadFile(const char* fileLocation);
-		void CompileShader(const char* vertexCode, const char* fragmentCode);
+		void CompileShader(const char* vertexCode, const char* fragmentCode, const char* geometryCode = nullptr);
 		void AddShader(unsigned int program, const char* shaderCode, unsigned int shaderType) const;
 		unsigned int GetUniformLocation(const std::string& name);
 
@@ -148,11 +153,9 @@ namespace Moongoose {
 		ShaderType shaderType;
 		std::string vertexShaderSourcePath;
 		std::string fragmentShaderSourcePath;
+		std::string geometryShaderSourcePath;
 		PolygonMode polygonMode = PolygonMode::FILL;
 
 		std::unordered_map<std::string, unsigned int> uniformLocationCache;
-
 	};
-
 }
-

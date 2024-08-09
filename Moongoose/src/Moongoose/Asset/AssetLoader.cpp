@@ -230,11 +230,11 @@ namespace Moongoose {
 		}
 
 		TextureSpecs specs;
-		specs.Width = width;
-		specs.Height = height;
-		specs.BitDepth = bitDepth;
-		specs.FileLocation = decl.filePath.string();
-		specs.TextureFormat = TextureFormat::RGB;
+		specs.width = width;
+		specs.height = height;
+		specs.bitDepth = bitDepth;
+		specs.fileLocation = decl.filePath.string();
+		specs.textureFormat = TextureFormat::RGB;
 
 		Ref<Texture2D> texture = Texture2D::Create();
 		texture->m_Id = decl.id;
@@ -270,11 +270,11 @@ namespace Moongoose {
 		}
 
 		TextureSpecs specs;
-		specs.Width = width;
-		specs.Height = height;
-		specs.BitDepth = bitDepth;
-		specs.FileLocation = decl.filePath.string();
-		specs.TextureFormat = TextureFormat::RGB;
+		specs.width = width;
+		specs.height = height;
+		specs.bitDepth = bitDepth;
+		specs.fileLocation = decl.filePath.string();
+		specs.textureFormat = TextureFormat::RGB;
 
 		texture->LoadData(specs, textureData);
 

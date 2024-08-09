@@ -14,6 +14,7 @@ namespace Moongoose {
 		Material		= 3,
 		Texture			= 4,
 		EnvMap			= 5,
+		CubeMapTexture	= 6,
 	};
 
 	static std::unordered_map<std::string, AssetType> s_AssetExtensionMap =
