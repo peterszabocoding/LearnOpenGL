@@ -24,16 +24,28 @@ namespace Moongoose {
 		void BuildAssetRegistry();
 		void LoadAsset(AssetDeclaration& decl);
 		void LoadAssetFromFile(AssetDeclaration& decl);
-		void ReloadAsset(AssetDeclaration& decl);
 		void SaveAsset(const Ref<Asset>& asset);
+		void ReloadAsset(AssetDeclaration& decl);
+		void DeleteAsset(AssetDeclaration& decl);
+
+		void RenameAsset(AssetDeclaration& decl, const std::string& newName);
+		void RenameAsset(const UUID& assetId, const std::string& newName);
+
+		AssetDeclaration& GetDeclById(const UUID& assetId);
+		Ref<Asset> GetAssetById(const UUID& assetId);
+
 		const std::unordered_map<UUID, Ref<Asset>>& GetLoadedAssets();
+		const std::unordered_map<UUID, AssetDeclaration>& GetAssetRegistry();
+		const std::vector<AssetDeclaration>& GetAssetsByFolder(const std::filesystem::path& folder);
+
+		const Ref<Asset>& GetSelectedAsset() const;
+		void SetSelectedAsset(const Ref<Asset>& selectedAsset);
 
 		template<typename T>
 		Ref<T> GetDefaultAsset()
 		{
 			return CAST_REF(T, s_AssetLoaders[T::GetStaticAssetType()]->GetDefaultAsset());
 		}
-
 
 		template<typename T>
 		AssetDeclaration CreateAssetDeclaration(const std::string& assetName, const std::string& path)
@@ -106,15 +118,6 @@ namespace Moongoose {
 			return asset;
 		}
 
-		void RenameAsset(const UUID& assetId, const std::string& newName)
-		{
-			AssetDeclaration& decl = s_AssetRegistry[assetId];
-			decl.name = newName;
-			decl.declFilePath = decl.declFilePath.parent_path() / (newName + ".mgasset");
-
-			if (decl.isDataLoaded) SaveAsset(s_LoadedAssets[assetId]);
-		}
-
 		template<typename T>
 		void ReloadAsset(const UUID assetId)
 		{
@@ -140,44 +143,11 @@ namespace Moongoose {
 			return list;
 		}
 
-		const std::unordered_map<UUID, AssetDeclaration>& GetAssetRegistry()
-		{
-			return s_AssetRegistry;
-		}
-
-		const std::vector<AssetDeclaration>& GetAssetsByFolder(const std::filesystem::path& folder)
-		{
-			return s_AssetsByFolder[folder];
-		}
-
-		AssetDeclaration& GetDeclById(const UUID& assetId)
-		{
-			return s_AssetRegistry[assetId];
-		}
-
-		Ref<Asset> GetAssetById(const UUID& assetId)
-		{
-			AssetDeclaration decl = GetDeclById(assetId);
-			if (!decl.isDataLoaded) LoadAssetFromFile(decl);
-			return s_LoadedAssets[assetId];
-		}
-
 		template<typename T>
 		Ref<T> GetAssetById(const UUID& assetId)
 		{
 			return std::static_pointer_cast<T>(GetAssetById(assetId));
 		}
-
-		void SetSelectedAsset(const Ref<Asset>& selectedAsset)
-		{
-			m_SelectedAsset = selectedAsset;
-		}
-
-		const Ref<Asset>& GetSelectedAsset() const
-		{
-			return m_SelectedAsset;
-		}
-
 
 	private:
 		AssetManager();

@@ -96,7 +96,7 @@ void AssetInspectorLayer::DrawMaterialAssetGui(AssetDeclaration& decl, const Ref
 			if (material->m_Roughness) material->m_Roughness = nullptr;
 		});
 
-	GuiWidgets::DrawFloatControl("Roughness Value", material->m_RoughnessValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
+	GuiWidgets::DrawFloatControl("Value", material->m_RoughnessValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
 	DrawMaterialValueInput(material, material->m_Roughness, imgSize);
 }
 
@@ -183,6 +183,16 @@ void AssetInspectorLayer::onAttach()
 	m_AssetManager = GetApplication()->GetAssetManager();
 }
 
+void AssetInspectorLayer::RenameAsset(const Ref<Moongoose::Asset>& selectedAsset, const char* nameArray) const
+{
+	const auto newName = std::string(nameArray);
+	if (!newName.empty())
+	{
+		m_AssetManager->RenameAsset(selectedAsset->m_Id, newName);
+		FileSystem::GetFileStructure("Content\\", true);
+	}
+}
+
 void AssetInspectorLayer::onImGuiRender()
 {
 	ImGui::Begin("Asset Inspector");
@@ -197,6 +207,40 @@ void AssetInspectorLayer::onImGuiRender()
 			LOG_APP_INFO("Asset save button clicked");
 			m_AssetManager->SaveAsset(selectedAsset);
 		});
+
+		ImGui::SameLine();
+
+		static char nameArray[50];
+		GuiWidgets::DrawButton("Rename Asset", [&]()
+			{
+				strcpy(nameArray, selectedAsset->m_Name.c_str());
+				ImGui::OpenPopup("Rename Asset");
+
+				// Always center this window when appearing
+				const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+				ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+			});
+
+		if (ImGui::BeginPopupModal("Rename Asset", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			ImGui::Text("New asset name:");
+			ImGui::Separator();
+
+			ImGui::InputText("##label", nameArray, IM_ARRAYSIZE(nameArray));
+
+			if (ImGui::Button("OK", ImVec2(120, 0)))
+			{
+				RenameAsset(selectedAsset, nameArray);
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::SetItemDefaultFocus();
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel", ImVec2(120, 0))) ImGui::CloseCurrentPopup();
+
+			ImGui::EndPopup();
+		}
 
 		ImGui::SeparatorText("Asset Parameters");
 

@@ -26,6 +26,7 @@ namespace Moongoose {
 		// Texture Image Types
 		{ ".png", AssetType::Texture },
 		{ ".jpg", AssetType::Texture },
+		{ ".tga", AssetType::Texture },
 		{ ".jpeg", AssetType::Texture },
 		{ ".hdr", AssetType::EnvMap },
 	};

@@ -8,7 +8,8 @@ public:
 	ImGuiConfigLayer() 
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		const float fontSize = 18.0f;// *2.0f;
+
+		const float fontSize = 16.5f;// *2.0f;
 		io.FontDefault = io.Fonts->AddFontFromFileTTF("fonts/opensans/OpenSans-Regular.ttf", fontSize);
 		io.Fonts->AddFontFromFileTTF("fonts/opensans/OpenSans-ExtraBold.ttf", fontSize);
 	}

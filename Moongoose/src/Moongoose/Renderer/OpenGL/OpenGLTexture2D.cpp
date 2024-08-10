@@ -39,12 +39,12 @@ namespace Moongoose {
 			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (Red integer)", m_TextureSpecs.fileLocation);
 		}
 		else if (m_TextureSpecs.bitDepth == 4) {
-			internalFormat = GL_SRGB8_ALPHA8;
+			internalFormat = GL_RGBA8;
 			dataFormat = GL_RGBA;
 			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGBA)", m_TextureSpecs.fileLocation);
 		}
 		else if (m_TextureSpecs.bitDepth == 3) {
-			internalFormat = GL_SRGB8;
+			internalFormat = GL_RGB8;
 			dataFormat = GL_RGB;
 			LOG_CORE_INFO("OpenGLTexture2D.cpp | Loaded texture: {0} (RGB)", m_TextureSpecs.fileLocation);
 		}

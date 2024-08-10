@@ -390,7 +390,7 @@ namespace Moongoose {
 			const UUID roughnessTextureId = roughnessJson["ID"].get<std::string>();
 			const AssetDeclaration roughnessTextureDecl = AssetManager::Get().GetDeclById(roughnessTextureId);
 
-			materialAsset->m_Metallic = !roughnessTextureDecl.isDataLoaded
+			materialAsset->m_Roughness = !roughnessTextureDecl.isDataLoaded
 				? AssetManager::Get().LoadAssetById<Texture2D>(roughnessTextureId)
 				: AssetManager::Get().GetAssetById<Texture2D>(roughnessTextureId);
 		}

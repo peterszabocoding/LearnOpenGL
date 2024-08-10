@@ -135,7 +135,7 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
     constexpr ImVec2 imgSize = { cardSize.x - 4 * imgPadding.x, cardSize.x - 4 * imgPadding.y };
 
 	ImGui::BeginGroup();
-    auto originalCursorPos = ImGui::GetCursorPos();
+    const auto originalCursorPos = ImGui::GetCursorPos();
 
     // Render card image
 
@@ -168,11 +168,6 @@ void AssetBrowserLayer::RenderAssetCard(const AssetDeclaration& decl, const std:
         if (ImGui::MenuItem("Delete Asset"))
         {
             LOG_APP_INFO("Delete asset: {0}", decl.name);
-        }
-        if (ImGui::MenuItem("Rename Asset"))
-        {
-            m_AssetManager->RenameAsset(decl.id, "New_Asset_Renamed");
-            FileSystem::GetFileStructure("Content\\", true);
         }
         ImGui::EndPopup();
     }

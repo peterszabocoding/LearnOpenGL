@@ -58,7 +58,6 @@ struct Material {
 	vec3 albedo;
 	float metallic;
 	float roughness;
-	float normal;
 
 	int useAlbedoTexture;
 	int useNormalMapTexture;
@@ -466,7 +465,6 @@ void main()
 		? CalcSurfaceNormal(texture(NormalTexture, TexCoord).rgb, TBN)
 		: Normal;
 
-	N = Normal;
     V = normalize(EyePosition - FragPos);
     vec3 R = reflect(V, N);
 
@@ -494,5 +492,6 @@ void main()
     color = color / (color + vec3(1.0));
  	// apply gamma correction
     float gamma = 2.2;
-    FragColor = vec4(pow(color.rgb, vec3(1.0/gamma)), 1.0f);
+    //FragColor = vec4(pow(color.rgb, vec3(1.0/gamma)), 1.0f);
+    FragColor = vec4(color.rgb, 1.0f);
 }
