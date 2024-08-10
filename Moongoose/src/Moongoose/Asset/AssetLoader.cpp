@@ -71,8 +71,8 @@ namespace Moongoose {
 			}
 			meshAsset->AddSubmesh(
 				mesh->mMaterialIndex,
-				&vertices[0], 
-				&indices[0], 
+				&vertices[0],
+				&indices[0],
 				vertices.size(),
 				indices.size());
 		}
@@ -95,9 +95,9 @@ namespace Moongoose {
 		{
 			return stbi_load(filePath.c_str(), &width, &height, &bitDepth, 0);
 		}
-		
+
 	}
-	
+
 	/* #################### MeshAssetLoader ############################*/
 
 	Ref<Asset> MeshAssetLoader::CreateAsset(AssetDeclaration& decl)
@@ -154,7 +154,7 @@ namespace Moongoose {
 				materials.push_back(mat);
 				materialSlots.push_back({ materialSlotName, mat });
 			}
-				
+
 		}
 
 		Ref<Mesh> meshAsset = std::static_pointer_cast<Mesh>(LoadAsset(decl));
@@ -322,7 +322,7 @@ namespace Moongoose {
 	{
 		Ref<Material> newMaterial = CreateRef<Material>(decl.name);
 		newMaterial->m_Id = decl.id;
-		newMaterial->SetAlbedo(AssetManager::Get().GetDefaultAsset<Texture2D>());
+		newMaterial->m_Albedo = AssetManager::Get().GetDefaultAsset<Texture2D>();
 		return newMaterial;
 	}
 
@@ -337,17 +337,76 @@ namespace Moongoose {
 		auto assetJson = nlohmann::json::parse(assetJsonString);
 
 		Ref<Material> materialAsset = std::static_pointer_cast<Material>(CreateAsset(decl));
-		auto& albedoJson = assetJson["albedo"];
 
-		if (!albedoJson.empty())
-		{ 
-			UUID albedoTextureId = albedoJson["ID"].get<std::string>();
-			AssetDeclaration albedoTextureDecl = AssetManager::Get().GetDeclById(albedoTextureId);
-			Ref<Texture2D> albedoTexture = !albedoTextureDecl.isDataLoaded
+		// Load Albedo
+		if (auto& albedoJson = assetJson["albedo"]; !albedoJson.empty())
+		{
+			const UUID albedoTextureId = albedoJson["ID"].get<std::string>();
+			const AssetDeclaration albedoTextureDecl = AssetManager::Get().GetDeclById(albedoTextureId);
+
+			materialAsset->m_Albedo = !albedoTextureDecl.isDataLoaded
 				? AssetManager::Get().LoadAssetById<Texture2D>(albedoTextureId)
 				: AssetManager::Get().GetAssetById<Texture2D>(albedoTextureId);
-			
-			materialAsset->SetAlbedo(albedoTexture);
+
+			if (albedoJson.contains("Color"))
+			{
+				materialAsset->m_AlbedoColor = glm::vec3(
+					albedoJson["Color"]["r"], 
+					albedoJson["Color"]["g"], 
+					albedoJson["Color"]["b"]);
+			}
+		}
+
+		if (assetJson.contains("albedoColor"))
+		{
+			materialAsset->m_AlbedoColor = glm::vec3(
+				assetJson["albedoColor"]["r"],
+				assetJson["albedoColor"]["g"],
+				assetJson["albedoColor"]["b"]);
+		}
+
+		// Load Normal map
+		if (auto& normalJson = assetJson["normal"]; !normalJson.empty())
+		{
+			const UUID normalTextureId = normalJson["ID"].get<std::string>();
+			const AssetDeclaration normalTextureDecl = AssetManager::Get().GetDeclById(normalTextureId);
+
+			materialAsset->m_Normal = !normalTextureDecl.isDataLoaded
+				? AssetManager::Get().LoadAssetById<Texture2D>(normalTextureId)
+				: AssetManager::Get().GetAssetById<Texture2D>(normalTextureId);
+		}
+
+
+		// Load Metallic
+		if (auto& metallicJson = assetJson["metallic"]; !metallicJson.empty())
+		{
+			const UUID metallicTextureId = metallicJson["ID"].get<std::string>();
+			const AssetDeclaration metallicTextureDecl = AssetManager::Get().GetDeclById(metallicTextureId);
+
+			materialAsset->m_Metallic = !metallicTextureDecl.isDataLoaded
+				? AssetManager::Get().LoadAssetById<Texture2D>(metallicTextureId)
+				: AssetManager::Get().GetAssetById<Texture2D>(metallicTextureId);
+		}
+
+		if (assetJson.contains("metallicValue"))
+		{
+			materialAsset->m_MetallicValue = assetJson["metallicValue"];
+		}
+
+		// Load Roughness
+		if (auto& roughnessJson = assetJson["roughness"]; !roughnessJson.empty())
+		{
+			const UUID roughnessTextureId = roughnessJson["ID"].get<std::string>();
+			const AssetDeclaration roughnessTextureDecl = AssetManager::Get().GetDeclById(roughnessTextureId);
+
+			materialAsset->m_Metallic = !roughnessTextureDecl.isDataLoaded
+				? AssetManager::Get().LoadAssetById<Texture2D>(roughnessTextureId)
+				: AssetManager::Get().GetAssetById<Texture2D>(roughnessTextureId);
+		}
+
+		if (assetJson.contains("roughnessValue"))
+		{
+			materialAsset->m_RoughnessValue = assetJson["roughnessValue"];
 		}
 
 		return materialAsset;
@@ -382,18 +441,50 @@ namespace Moongoose {
 		j["source"] = decl.filePath;
 		j["type"] = Utils::AssetTypeToString(decl.type);
 
-		if (materialAsset->GetAlbedo())
+		if (materialAsset->m_Albedo)
 		{
-			auto& albedoTexture = materialAsset->GetAlbedo();
 			j["albedo"] = {
-				{ "ID", std::to_string(albedoTexture->m_Id)},
-				{ "Name", albedoTexture->m_Name},
+				{ "ID", std::to_string(materialAsset->m_Albedo->m_Id)},
+				{ "Name", materialAsset->m_Albedo->m_Name}
 			};
 		}
 
+		j["albedoColor"] = {
+			{ "r", materialAsset->m_AlbedoColor.r },
+			{ "g", materialAsset->m_AlbedoColor.g },
+			{ "b", materialAsset->m_AlbedoColor.b }
+		};
+
+		if (materialAsset->m_Normal)
+		{
+			j["normal"] = {
+				{ "ID", std::to_string(materialAsset->m_Normal->m_Id)},
+				{ "Name", materialAsset->m_Normal->m_Name},
+			};
+		}
+
+		if (materialAsset->m_Metallic)
+		{
+			j["metallic"] = {
+				{ "ID", std::to_string(materialAsset->m_Metallic->m_Id)},
+				{ "Name", materialAsset->m_Metallic->m_Name}
+			};
+		}
+
+		j["metallicValue"] = materialAsset->m_MetallicValue;
+
+		if (materialAsset->m_Roughness)
+		{
+			j["roughness"] = {
+				{ "ID", std::to_string(materialAsset->m_Roughness->m_Id)},
+				{ "Name", materialAsset->m_Roughness->m_Name}
+			};
+		}
+		j["roughnessValue"] = materialAsset->m_RoughnessValue;
+
 		std::ofstream o(outputFilename);
 		o << std::setw(4) << j << '\n';
-	}
 
-	/* ##################################################################*/
+		/* ##################################################################*/
+	}
 }

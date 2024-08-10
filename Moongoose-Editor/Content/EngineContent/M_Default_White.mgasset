@@ -3,8 +3,15 @@
         "ID": "8930786947607938934",
         "Name": "T_Default_White"
     },
+    "albedoColor": {
+        "b": 0.22642777860164642,
+        "g": 0.22642777860164642,
+        "r": 0.96138995885849
+    },
     "id": "12248695733264798360",
+    "metallicValue": 0.36000001430511475,
     "name": "M_Default_White",
+    "roughnessValue": 0.7200000286102295,
     "source": "Content\\EngineContent\\",
     "type": "Material"
 }

@@ -327,13 +327,12 @@ void EntityInspectorLayer::DrawMaterialControls(const Ref<Mesh>& mesh, const uns
 
 	if (!material) return;
 
-	const Ref<Texture2D> albedo = material->GetAlbedo();
 	const std::string& matName = material->GetName();
 
 	ImGui::PushID(material->m_Id);
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
-	RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo ? albedo : ResourceManager::GetIcon(Icon::Material), matName);
+	RenderImageTextButton(ImVec2(50.0f, 50.0f), material->m_Albedo ? material->m_Albedo : ResourceManager::GetIcon(Icon::Material), matName);
 
 	ImGui::PopID();
 }

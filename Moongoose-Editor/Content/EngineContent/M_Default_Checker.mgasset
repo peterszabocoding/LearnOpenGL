@@ -3,8 +3,15 @@
         "ID": "8930786947602648694",
         "Name": "T_Default_Checker"
     },
+    "albedoColor": {
+        "b": 1.0,
+        "g": 1.0,
+        "r": 1.0
+    },
     "id": "12295842333264798360",
+    "metallicValue": 0.0,
     "name": "M_Default_Checker",
+    "roughnessValue": 1.0,
     "source": "Content\\EngineContent\\",
     "type": "Material"
 }

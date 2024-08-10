@@ -55,8 +55,9 @@ struct SpotLight {
 };
 
 struct Material {
-	float specularIntensity;
-	float shininess;
+	float albedo;
+	float metallic;
+	float roughness;
 };
 
 uniform int pointLightCount;

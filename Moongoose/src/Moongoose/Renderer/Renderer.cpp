@@ -259,6 +259,8 @@ namespace Moongoose {
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 		shader->UploadUniformMat4("model", cmd.transform);
 		shader->UploadUniformInt("aEntityID", cmd.id);
+		shader->UploadUniformFloat("material.roughness", 0.5f);
+		shader->UploadUniformFloat("material.metallic", 0.0f);
 
 		if (cmd.material) cmd.material->Bind();
 		RenderMesh(cmd.vertexArray);

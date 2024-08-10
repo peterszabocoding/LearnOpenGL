@@ -33,29 +33,71 @@ void AssetInspectorLayer::DrawTextureAssetGui(AssetDeclaration& decl, const Ref<
 	GuiWidgets::DrawTextureImage(texture->GetPointerToData(), ImVec2{ 256.0f, 256.0f });
 }
 
+void AssetInspectorLayer::DrawMaterialValueInput(const Ref<Material>& material, Ref<Texture2D>& texture, const ImVec2 imgSize) const
+{
+	ImGui::PushID(texture ? texture->m_Id : material->m_Id + 1);
+	RenderImageTextButton(imgSize, texture, texture ? texture->m_Name : "Empty");
+
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+			const UUID textureId = ((const AssetDeclaration*) payload->Data)->id;
+			texture = m_AssetManager->GetAssetById<Texture2D>(textureId);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::PopID();
+}
+
 void AssetInspectorLayer::DrawMaterialAssetGui(AssetDeclaration& decl, const Ref<Material>& material) const
 {
 	constexpr ImVec2 imgSize = { 50.0f, 50.0f };
-	const Ref<Texture2D> albedoTexture = material->GetAlbedo();
 
 	ImGui::SeparatorText("Material Parameters");
 	ImGui::Text("Shader Type: %s", Utils::GetShaderTypeString(material->GetShaderType()).c_str());
 
 	ImGui::Separator();
 
-	ImGui::PushID(albedoTexture->m_Id);
-	RenderImageTextButton(imgSize, albedoTexture, albedoTexture->m_Name);
+	GuiWidgets::DrawRGBColorPicker("Albedo", material->m_AlbedoColor, 1.0f, 200.0f);
+	ImGui::SameLine();
 
-	if (ImGui::BeginDragDropTarget())
-	{
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
-			const UUID textureId = ((const AssetDeclaration*) payload->Data)->id;
-			material->SetAlbedo(m_AssetManager->GetAssetById<Texture2D>(textureId));
-		}
-		ImGui::EndDragDropTarget();
-	}
+	GuiWidgets::DrawButton("Remove Albedo", [&]
+		{
+			if (material->m_Albedo) material->m_Albedo = nullptr;
+		});
 
-	ImGui::PopID();
+	DrawMaterialValueInput(material, material->m_Albedo, imgSize);
+
+	ImGui::Text("Normal");
+	ImGui::SameLine();
+	GuiWidgets::DrawButton("Remove Normal", [&]
+		{
+			if (material->m_Normal) material->m_Normal = nullptr;
+		});
+	DrawMaterialValueInput(material, material->m_Normal, imgSize);
+
+
+	ImGui::Text("Metallic");
+	ImGui::SameLine();
+	GuiWidgets::DrawButton("Remove Metallic", [&]
+		{
+			if (material->m_Metallic) material->m_Metallic = nullptr;
+		});
+
+	GuiWidgets::DrawFloatControl("Value", material->m_MetallicValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
+	DrawMaterialValueInput(material, material->m_Metallic, imgSize);
+
+
+	ImGui::Text("Roughness");
+	ImGui::SameLine();
+	GuiWidgets::DrawButton("Remove Roughness", [&]
+		{
+			if (material->m_Roughness) material->m_Roughness = nullptr;
+		});
+
+	GuiWidgets::DrawFloatControl("Value", material->m_RoughnessValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
+	DrawMaterialValueInput(material, material->m_Roughness, imgSize);
 }
 
 void AssetInspectorLayer::DrawMeshAssetGui(AssetDeclaration& decl, const Ref<Mesh>& mesh) const
@@ -87,13 +129,12 @@ void AssetInspectorLayer::DrawMeshAssetGui(AssetDeclaration& decl, const Ref<Mes
 		}
 		else
 		{
-			const Ref<Texture2D> albedo = material->GetAlbedo();
 			const std::string& matName = material->GetName();
 
 			ImGui::PushID(material->m_Id);
 			ImGui::Text("%s:", materialName.c_str());
 
-			RenderImageTextButton(ImVec2(50.0f, 50.0f), albedo, matName);
+			RenderImageTextButton(ImVec2(50.0f, 50.0f), material->m_Albedo, matName);
 		}
 
 		if (ImGui::BeginDragDropTarget())

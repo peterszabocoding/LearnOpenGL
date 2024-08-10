@@ -21,6 +21,7 @@ public:
 private:
 	void DrawMeshAssetGui(Moongoose::AssetDeclaration& decl, const Ref<Moongoose::Mesh>& mesh) const;
 	void DrawTextureAssetGui(Moongoose::AssetDeclaration& decl, const Ref<Moongoose::Texture2D>& texture) const;
+	void DrawMaterialValueInput(const Ref<Moongoose::Material>& material, Ref<Moongoose::Texture2D>& texture, const ImVec2 imgSize) const;
 	void DrawMaterialAssetGui(Moongoose::AssetDeclaration& decl, const Ref<Moongoose::Material>& material) const;
 
 	static void RenderImageTextButton(ImVec2 imageSize, const Ref<Moongoose::Texture2D>& icon, const std::string& text);

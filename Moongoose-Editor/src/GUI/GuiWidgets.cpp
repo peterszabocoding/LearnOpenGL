@@ -16,11 +16,13 @@ void GuiWidgets::DrawFloatControl(const std::string& label, float& values, float
 
 	ImGui::PushID(label.c_str());
 
+	auto& labelSize = ImGui::CalcTextSize(label.c_str());
+
 	ImGui::Text(label.c_str());
 	ImGui::SameLine();
 
 	ImGui::Columns(2);
-	ImGui::SetColumnWidth(0, columnWidth / 3);
+	ImGui::SetColumnWidth(0, labelSize.x + 15.0);
 	ImGui::NextColumn();
 
 	ImGui::SetColumnWidth(1, columnWidth);
