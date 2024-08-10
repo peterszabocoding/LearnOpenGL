@@ -322,7 +322,6 @@ namespace Moongoose {
 	{
 		Ref<Material> newMaterial = CreateRef<Material>(decl.name);
 		newMaterial->m_Id = decl.id;
-		newMaterial->m_Albedo = AssetManager::Get().GetDefaultAsset<Texture2D>();
 		return newMaterial;
 	}
 
@@ -347,14 +346,6 @@ namespace Moongoose {
 			materialAsset->m_Albedo = !albedoTextureDecl.isDataLoaded
 				? AssetManager::Get().LoadAssetById<Texture2D>(albedoTextureId)
 				: AssetManager::Get().GetAssetById<Texture2D>(albedoTextureId);
-
-			if (albedoJson.contains("Color"))
-			{
-				materialAsset->m_AlbedoColor = glm::vec3(
-					albedoJson["Color"]["r"], 
-					albedoJson["Color"]["g"], 
-					albedoJson["Color"]["b"]);
-			}
 		}
 
 		if (assetJson.contains("albedoColor"))

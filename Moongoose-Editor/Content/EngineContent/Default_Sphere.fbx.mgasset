@@ -1,0 +1,12 @@
+{
+    "id": "13969595060740083540",
+    "materials": [
+        [
+            "11109056700723690989",
+            "Material 0"
+        ]
+    ],
+    "name": "Default_Sphere.fbx",
+    "source": "F:\\Programming\\Moongoose-Engine\\Moongoose\\Moongoose-Editor\\Content\\EngineContent\\Default_Sphere.fbx",
+    "type": "Mesh"
+}

@@ -85,7 +85,7 @@ void AssetInspectorLayer::DrawMaterialAssetGui(AssetDeclaration& decl, const Ref
 			if (material->m_Metallic) material->m_Metallic = nullptr;
 		});
 
-	GuiWidgets::DrawFloatControl("Value", material->m_MetallicValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
+	GuiWidgets::DrawFloatControl("Metallic Value", material->m_MetallicValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
 	DrawMaterialValueInput(material, material->m_Metallic, imgSize);
 
 
@@ -96,7 +96,7 @@ void AssetInspectorLayer::DrawMaterialAssetGui(AssetDeclaration& decl, const Ref
 			if (material->m_Roughness) material->m_Roughness = nullptr;
 		});
 
-	GuiWidgets::DrawFloatControl("Value", material->m_RoughnessValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
+	GuiWidgets::DrawFloatControl("Roughness Value", material->m_RoughnessValue, 0.0f, 1.0f, 0.01f, 1.0f, 200.0f);
 	DrawMaterialValueInput(material, material->m_Roughness, imgSize);
 }
 

@@ -8,8 +8,8 @@ in vec3 FragPos;
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 EyePosition;
-in flat int EntityID;
 in mat3 TBN;
+in flat int EntityID;
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out int oEntityID;
@@ -55,9 +55,15 @@ struct SpotLight {
 };
 
 struct Material {
-	float albedo;
+	vec3 albedo;
 	float metallic;
 	float roughness;
+	float normal;
+
+	int useAlbedoTexture;
+	int useNormalMapTexture;
+	int useRoughnessTexture;
+	int useMetallicTexture;
 };
 
 uniform int pointLightCount;
@@ -68,7 +74,6 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform Material material;
 
-vec3 normalizedNormal;
 vec2 shadowMapTextureSize;
 
 
@@ -172,10 +177,6 @@ float CalcPCFSoftShadow(Light light, sampler2DShadow shadowMap, vec3 projectedCo
 	vec2 texelSize = 1.0 / light.shadowMapSize;
 	for(int x = -2; x <= 2; ++x) {
 		for(int y = -2; y <= 2; ++y) {
-			float randomFactor = 0.75;
-			//float xOffset = randomFactor * rand(gl_FragCoord.xy);
-			//float yOffset = randomFactor * rand(gl_FragCoord.xy);
-
 			vec3 projCoords = vec3(projectedCoords.xy + vec2(x ,y) * texelSize, projectedCoords.z - bias);
 			
 			if (projCoords.x < 0 || projCoords.y < 0 || projCoords.x > 1.0 || projCoords.y > 1.0) return 1.0;
@@ -189,12 +190,12 @@ float CalcPointPCFSoftShadow(PointLight light, samplerCube shadowMap, float bias
 {
 	float shadow = 0.0;
 	int samples = 20;
+
 	vec3 fragToLight = FragPos - light.position; 
 	float currentDepth = length(fragToLight);
 
 	float diskRadius = (1.0 + (currentDepth / light.attenuationRadius * 1.5)) / 25.0;
 
-	//float diskRadius = 0.05;
 	for(int i = 0; i < samples; ++i)
 	{
 		float closestDepth = texture(shadowMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r * light.attenuationRadius * 1.5;
@@ -283,12 +284,18 @@ vec4 CalcSpotLight(SpotLight sLight)
 	float slFactor = dot(direction, sLight.direction);
 
 	if (slFactor > sLight.attenuationAngle) {
-		float bias = CalculateBias(sLight.base.base, direction);
-		float shadowFactor = CalcShadowFactor(ShadowMapTexture, sLight.base.base, bias);
+		float shadowFactor = 1.0;
 
+		if(sLight.base.base.isShadowCasting)
+		{
+			float bias = CalculateBias(sLight.base.base, direction);
+			shadowFactor = CalcShadowFactor(ShadowMapTexture, sLight.base.base, bias);
+		}
+
+		float attenuation = CalcLightAttenuation(FragPos, sLight.base.position, sLight.base.attenuationRadius);
 		float diffuseFactor = clamp(dot(Normal, normalize(direction)), 0.0, 1.0);
 		vec4 diffuseColor = vec4(sLight.base.base.color * sLight.base.base.intensity * diffuseFactor, 1.0f);
-		float attenuation = CalcLightAttenuation(FragPos, sLight.base.position, sLight.base.attenuationRadius);
+		
 		vec4 color = diffuseColor * attenuation * shadowFactor;
 		
 		return color * (1.0 - (1.0 - slFactor) * (1.0/(1 - sLight.attenuationAngle)));
@@ -315,23 +322,176 @@ vec4 CalcSpotLights()
 	return totalColor;
 }
 
+vec3 CalcSurfaceNormal(vec3 normalFromTexture, mat3 TBN)
+{
+    vec3 normal;
+    normal.xy = normalFromTexture.rg;
+	normal.xy = 2.0 * normal.xy - 1.0;  
+    normal.z = sqrt(1.0 - dot(normal.xy, normal.xy));
+	return normalize(TBN * normal); 
+}
+
 // ----------------------------------------------------------------------------
 
+// ------------------------ PBR LIGHTS ----------------------------------------
+
+vec3 CalcLightRadiance(
+	vec3 L, 
+	vec3 H, 
+	vec3 V, 
+	vec3 N, 
+	vec3 F0,
+	vec3 Albedo,
+	float Roughness,
+	float Metallic,
+	vec3 lightRadiance) {
+        // Cook-Torrance BRDF
+        float NDF = DistributionGGX(N, H, Roughness);   
+        float G   = GeometrySmith(N, V, L, Roughness);      
+        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+           
+        vec3 numerator    = NDF * G * F; 
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
+        vec3 specular = numerator / denominator;
+        
+        // kS is equal to Fresnel
+        vec3 kS = F;
+        // for energy conservation, the diffuse and specular light can't
+        // be above 1.0 (unless the surface emits light); to preserve this
+        // relationship the diffuse component (kD) should equal 1.0 - kS.
+        vec3 kD = vec3(1.0) - kS;
+        // multiply kD by the inverse metalness such that only non-metals 
+        // have diffuse lighting, or a linear blend if partly metal (pure metals
+        // have no diffuse light).
+        //kD *= 1.0 - metallic;	  
+        kD *= 1.0 - Metallic;	  
+
+        // scale light by NdotL
+        float NdotL = max(dot(N, L), 0.0);
+
+        // add to outgoing radiance Lo
+        return (kD * Albedo / PI + specular) * lightRadiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+}
+
+
+vec3 CalcPBRDirectionalLight(
+	DirectionalLight light, 
+	vec3 V, vec3 N, vec3 F0, 
+	vec3 Albedo, float Roughness, float Metallic) {
+		// calculate per-light radiance
+        vec3 L = light.direction;
+        vec3 H = normalize(V + L);
+		vec3 radiance = CalcDirectionalLight().rgb;
+
+        return CalcLightRadiance(L, H, V, N, F0, Albedo, Roughness, Metallic, radiance);
+}
+
+vec3 CalcPBRPointLight(
+	PointLight pLight,
+	vec3 V, vec3 N, vec3 F0,
+	vec3 Albedo, float Roughness, float Metallic) {
+	// calculate per-light radiance
+    vec3 L = normalize(pLight.position - FragPos);
+    vec3 H = normalize(V + L);
+
+	vec3 radiance = CalcPointLight(pLight).rgb;
+    return CalcLightRadiance(
+		L, H, V, N, F0, 
+		Albedo, Roughness, Metallic, radiance);
+}
+
+vec3 CalcPBRSpotLight(SpotLight sLight, vec3 V, vec3 N, vec3 F0, vec3 Albedo, float Roughness, float Metallic) {
+	// calculate per-light radiance
+    vec3 L = sLight.direction;
+    vec3 H = normalize(V + L);
+	vec3 radiance = CalcSpotLight(sLight).rgb;
+
+    return CalcLightRadiance(L, H, V, N, F0, Albedo, Roughness, Metallic, radiance);
+}
+
+
+vec3 CalcPBRSpotLights(vec3 V, vec3 N, vec3 F0, 
+vec3 Albedo, float Roughness, float Metallic) {
+    vec3 sum = vec3(0.0);
+    for(int i = 0; i < spotLightCount; ++i) {
+        sum += CalcPBRSpotLight(spotLights[i], V, N, F0, Albedo, Roughness, Metallic);
+    }
+    return sum;
+}
+
+vec3 CalcPBRPointLights(vec3 V, vec3 N, vec3 F0,
+	vec3 Albedo, float Roughness, float Metallic) 
+{
+	vec3 totalColor = vec3(0.0);
+	for(int i = 0; i < pointLightCount; i++) {
+		totalColor += CalcPBRPointLight(pointLights[i], V, N, F0, 
+		Albedo, Roughness, Metallic);
+	}
+	return totalColor;
+}
+
+// ----------------------------------------------------------------------------
+
+
+// View vector
+vec3 V;
+
+// Normal vector
+vec3 N;
 
 void main()
 {
     oEntityID = EntityID;
 	shadowMapTextureSize = textureSize(ShadowMapTexture, 0);
 
-	//vec3 n = texture(NormalTexture, TexCoord).rgb;
-	vec3 n = vec3(0.5, 0.5, 1);
-	n = n * 2.0 - 1.0;   
-	n = normalize(TBN * n); 
-	normalizedNormal = normalize(n);
+    //vec4 color = Albedo * (CalcDirectionalLight() + CalcPointLights() + CalcSpotLights());
 
-    vec4 albedo = texture(AlbedoTexture, TexCoord);
-    vec4 color = albedo * (CalcDirectionalLight() + CalcPointLights() + CalcSpotLights());
+	vec3 Albedo;
+   	float Roughness;
+    float Metallic;
 
+	Albedo = material.useAlbedoTexture > 0 
+		? texture(AlbedoTexture, TexCoord).rgb
+		: material.albedo;
+
+	Metallic = material.useMetallicTexture > 0
+		? texture(MetallicTexture, TexCoord).r 
+		: material.metallic;
+
+	Roughness = material.useRoughnessTexture > 0
+		? texture(RoughnessTexture, TexCoord).r 
+		: material.roughness;
+
+	N = material.useNormalMapTexture > 0
+		? CalcSurfaceNormal(texture(NormalTexture, TexCoord).rgb, TBN)
+		: Normal;
+
+	N = Normal;
+    V = normalize(EyePosition - FragPos);
+    vec3 R = reflect(V, N);
+
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, Albedo.rgb, Metallic);
+
+	// reflectance equation
+    vec3 Lo = vec3(0.0);
+    Lo += CalcPBRDirectionalLight(directionalLight, V, N, F0, Albedo.rgb, Roughness, Metallic);
+    Lo += CalcPBRPointLights(V, N, F0, Albedo.rgb, Roughness, Metallic);
+    Lo += CalcPBRSpotLights(V, N, F0, Albedo.rgb, Roughness, Metallic);
+
+
+	vec3 kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, Roughness);
+    vec3 F = kS;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - Metallic;
+
+	vec3 color = Lo + 0.125 * (kD * Albedo.rgb) + (0.125 * 0.1);
+
+
+	// HDR tonemapping
+    color = color / (color + vec3(1.0));
  	// apply gamma correction
     float gamma = 2.2;
     FragColor = vec4(pow(color.rgb, vec3(1.0/gamma)), 1.0f);

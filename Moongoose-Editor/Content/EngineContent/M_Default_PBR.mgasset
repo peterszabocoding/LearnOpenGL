@@ -1,0 +1,13 @@
+{
+    "albedoColor": {
+        "b": 0.18371820449829102,
+        "g": 0.6919851899147034,
+        "r": 0.915057897567749
+    },
+    "id": "11109056700723690989",
+    "metallicValue": 1.0,
+    "name": "New_Material",
+    "roughnessValue": 0.23999999463558197,
+    "source": "Content\\EngineContent\\new_material.mgasset",
+    "type": "Material"
+}

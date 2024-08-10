@@ -259,8 +259,15 @@ namespace Moongoose {
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 		shader->UploadUniformMat4("model", cmd.transform);
 		shader->UploadUniformInt("aEntityID", cmd.id);
-		shader->UploadUniformFloat("material.roughness", 0.5f);
-		shader->UploadUniformFloat("material.metallic", 0.0f);
+
+		shader->UploadUniformInt("material.useAlbedoTexture",		cmd.material->m_Albedo		!= nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useMetallicTexture",		cmd.material->m_Metallic	!= nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useRoughnessTexture",	cmd.material->m_Roughness	!= nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useNormalMapTexture",	cmd.material->m_Normal		!= nullptr ? 1 : 0);
+
+		shader->UploadUniformFloat3("material.albedo", cmd.material->m_AlbedoColor);
+		shader->UploadUniformFloat("material.roughness", cmd.material->m_RoughnessValue);
+		shader->UploadUniformFloat("material.metallic", cmd.material->m_MetallicValue);
 
 		if (cmd.material) cmd.material->Bind();
 		RenderMesh(cmd.vertexArray);

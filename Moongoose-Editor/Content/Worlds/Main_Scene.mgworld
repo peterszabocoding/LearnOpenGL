@@ -2,7 +2,7 @@
     "entities": [
         {
             "IDComponent": {
-                "id": "3134434886435367070"
+                "id": "10433949513961133151"
             },
             "MeshComponent": {
                 "asset": "14136211866202430725",
@@ -31,7 +31,7 @@
         },
         {
             "IDComponent": {
-                "id": "9645578932658059843"
+                "id": "5163375185653856556"
             },
             "MeshComponent": {
                 "asset": "17706748999392867240",
@@ -60,7 +60,7 @@
         },
         {
             "IDComponent": {
-                "id": "2182892080422825294"
+                "id": "2393864604275195419"
             },
             "TagComponent": {
                 "tag": "Billboard_Test"
@@ -85,7 +85,7 @@
         },
         {
             "IDComponent": {
-                "id": "11958722598333478568"
+                "id": "16128836652234228112"
             },
             "LightComponent": {
                 "ambientIntensity": 0.15000000596046448,
@@ -124,7 +124,7 @@
         },
         {
             "IDComponent": {
-                "id": "969555129516857834"
+                "id": "10204713279866775474"
             },
             "LightComponent": {
                 "ambientIntensity": 0.0,
@@ -135,7 +135,7 @@
                     "g": 0.48175469040870667,
                     "r": 0.37484532594680786
                 },
-                "intensity": 3.0999999046325684,
+                "intensity": 122.5,
                 "shadowResolution": 512,
                 "shadowType": 2,
                 "type": 2
@@ -163,7 +163,7 @@
         },
         {
             "IDComponent": {
-                "id": "5626215447392179797"
+                "id": "13184419872501358034"
             },
             "LightComponent": {
                 "ambientIntensity": 0.10000000149011612,
@@ -174,7 +174,7 @@
                     "g": 0.9145361185073853,
                     "r": 1.0
                 },
-                "intensity": 0.699999988079071,
+                "intensity": 10.100000381469727,
                 "shadowResolution": 1024,
                 "shadowType": 2,
                 "type": 0
@@ -202,18 +202,18 @@
         },
         {
             "IDComponent": {
-                "id": "5803897909057180460"
+                "id": "16039238363807872899"
             },
             "LightComponent": {
-                "ambientIntensity": 0.15000000596046448,
-                "attenuationAngle": 0.7699999809265137,
-                "attenuationRadius": 76.0999984741211,
+                "ambientIntensity": 0.0,
+                "attenuationAngle": 0.5199999809265137,
+                "attenuationRadius": 69.0,
                 "color": {
                     "b": 0.9729729890823364,
                     "g": 0.5979316830635071,
                     "r": 0.14275279641151428
                 },
-                "intensity": 7.800000190734863,
+                "intensity": 150.0,
                 "shadowResolution": 256,
                 "shadowType": 2,
                 "type": 2
@@ -223,25 +223,25 @@
             },
             "TransformComponent": {
                 "position": {
-                    "x": -18.04257583618164,
-                    "y": 3.6979901790618896,
-                    "z": 27.532440185546875
+                    "x": -15.797565460205078,
+                    "y": 3.9863014221191406,
+                    "z": 23.607221603393555
                 },
                 "rotation": {
-                    "x": -180.0,
-                    "y": 29.767105102539063,
-                    "z": -180.0
+                    "x": -170.68592834472656,
+                    "y": 29.767372131347656,
+                    "z": 180.0
                 },
                 "scale": {
-                    "x": 0.9999673366546631,
-                    "y": 0.9999828934669495,
-                    "z": 0.9999673366546631
+                    "x": 0.9999558925628662,
+                    "y": 0.9999842047691345,
+                    "z": 0.9999574422836304
                 }
             }
         },
         {
             "IDComponent": {
-                "id": "14406044579218602092"
+                "id": "11614445546483446671"
             },
             "LightComponent": {
                 "ambientIntensity": 0.15000000596046448,
@@ -252,7 +252,7 @@
                     "g": 0.0,
                     "r": 0.7490348815917969
                 },
-                "intensity": 1.2999999523162842,
+                "intensity": 60.0,
                 "shadowResolution": 512,
                 "shadowType": 0,
                 "type": 2
@@ -280,7 +280,7 @@
         },
         {
             "IDComponent": {
-                "id": "18299547486576279069"
+                "id": "2998252099259297639"
             },
             "LightComponent": {
                 "ambientIntensity": 0.15000000596046448,
@@ -291,7 +291,7 @@
                     "g": 0.0,
                     "r": 1.0
                 },
-                "intensity": 5.099999904632568,
+                "intensity": 80.0,
                 "shadowResolution": 512,
                 "shadowType": 0,
                 "type": 1
@@ -319,7 +319,7 @@
         },
         {
             "IDComponent": {
-                "id": "17172610738033522831"
+                "id": "10309770892676440259"
             },
             "LightComponent": {
                 "ambientIntensity": 0.15000000596046448,
@@ -330,7 +330,7 @@
                     "g": 1.0,
                     "r": 0.0
                 },
-                "intensity": 1.7999999523162842,
+                "intensity": 80.0,
                 "shadowResolution": 512,
                 "shadowType": 0,
                 "type": 1
@@ -358,7 +358,7 @@
         },
         {
             "IDComponent": {
-                "id": "7351775622231960545"
+                "id": "9609035093032667592"
             },
             "MeshComponent": {
                 "asset": "17706748999392867240",
@@ -382,6 +382,64 @@
                     "x": 2.4200000762939453,
                     "y": 2.4200000762939453,
                     "z": 2.4200000762939453
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "9826350315149942128"
+            },
+            "MeshComponent": {
+                "asset": "13969595060740083540",
+                "assetDecl": "Content\\EngineContent\\Default_Sphere.fbx.mgasset"
+            },
+            "TagComponent": {
+                "tag": "Sphere 1"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": -13.6043119430542,
+                    "y": 6.989294052124023,
+                    "z": -13.181464195251465
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 5.0,
+                    "y": 5.0,
+                    "z": 5.0
+                }
+            }
+        },
+        {
+            "IDComponent": {
+                "id": "6085223922805339137"
+            },
+            "MeshComponent": {
+                "asset": "13969595060740083540",
+                "assetDecl": "Content\\EngineContent\\Default_Sphere.fbx.mgasset"
+            },
+            "TagComponent": {
+                "tag": "Sphere 2"
+            },
+            "TransformComponent": {
+                "position": {
+                    "x": 0.0,
+                    "y": 6.582914352416992,
+                    "z": -14.025232315063477
+                },
+                "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "scale": {
+                    "x": 5.0,
+                    "y": 5.0,
+                    "z": 5.0
                 }
             }
         }
