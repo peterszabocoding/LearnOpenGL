@@ -26,7 +26,9 @@ namespace Moongoose {
 		PREFILTER,
 		BRDF,
 		BILLBOARD,
-		ATMOSPHERE
+		ATMOSPHERE,
+		GBUFFER,
+		POST_PROCESS_SSR
 	};
 
 	enum class PolygonMode : uint8_t {

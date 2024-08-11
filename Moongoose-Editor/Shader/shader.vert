@@ -8,6 +8,7 @@ layout (location = 4) in vec3 aBitangent;
 
 out vec4 WorldPos;
 out vec3 FragPos;
+out vec4 ViewPos;
 out vec2 TexCoord;
 out vec3 Normal;
 out vec3 EyePosition;
@@ -27,13 +28,11 @@ void main()
    vec3 N = normalize(vec3(model * vec4(aNormal,    0.0)));
    TBN = mat3(T, B, N);
 
-   vec4 world_pos = model * vec4(aPos, 1.0);
-   mat4 rotView = mat4(mat3(view));
-
-   gl_Position = projection * view * world_pos;
-
-   WorldPos = world_pos;
-   FragPos = world_pos.xyz;
+   WorldPos = model * vec4(aPos, 1.0);
+   ViewPos = view * WorldPos;
+   gl_Position = projection * view * WorldPos;
+   
+   FragPos = WorldPos.xyz;
    TexCoord = aTexCoords;
    Normal = normalize(transpose(inverse(mat3(model))) * aNormal);
    EntityID = aEntityID;

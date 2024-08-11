@@ -16,6 +16,9 @@
 namespace Moongoose {
 
 	glm::uvec2 Renderer::m_Resolution;
+
+	Ref<GBuffer> Renderer::m_GBuffer;
+	Ref<Framebuffer> Renderer::m_PostProcessingBuffer;
 	Ref<Framebuffer> Renderer::m_RenderBuffer;
 	Ref<Framebuffer> Renderer::m_ShadowBuffer;
 	Ref<Framebuffer> Renderer::m_PointShadowBuffer;
@@ -32,15 +35,11 @@ namespace Moongoose {
 	unsigned int Renderer::prevDrawCount = 0;
 	unsigned int Renderer::currentDrawCount = 0;
 
-	void Renderer::SetResolution(const glm::uvec2 newResolution)
+	void Renderer::InitRenderBuffer()
 	{
-		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitShadowBuffer();
-
-		if (newResolution == m_Resolution) return;
-
 		FramebufferSpecs specs;
-		specs.width = newResolution.x;
-		specs.height = newResolution.y;
+		specs.width = m_Resolution.x;
+		specs.height = m_Resolution.y;
 		specs.attachments = {
 			FramebufferTextureFormat::RGBA8,
 			FramebufferTextureFormat::RED_INTEGER,
@@ -49,7 +48,31 @@ namespace Moongoose {
 		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
+	}
+
+	void Renderer::InitPostProcessingBuffer()
+	{
+		FramebufferSpecs specs;
+		specs.width = m_Resolution.x;
+		specs.height = m_Resolution.y;
+		specs.attachments = {
+			FramebufferTextureFormat::RGBA8
+		};
+		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		m_PostProcessingBuffer = FramebufferManager::CreateFramebuffer("PostProcessingBuffer", specs);
+	}
+
+	void Renderer::SetResolution(const glm::uvec2 newResolution)
+	{
+		if (newResolution == m_Resolution) return;
 		m_Resolution = newResolution;
+
+		// Init framebuffers
+		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitShadowBuffer();
+		if (!m_GBuffer) InitGBuffer();
+		if (!m_PostProcessingBuffer) InitPostProcessingBuffer();
+		if (!m_RenderBuffer) InitRenderBuffer();
 	}
 
 	void Renderer::PrepareLights()
@@ -180,7 +203,6 @@ namespace Moongoose {
 		
 		m_ShadowBuffer->Unbind();
 
-
 		m_PointShadowBuffer->Bind();
 		RenderCommand::SetClearColor(m_PointShadowBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
@@ -220,6 +242,62 @@ namespace Moongoose {
 		m_PointShadowBuffer->Unbind();
 	}
 
+	Ref<Framebuffer> Renderer::GetRenderBuffer()
+	{
+		return m_PostProcessingBuffer;
+	}
+
+	void Renderer::RenderGBuffer(const Ref<PerspectiveCamera>& camera)
+	{
+		m_GBuffer->Bind();
+		RenderCommand::SetClearColor(m_GBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+
+		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::GBUFFER);
+		shader->Bind();
+
+		for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+		{
+			shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
+
+			if(cmd.material->m_Normal) cmd.material->m_Normal->Bind(0);
+			if (cmd.material->m_Roughness) cmd.material->m_Roughness->Bind(1);
+
+
+			shader->UploadUniformInt("bUseNormalMap", cmd.material->m_Normal != nullptr ? 1 : 0);
+			shader->UploadUniformInt("bUseRoughnessMap", cmd.material->m_Roughness != nullptr ? 1 : 0);
+
+			shader->UploadUniformFloat("roughnessValue", cmd.material->m_RoughnessValue);
+
+			shader->UploadUniformMat4("model", cmd.transform);
+			RenderMesh(cmd.vertexArray);
+		}
+
+		shader->Unbind();
+		m_GBuffer->Unbind();
+	}
+
+	void Renderer::RenderPostProcessing(const Ref<PerspectiveCamera>& camera)
+	{
+		m_PostProcessingBuffer->Bind();
+		RenderCommand::SetClearColor(m_PostProcessingBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+
+		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::POST_PROCESS_SSR);
+		shader->Bind();
+		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
+		shader->BindTexture(0, m_RenderBuffer->GetColorAttachments()[0]);
+		shader->BindTexture(1, m_GBuffer->GetViewPositionTexutre());
+		shader->BindTexture(2, m_GBuffer->GetNormalTexture());
+		shader->BindTexture(3, m_GBuffer->GetRoughnessTexture());
+		shader->BindTexture(4, m_GBuffer->GetGBuffer()->GetDepthAttachment());
+
+		RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+
+		shader->Unbind();
+		m_PostProcessingBuffer->Unbind();
+	}
+
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
 	{
 		SetResolution(camera->GetResolution());
@@ -231,6 +309,7 @@ namespace Moongoose {
 		world->GetSystem<BillboardSystem>()->Run(camera, world);
 
 		RenderShadowMaps();
+		RenderGBuffer(camera);
 
 		m_RenderBuffer->Bind();
 		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().clearColor);
@@ -247,8 +326,12 @@ namespace Moongoose {
 		for (const auto& cmd : m_BillboardRenderCmds)
 			ExecuteBillboardRenderCommand(camera, cmd);
 
-		EndScene();
 		m_RenderBuffer->Unbind();
+
+
+		RenderPostProcessing(camera);
+		
+		EndScene();
 	}
 
 	void Renderer::ExecuteMeshRenderCommand(const Ref<PerspectiveCamera>& camera, const MeshRenderCmd& cmd)
@@ -360,7 +443,6 @@ namespace Moongoose {
 
 		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer", specs);
 
-
 		FramebufferSpecs pointShadowSpecs;
 		pointShadowSpecs.width = CUBE_SHADOW_MAP_RESOLUTION;
 		pointShadowSpecs.height = CUBE_SHADOW_MAP_RESOLUTION;
@@ -369,6 +451,11 @@ namespace Moongoose {
 		pointShadowSpecs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		m_PointShadowBuffer = FramebufferManager::CreateFramebuffer("PointShadowBuffer", pointShadowSpecs);
+	}
+
+	void Renderer::InitGBuffer()
+	{
+		m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({ m_Resolution.x, m_Resolution.y }));
 	}
 
 	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)

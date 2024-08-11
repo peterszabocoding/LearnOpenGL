@@ -22,7 +22,7 @@ namespace Moongoose {
 
 		m_Projection = glm::perspective(
 			m_Params.fov,
-			(float)m_Params.renderWidth / m_Params.renderHeight,
+			(float) m_Params.renderWidth / m_Params.renderHeight,
 			m_Params.zNear,
 			m_Params.zFar);
 

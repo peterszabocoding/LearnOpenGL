@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 
+#include "GBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Material.h"
@@ -50,7 +51,7 @@ namespace Moongoose {
 		};
 
 	public:
-		static Ref<Framebuffer> GetRenderBuffer() { return m_RenderBuffer; }
+		static Ref<Framebuffer> GetRenderBuffer();
 		static void RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world);
 		static void RenderMesh(const Ref<VertexArray>& vertexArray);
 
@@ -67,11 +68,17 @@ namespace Moongoose {
 		static unsigned int GetDrawCount() { return prevDrawCount; }
 	private:
 		static void InitShadowBuffer();
+		static void InitGBuffer();
+		static void InitRenderBuffer();
+		static void InitPostProcessingBuffer();
+
 		static void SetResolution(glm::uvec2 newResolution);
 
 		static void PrepareLights();
 		static void PrepareDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader);
 
+		static void RenderGBuffer(const Ref<PerspectiveCamera>& camera);
+		static void RenderPostProcessing(const Ref<PerspectiveCamera>& camera);
 		static void RenderShadowMaps();
 
 		static void ExecuteMeshRenderCommand(const Ref<PerspectiveCamera>& camera, const MeshRenderCmd& cmd);
@@ -104,7 +111,9 @@ namespace Moongoose {
 		static std::vector<MeshRenderCmd> m_MeshRenderCmds;
 		static std::vector<BillboardCmd> m_BillboardRenderCmds;
 
+		static Ref<GBuffer> m_GBuffer;
 		static Ref<Framebuffer> m_RenderBuffer;
+		static Ref<Framebuffer> m_PostProcessingBuffer;
 		static Ref<Framebuffer> m_ShadowBuffer;
 		static Ref<Framebuffer> m_PointShadowBuffer;
 		static glm::uvec2 m_Resolution;

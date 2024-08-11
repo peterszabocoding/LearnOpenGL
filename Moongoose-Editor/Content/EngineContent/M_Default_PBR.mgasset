@@ -7,7 +7,7 @@
     "id": "11109056700723690989",
     "metallicValue": 1.0,
     "name": "M_Default_PBR",
-    "roughnessValue": 0.3100000023841858,
+    "roughnessValue": 0.550000011920929,
     "source": "Content\\EngineContent\\M_Default_PBR.mgasset",
     "type": "Material"
 }
