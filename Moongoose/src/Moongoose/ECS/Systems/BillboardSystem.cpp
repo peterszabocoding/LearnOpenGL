@@ -31,7 +31,7 @@ namespace Moongoose
 
 			if (!billboardComponent.m_BillboardTexture) continue;
 
-			Renderer::BillboardCmd cmd;
+			BillboardCommand cmd;
 			cmd = {entity, cTransform.GetModelMatrix(), billboardComponent.m_BillboardTexture};
 			cmd.tintColor = billboardComponent.m_TintColor;
 			Renderer::PushBillboardRenderCommand(cmd);

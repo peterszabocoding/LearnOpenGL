@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 uniform float nearPlane;
 uniform float farPlane;
+uniform 
 
 float LinearizeDepth(float depth)
 {
@@ -13,6 +14,4 @@ float LinearizeDepth(float depth)
 void main()
 {             
     FragColor = vec4(vec3(LinearizeDepth(gl_FragCoord.z) / farPlane), 1.0); // perspective
-        // FragColor = vec4(vec3(depthValue), 1.0); // orthographic
-        
 }  

@@ -22,42 +22,45 @@ namespace Moongoose
 			auto cTransform = world->GetComponent<TransformComponent>(entity);
 			switch (cLight.m_Type)
 			{
-				case LightType::Directional:
-					Renderer::PushDirectionalLight({
-						cLight.m_Color,
-						cLight.m_Intensity,
-						cLight.m_ShadowType,
-						cLight.m_ShadowMapResolution,
-						nullptr,
-						cTransform.GetForwardDirection(),
-						cLight.m_Color,
-						cLight.m_Intensity * cLight.m_AmbientIntensity
-					});
-					break;
-				case LightType::Point:
-					Renderer::PushPointLight({ 
-						cLight.m_Color,
-						cLight.m_Intensity,
-						cLight.m_ShadowType,
-						cLight.m_ShadowMapResolution,
-						nullptr,
-						cTransform.m_Position,
-						cLight.m_AttenuationRadius
-					});
-					break;
+			case LightType::Directional:
+				Renderer::PushDirectionalLight({
+					cLight.m_Color,
+					cLight.m_Intensity,
+					cLight.GetDefaultShadowBias(cLight.m_Type),
+					cLight.m_ShadowType,
+					cLight.m_ShadowMapResolution,
+					nullptr,
+					cTransform.GetForwardDirection(),
+					cLight.m_Color,
+					cLight.m_Intensity * cLight.m_AmbientIntensity
+				});
+				break;
+			case LightType::Point:
+				Renderer::PushPointLight({
+					cLight.m_Color,
+					cLight.m_Intensity,
+					cLight.GetDefaultShadowBias(cLight.m_Type),
+					cLight.m_ShadowType,
+					cLight.m_ShadowMapResolution,
+					nullptr,
+					cTransform.m_Position,
+					cLight.m_AttenuationRadius
+				});
+				break;
 			case LightType::Spot:
-					Renderer::PushSpotLight({ 
-						cLight.m_Color,
-						cLight.m_Intensity,
-						cLight.m_ShadowType,
-						cLight.m_ShadowMapResolution,
-						nullptr,
-						cTransform.m_Position,
-						cLight.m_AttenuationRadius,
-						cTransform.GetForwardDirection(),
-						cLight.m_AttenuationAngle
-					});
-					break;
+				Renderer::PushSpotLight({
+					cLight.m_Color,
+					cLight.m_Intensity,
+					cLight.GetDefaultShadowBias(cLight.m_Type),
+					cLight.m_ShadowType,
+					cLight.m_ShadowMapResolution,
+					nullptr,
+					cTransform.m_Position,
+					cLight.m_AttenuationRadius,
+					cTransform.GetForwardDirection(),
+					cLight.m_AttenuationAngle
+				});
+				break;
 			}
 		}
 	}

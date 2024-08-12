@@ -13,8 +13,8 @@
 #include "Moongoose/Renderer/Framebuffer.h"
 #include "Light.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	glm::uvec2 Renderer::m_Resolution;
 
 	Ref<GBuffer> Renderer::m_GBuffer;
@@ -26,14 +26,43 @@ namespace Moongoose {
 	TextureAtlas Renderer::m_TextureAtlas;
 
 	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
-	std::vector<PointLight>	Renderer::m_PointLights;
+	std::vector<PointLight> Renderer::m_PointLights;
 	std::vector<SpotLight> Renderer::m_SpotLights;
 
-	std::vector<Renderer::MeshRenderCmd> Renderer::m_MeshRenderCmds;
-	std::vector<Renderer::BillboardCmd> Renderer::m_BillboardRenderCmds;
+	std::vector<MeshCommand> Renderer::m_MeshRenderCmds;
+	std::vector<BillboardCommand> Renderer::m_BillboardRenderCmds;
 
 	unsigned int Renderer::prevDrawCount = 0;
 	unsigned int Renderer::currentDrawCount = 0;
+
+	void Renderer::InitShadowBuffer()
+	{
+		FramebufferSpecs specs;
+		specs.width = SHADOW_BUFFER_RESOLUTION.x;
+		specs.height = SHADOW_BUFFER_RESOLUTION.y;
+
+		specs.hasShadowMapAttachment = true;
+		specs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+		specs.attachments = {
+			FramebufferTextureFormat::RGBA8
+		};
+
+		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer", specs);
+
+		FramebufferSpecs pointShadowSpecs;
+		pointShadowSpecs.width = CUBE_SHADOW_MAP_RESOLUTION;
+		pointShadowSpecs.height = CUBE_SHADOW_MAP_RESOLUTION;
+
+		pointShadowSpecs.hasShadowMapCubeAttachment = true;
+		pointShadowSpecs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+
+		m_PointShadowBuffer = FramebufferManager::CreateFramebuffer("PointShadowBuffer", pointShadowSpecs);
+	}
+
+	void Renderer::InitGBuffer()
+	{
+		m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({m_Resolution.x, m_Resolution.y}));
+	}
 
 	void Renderer::InitRenderBuffer()
 	{
@@ -45,7 +74,7 @@ namespace Moongoose {
 			FramebufferTextureFormat::RED_INTEGER,
 			FramebufferTextureFormat::DEPTH24STENCIL8
 		};
-		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		specs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
 
 		m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
 	}
@@ -58,7 +87,7 @@ namespace Moongoose {
 		specs.attachments = {
 			FramebufferTextureFormat::RGBA8
 		};
-		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		specs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
 
 		m_PostProcessingBuffer = FramebufferManager::CreateFramebuffer("PostProcessingBuffer", specs);
 	}
@@ -80,58 +109,53 @@ namespace Moongoose {
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
 		shader->Bind();
 
-		shader->UploadUniformInt("spotLightCount", 0);
-		shader->UploadUniformInt("pointLightCount", 0);
-
-		shader->UploadUniformFloat("directionalLight.base.intensity", 0.0f);
-		shader->UploadUniformFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-		shader->UploadUniformFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
+		shader->SetFloat("directionalLight.base.intensity", 0.0f);
+		shader->SetFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		shader->SetFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 		shader->BindCubeMapTexture(5, m_PointShadowBuffer->GetShadowMapCubeAttachmentID());
 
-		for (const auto& light : m_DirectionalLights) PrepareDirectionalLight(light, shader);
+		for (const auto& light : m_DirectionalLights) AddDirectionalLight(light, shader);
 
-		SetPointLightCount(shader, m_PointLights.size());
-		for (size_t i = 0; i < m_PointLights.size(); i++)
-		{
-			AddPointLight(i, shader, m_PointLights[i], GetPointLightTransform(m_PointLights[i])[0]);
-		}
+		shader->UploadUniformInt("pointLightCount", m_PointLights.size());
+		for (size_t i = 0; i < m_PointLights.size(); i++) AddPointLight(i, shader, m_PointLights[i]);
 
-		SetSpotLightCount(shader, m_SpotLights.size());
-		for (size_t i = 0; i < m_SpotLights.size(); i++)
-		{
-			AddSpotLight(i, shader, m_SpotLights[i], GetSpotLightTransform(m_SpotLights[i]));
-		}
+		shader->UploadUniformInt("spotLightCount", m_SpotLights.size());
+		for (size_t i = 0; i < m_SpotLights.size(); i++) AddSpotLight(i, shader, m_SpotLights[i]);
+
+
 		shader->Unbind();
 	}
 
-	void Renderer::PrepareDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader)
+	void Renderer::AddDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader)
 	{
-		shader->UploadUniformFloat3("directionalLight.base.color", light.color);
-		shader->UploadUniformFloat("directionalLight.base.intensity", light.intensity);
-		shader->UploadUniformFloat("directionalLight.base.isShadowCasting", light.shadowType != ShadowType::NONE);
-		shader->UploadUniformFloat("directionalLight.base.useSoftShadow", light.shadowType != ShadowType::NONE);
-		shader->UploadUniformMat4("directionalLight.base.lightTransform", GetDirectionalLightTransform(light));
-		shader->UploadUniformFloat("directionalLight.base.bias", 0.005f);
+		shader->SetFloat3("directionalLight.base.color", light.color);
+		shader->SetFloat("directionalLight.base.intensity", light.intensity);
+		shader->SetFloat("directionalLight.base.isShadowCasting", light.shadowType != ShadowType::NONE);
+		shader->SetFloat("directionalLight.base.useSoftShadow", light.shadowType != ShadowType::NONE);
+		shader->SetFloat("directionalLight.base.bias", light.shadowBias);
+		shader->SetMat4("directionalLight.base.lightTransform", light.GetTransform());
 
-		shader->UploadUniformFloat3("directionalLight.direction", light.direction);
-		shader->UploadUniformFloat3("directionalLight.ambientColor", light.ambientColor);
-		shader->UploadUniformFloat("directionalLight.ambientIntensity", light.ambientIntensity);
+		shader->SetFloat3("directionalLight.direction", light.direction);
+		shader->SetFloat3("directionalLight.ambientColor", light.ambientColor);
+		shader->SetFloat("directionalLight.ambientIntensity", light.ambientIntensity);
 
 		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
 
 		if (light.shadowType != ShadowType::NONE && light.shadowMapRegion)
 		{
 			const auto& [topLeft, bottomRight] = *light.shadowMapRegion;
-			const auto shadowMapSize = glm::vec2(
-				bottomRight.x - topLeft.x,
-				bottomRight.y - topLeft.y
-			);
+			const auto shadowMapSize = glm::vec2(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
 
-			shader->UploadUniformFloat2("directionalLight.base.shadowMapTopLeft", topLeft);
-			shader->UploadUniformFloat2("directionalLight.base.shadowMapSize", shadowMapSize);
+			shader->SetFloat2("directionalLight.base.shadowMapTopLeft", topLeft);
+			shader->SetFloat2("directionalLight.base.shadowMapSize", shadowMapSize);
 		}
+	}
+
+	Ref<Framebuffer> Renderer::GetRenderBuffer()
+	{
+		return m_PostProcessingBuffer;
 	}
 
 	void Renderer::RenderShadowMaps()
@@ -145,7 +169,7 @@ namespace Moongoose {
 		for (auto& light : m_DirectionalLights)
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
-			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t) light.shadowMapResolution);
+			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
 
 			auto& [topLeft, bottomRight] = *light.shadowMapRegion;
 			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_DIRECTIONAL);
@@ -156,13 +180,14 @@ namespace Moongoose {
 				bottomRight.y - topLeft.y);
 
 			shader->Bind();
-			shader->UploadUniformMat4("lightTransform", GetDirectionalLightTransform(light));
+			shader->SetMat4("light.lightTransform", light.GetTransform());
+
 			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
-			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+			for (const MeshCommand& cmd : m_MeshRenderCmds)
 			{
-				shader->UploadUniformMat4("model", cmd.transform);
+				shader->SetMat4("model", cmd.transform);
 				RenderMesh(cmd.vertexArray);
 			}
 
@@ -173,7 +198,7 @@ namespace Moongoose {
 		for (auto& light : m_SpotLights)
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
-			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
+			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion(static_cast<uint16_t>(light.shadowMapResolution));
 
 			auto& [topLeft, bottomRight] = *light.shadowMapRegion;
 			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_SPOT);
@@ -184,23 +209,23 @@ namespace Moongoose {
 				bottomRight.y - topLeft.y);
 
 			shader->Bind();
-			shader->UploadUniformMat4("lightTransform", GetSpotLightTransform(light));
-			shader->UploadUniformFloat("farPlane", light.attenuationRadius * 1.5f);
-			shader->UploadUniformFloat("nearPlane", 0.1f);
+			shader->SetMat4("light.lightTransform", light.GetTransform());
+			shader->SetFloat("farPlane", light.attenuationRadius * 1.5f);
+			shader->SetFloat("nearPlane", 0.1f);
 
 			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
-			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+			for (const MeshCommand& cmd : m_MeshRenderCmds)
 			{
-				shader->UploadUniformMat4("model", cmd.transform);
+				shader->SetMat4("model", cmd.transform);
 				RenderMesh(cmd.vertexArray);
 			}
 
 			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
 			shader->Unbind();
 		}
-		
+
 		m_ShadowBuffer->Unbind();
 
 		m_PointShadowBuffer->Bind();
@@ -210,29 +235,29 @@ namespace Moongoose {
 		for (auto& light : m_PointLights)
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
-			auto shadowMatrices = GetPointLightTransform(light);
+			auto shadowMatrices = light.GetTransform();
 
 			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_POINT);
 			shader->Bind();
 
-			shader->UploadUniformMat4("shadowMatrices[0]", shadowMatrices[0]);
-			shader->UploadUniformMat4("shadowMatrices[1]", shadowMatrices[1]);
-			shader->UploadUniformMat4("shadowMatrices[2]", shadowMatrices[2]);
-			shader->UploadUniformMat4("shadowMatrices[3]", shadowMatrices[3]);
-			shader->UploadUniformMat4("shadowMatrices[4]", shadowMatrices[4]);
-			shader->UploadUniformMat4("shadowMatrices[5]", shadowMatrices[5]);
+			shader->SetMat4("shadowMatrices[0]", shadowMatrices[0]);
+			shader->SetMat4("shadowMatrices[1]", shadowMatrices[1]);
+			shader->SetMat4("shadowMatrices[2]", shadowMatrices[2]);
+			shader->SetMat4("shadowMatrices[3]", shadowMatrices[3]);
+			shader->SetMat4("shadowMatrices[4]", shadowMatrices[4]);
+			shader->SetMat4("shadowMatrices[5]", shadowMatrices[5]);
 
-			shader->UploadUniformFloat3("lightPos", light.position);
+			shader->SetFloat3("lightPos", light.position);
 
-			shader->UploadUniformFloat("farPlane", light.attenuationRadius * 1.5f);
-			shader->UploadUniformFloat("nearPlane", 0.1f);
+			shader->SetFloat("farPlane", light.attenuationRadius * 1.5f);
+			shader->SetFloat("nearPlane", 0.1f);
 
 			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
-			for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+			for (const MeshCommand& cmd : m_MeshRenderCmds)
 			{
-				shader->UploadUniformMat4("model", cmd.transform);
+				shader->SetMat4("model", cmd.transform);
 				RenderMesh(cmd.vertexArray);
 			}
 
@@ -240,11 +265,6 @@ namespace Moongoose {
 			shader->Unbind();
 		}
 		m_PointShadowBuffer->Unbind();
-	}
-
-	Ref<Framebuffer> Renderer::GetRenderBuffer()
-	{
-		return m_PostProcessingBuffer;
 	}
 
 	void Renderer::RenderGBuffer(const Ref<PerspectiveCamera>& camera)
@@ -256,20 +276,19 @@ namespace Moongoose {
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::GBUFFER);
 		shader->Bind();
 
-		for (const MeshRenderCmd& cmd : m_MeshRenderCmds)
+		for (const MeshCommand& cmd : m_MeshRenderCmds)
 		{
 			shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 
-			if(cmd.material->m_Normal) cmd.material->m_Normal->Bind(0);
+			if (cmd.material->m_Normal) cmd.material->m_Normal->Bind(0);
 			if (cmd.material->m_Roughness) cmd.material->m_Roughness->Bind(1);
-
 
 			shader->UploadUniformInt("bUseNormalMap", cmd.material->m_Normal != nullptr ? 1 : 0);
 			shader->UploadUniformInt("bUseRoughnessMap", cmd.material->m_Roughness != nullptr ? 1 : 0);
 
-			shader->UploadUniformFloat("roughnessValue", cmd.material->m_RoughnessValue);
+			shader->SetFloat("roughnessValue", cmd.material->m_RoughnessValue);
 
-			shader->UploadUniformMat4("model", cmd.transform);
+			shader->SetMat4("model", cmd.transform);
 			RenderMesh(cmd.vertexArray);
 		}
 
@@ -292,7 +311,7 @@ namespace Moongoose {
 		shader->BindTexture(3, m_GBuffer->GetRoughnessTexture());
 		shader->BindTexture(4, m_GBuffer->GetGBuffer()->GetDepthAttachment());
 
-		RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 
 		shader->Unbind();
 		m_PostProcessingBuffer->Unbind();
@@ -330,34 +349,34 @@ namespace Moongoose {
 
 
 		RenderPostProcessing(camera);
-		
+
 		EndScene();
 	}
 
-	void Renderer::ExecuteMeshRenderCommand(const Ref<PerspectiveCamera>& camera, const MeshRenderCmd& cmd)
+	void Renderer::ExecuteMeshRenderCommand(const Ref<PerspectiveCamera>& camera, const MeshCommand& cmd)
 	{
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(cmd.material->GetShaderType());
 		shader->Bind();
 
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-		shader->UploadUniformMat4("model", cmd.transform);
+		shader->SetMat4("model", cmd.transform);
 		shader->UploadUniformInt("aEntityID", cmd.id);
 
-		shader->UploadUniformInt("material.useAlbedoTexture",		cmd.material->m_Albedo		!= nullptr ? 1 : 0);
-		shader->UploadUniformInt("material.useMetallicTexture",		cmd.material->m_Metallic	!= nullptr ? 1 : 0);
-		shader->UploadUniformInt("material.useRoughnessTexture",	cmd.material->m_Roughness	!= nullptr ? 1 : 0);
-		shader->UploadUniformInt("material.useNormalMapTexture",	cmd.material->m_Normal		!= nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useAlbedoTexture", cmd.material->m_Albedo != nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useMetallicTexture", cmd.material->m_Metallic != nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useRoughnessTexture", cmd.material->m_Roughness != nullptr ? 1 : 0);
+		shader->UploadUniformInt("material.useNormalMapTexture", cmd.material->m_Normal != nullptr ? 1 : 0);
 
-		shader->UploadUniformFloat3("material.albedo", cmd.material->m_AlbedoColor);
-		shader->UploadUniformFloat("material.roughness", cmd.material->m_RoughnessValue);
-		shader->UploadUniformFloat("material.metallic", cmd.material->m_MetallicValue);
+		shader->SetFloat3("material.albedo", cmd.material->m_AlbedoColor);
+		shader->SetFloat("material.roughness", cmd.material->m_RoughnessValue);
+		shader->SetFloat("material.metallic", cmd.material->m_MetallicValue);
 
 		if (cmd.material) cmd.material->Bind();
 		RenderMesh(cmd.vertexArray);
 		shader->Unbind();
 	}
 
-	void Renderer::ExecuteBillboardRenderCommand(const Ref<PerspectiveCamera>& camera, const BillboardCmd& cmd)
+	void Renderer::ExecuteBillboardRenderCommand(const Ref<PerspectiveCamera>& camera, const BillboardCommand& cmd)
 	{
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
 
@@ -367,10 +386,10 @@ namespace Moongoose {
 
 		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 
-		shader->UploadUniformMat4("model", cmd.transform);
+		shader->SetMat4("model", cmd.transform);
 		shader->UploadUniformInt("aEntityID", cmd.id);
 
-		shader->UploadUniformFloat3("TintColor", cmd.tintColor);
+		shader->SetFloat3("TintColor", cmd.tintColor);
 		cmd.texture->Bind(0);
 
 		RenderMesh(QuadMeshWorld(cmd.scale).GetSubmeshes()[0]->vertexArray);
@@ -379,12 +398,12 @@ namespace Moongoose {
 		shader->Unbind();
 	}
 
-	void Renderer::PushMeshRenderCommand(const MeshRenderCmd& cmd)
+	void Renderer::PushMeshRenderCommand(const MeshCommand& cmd)
 	{
 		m_MeshRenderCmds.push_back(cmd);
 	}
 
-	void Renderer::PushBillboardRenderCommand(const BillboardCmd& cmd)
+	void Renderer::PushBillboardRenderCommand(const BillboardCommand& cmd)
 	{
 		m_BillboardRenderCmds.push_back(cmd);
 	}
@@ -392,10 +411,7 @@ namespace Moongoose {
 	void Renderer::PushDirectionalLight(const DirectionalLight& light)
 	{
 		m_DirectionalLights.push_back(light);
-		if (light.shadowType != ShadowType::NONE)
-		{
-			m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
-		}
+		if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
 	}
 
 	void Renderer::PushPointLight(const PointLight& light)
@@ -406,10 +422,7 @@ namespace Moongoose {
 	void Renderer::PushSpotLight(const SpotLight& light)
 	{
 		m_SpotLights.push_back(light);
-		if (light.shadowType != ShadowType::NONE)
-		{
-			m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
-		}
+		if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
 	}
 
 	void Renderer::BeginScene()
@@ -427,112 +440,32 @@ namespace Moongoose {
 		m_BillboardRenderCmds.clear();
 	}
 
-	void Renderer::EndScene(){}
-
-	void Renderer::InitShadowBuffer()
+	void Renderer::EndScene()
 	{
-		FramebufferSpecs specs;
-		specs.width = SHADOW_BUFFER_RESOLUTION.x;
-		specs.height = SHADOW_BUFFER_RESOLUTION.y;
-
-		specs.hasShadowMapAttachment = true;
-		specs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-		specs.attachments = {
-			FramebufferTextureFormat::RGBA8
-		};
-
-		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer", specs);
-
-		FramebufferSpecs pointShadowSpecs;
-		pointShadowSpecs.width = CUBE_SHADOW_MAP_RESOLUTION;
-		pointShadowSpecs.height = CUBE_SHADOW_MAP_RESOLUTION;
-
-		pointShadowSpecs.hasShadowMapCubeAttachment = true;
-		pointShadowSpecs.clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		m_PointShadowBuffer = FramebufferManager::CreateFramebuffer("PointShadowBuffer", pointShadowSpecs);
-	}
-
-	void Renderer::InitGBuffer()
-	{
-		m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({ m_Resolution.x, m_Resolution.y }));
 	}
 
 	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
 	{
-		vertexArray->Bind();
 		RenderCommand::DrawIndexed(vertexArray);
 		currentDrawCount++;
-		vertexArray->Unbind();
 	}
 
-	glm::mat4 Renderer::GetDirectionalLightProjection(const DirectionalLight& light)
-	{
-		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -25.0f, 25.0f);
-	}
-
-	glm::mat4 Renderer::GetPointLightProjection(const PointLight& light)
-	{
-		constexpr float nearPlane = 0.1f;
-		const float farPlane = light.attenuationRadius * 1.5f;
-		return glm::perspective(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
-	}
-
-	glm::mat4 Renderer::GetSpotLightProjection(const SpotLight& light) {
-		return glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, light.attenuationRadius * 1.5f);
-	}
-
-	glm::mat4 Renderer::GetDirectionalLightTransform(const DirectionalLight& light)
-	{
-		return GetDirectionalLightProjection(light) * lookAt(light.direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	}
-
-	std::vector<glm::mat4> Renderer::GetPointLightTransform(const PointLight& light)
-	{
-		const glm::mat4 shadowProj = GetPointLightProjection(light);
-		std::vector<glm::mat4> shadowTransforms;
-
-		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadowProj * lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
-
-		return shadowTransforms;
-	}
-
-	glm::mat4 Renderer::GetSpotLightTransform(const SpotLight& light)
-	{
-		return GetSpotLightProjection(light) * lookAt(light.position, light.position - light.direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	}
-
-	void Renderer::SetPointLightCount(const Ref<Shader>& shader, const int lightCount)
-	{
-		shader->UploadUniformInt("pointLightCount", lightCount);
-	}
-
-	void Renderer::SetSpotLightCount(const Ref<Shader>& shader, const int lightCount)
-	{
-		shader->UploadUniformInt("spotLightCount", lightCount);
-	}
-
-	void Renderer::AddSpotLight(const size_t index, const Ref<Shader>& shader, const SpotLight& spotLight, const glm::mat4& lightTransform)
+	void Renderer::AddSpotLight(const size_t index, const Ref<Shader>& shader, const SpotLight& spotLight)
 	{
 		const std::string base = "spotLights[" + std::to_string(index) + "]";
 
-		shader->UploadUniformFloat3(base + ".base.base.color", spotLight.color);
-		shader->UploadUniformFloat(base + ".base.base.intensity", spotLight.intensity);
-		shader->UploadUniformFloat(base + ".base.base.isShadowCasting", spotLight.shadowType != ShadowType::NONE);
-		shader->UploadUniformFloat(base + ".base.base.useSoftShadow", spotLight.shadowType == ShadowType::SOFT);
-		shader->UploadUniformMat4(base + ".base.base.lightTransform", lightTransform);
-		shader->UploadUniformFloat(base + ".base.base.bias", 0.00005f);
+		shader->SetFloat3(base + ".base.base.color", spotLight.color);
+		shader->SetFloat(base + ".base.base.intensity", spotLight.intensity);
+		shader->SetFloat(base + ".base.base.isShadowCasting", spotLight.shadowType > ShadowType::NONE);
+		shader->SetFloat(base + ".base.base.useSoftShadow", spotLight.shadowType == ShadowType::SOFT);
+		shader->SetMat4(base + ".base.base.lightTransform", spotLight.GetTransform());
+		shader->SetFloat(base + ".base.base.bias", spotLight.shadowBias);
 
-		shader->UploadUniformFloat3(base + ".base.position", spotLight.position);
-		shader->UploadUniformFloat(base + ".base.attenuationRadius", spotLight.attenuationRadius);
+		shader->SetFloat3(base + ".base.position", spotLight.position);
+		shader->SetFloat(base + ".base.attenuationRadius", spotLight.attenuationRadius);
 
-		shader->UploadUniformFloat3(base + ".direction", spotLight.direction);
-		shader->UploadUniformFloat(base + ".attenuationAngle", spotLight.attenuationAngle);
+		shader->SetFloat3(base + ".direction", spotLight.direction);
+		shader->SetFloat(base + ".attenuationAngle", spotLight.attenuationAngle);
 
 		if (spotLight.shadowType != ShadowType::NONE && spotLight.shadowMapRegion)
 		{
@@ -542,22 +475,22 @@ namespace Moongoose {
 				bottomRight.y - topLeft.y
 			);
 
-			shader->UploadUniformFloat2(base + ".base.base.shadowMapTopLeft", topLeft);
-			shader->UploadUniformFloat2(base + ".base.base.shadowMapSize", shadowMapSize);
+			shader->SetFloat2(base + ".base.base.shadowMapTopLeft", topLeft);
+			shader->SetFloat2(base + ".base.base.shadowMapSize", shadowMapSize);
 		}
 	}
 
-	void Renderer::AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight, const glm::mat4& lightTransform)
+	void Renderer::AddPointLight(const size_t index, const Ref<Shader>& shader, const PointLight& pointLight)
 	{
 		const std::string base = "pointLights[" + std::to_string(index) + "]";
 
-		shader->UploadUniformFloat3(base + ".base.color", pointLight.color);
-		shader->UploadUniformFloat(base + ".base.intensity", pointLight.intensity);
-		shader->UploadUniformFloat(base + ".base.isShadowCasting", pointLight.shadowType != ShadowType::NONE);
-		shader->UploadUniformFloat(base + ".base.useSoftShadow", pointLight.shadowType == ShadowType::SOFT);
-		shader->UploadUniformFloat(base + ".base.bias", 0.215f);
+		shader->SetFloat3(base + ".base.color", pointLight.color);
+		shader->SetFloat(base + ".base.intensity", pointLight.intensity);
+		shader->SetFloat(base + ".base.isShadowCasting", pointLight.shadowType > ShadowType::NONE);
+		shader->SetFloat(base + ".base.useSoftShadow", pointLight.shadowType == ShadowType::SOFT);
+		shader->SetFloat(base + ".base.bias", pointLight.shadowBias);
 
-		shader->UploadUniformFloat3(base + ".position", pointLight.position);
-		shader->UploadUniformFloat(base + ".attenuationRadius", pointLight.attenuationRadius);
+		shader->SetFloat3(base + ".position", pointLight.position);
+		shader->SetFloat(base + ".attenuationRadius", pointLight.attenuationRadius);
 	}
 }

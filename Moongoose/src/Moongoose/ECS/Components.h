@@ -14,8 +14,8 @@
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/Renderer.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	using ComponentType = std::uint8_t;
 	const ComponentType MAX_COMPONENTS = 32;
 	using Signature = std::bitset<MAX_COMPONENTS>;
@@ -27,8 +27,8 @@ namespace Moongoose {
 		Spot
 	};
 
-	namespace Utils {
-
+	namespace Utils
+	{
 		static std::string LightTypeToString(const LightType type)
 		{
 			switch (type)
@@ -42,7 +42,7 @@ namespace Moongoose {
 
 		static std::vector<std::string> GetLightTypeStrings()
 		{
-			return { "Directional", "Point", "Spot" };
+			return {"Directional", "Point", "Spot"};
 		}
 	}
 
@@ -55,35 +55,44 @@ namespace Moongoose {
 	{
 		UUID m_ID = 0;
 
-		IDComponent(UUID id = UUID()) : m_ID(id) {}
+		IDComponent(UUID id = UUID()) : m_ID(id)
+		{
+		}
 	};
 
-	struct TagComponent: Component
+	struct TagComponent : Component
 	{
 		std::string Tag;
 
 		TagComponent() = default;
 		TagComponent(const TagComponent& other) = default;
-		TagComponent(const std::string& tag)
-			: Tag(tag) {}
 
-		operator std::string& () { return Tag; }
-		operator const std::string& () const { return Tag; }
+		TagComponent(const std::string& tag)
+			: Tag(tag)
+		{
+		}
+
+		operator std::string&() { return Tag; }
+		operator const std::string&() const { return Tag; }
 	};
 
-	struct TransformComponent: Component
+	struct TransformComponent : Component
 	{
 		glm::vec3 m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 m_Scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
 		TransformComponent() = default;
+
 		TransformComponent(
 			const glm::vec3 position,
 			const glm::vec3 rotation,
-			const glm::vec3 scale): m_Position(position), m_Rotation(rotation), m_Scale(scale) {}
+			const glm::vec3 scale): m_Position(position), m_Rotation(rotation), m_Scale(scale)
+		{
+		}
 
-		glm::mat4 GetTransform() const {
+		glm::mat4 GetTransform() const
+		{
 			return translate(glm::mat4(1.0f), m_Position)
 				* toMat4(glm::quat(radians(m_Rotation)))
 				* scale(glm::mat4(1.0f), m_Scale);
@@ -101,7 +110,8 @@ namespace Moongoose {
 				* scale(glm::mat4(1.0f), m_Scale);
 		}
 
-		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
+		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation,
+		                               glm::vec3& scale)
 		{
 			// From glm::decompose in matrix_decompose.inl
 
@@ -160,11 +170,13 @@ namespace Moongoose {
 #endif
 
 			rotation.y = asin(-Row[0][2]);
-			if (cos(rotation.y) != 0) {
+			if (cos(rotation.y) != 0)
+			{
 				rotation.x = atan2(Row[1][2], Row[2][2]);
 				rotation.z = atan2(Row[0][1], Row[0][0]);
 			}
-			else {
+			else
+			{
 				rotation.x = atan2(-Row[2][0], Row[1][1]);
 				rotation.z = 0;
 			}
@@ -174,12 +186,15 @@ namespace Moongoose {
 		}
 	};
 
-	struct MeshComponent: Component
+	struct MeshComponent : Component
 	{
 		Ref<Mesh> m_Mesh;
 
 		MeshComponent() = default;
-		explicit MeshComponent(const Ref<Mesh>& mesh) : m_Mesh(mesh) {}
+
+		explicit MeshComponent(const Ref<Mesh>& mesh) : m_Mesh(mesh)
+		{
+		}
 	};
 
 	struct LightComponent : Component
@@ -190,14 +205,32 @@ namespace Moongoose {
 		float m_AmbientIntensity = 0.15f;
 		float m_AttenuationRadius = 10.0f;
 		float m_AttenuationAngle = 0.75f;
+		float m_Bias = 0.0f;
 		ShadowType m_ShadowType = ShadowType::NONE;
 		ShadowMapResolution m_ShadowMapResolution = ShadowMapResolution::MEDIUM;
+
+		static float GetDefaultShadowBias(LightType type)
+		{
+			switch (type)
+			{
+			case LightType::Directional:
+				return 0.005f;
+			case LightType::Point:
+				return 0.215f;
+			case LightType::Spot:
+				return 0.00005f;
+			}
+		}
 	};
 
 	struct BillboardComponent : Component
 	{
 		BillboardComponent() = default;
-		BillboardComponent(const Ref<Texture2D>& texture): m_BillboardTexture(texture) {}
+
+		BillboardComponent(const Ref<Texture2D>& texture): m_BillboardTexture(texture)
+		{
+		}
+
 		Ref<Texture2D> m_BillboardTexture;
 		glm::vec3 m_TintColor = glm::vec3(1.0f);
 	};
@@ -211,5 +244,4 @@ namespace Moongoose {
 
 		AtmosphericsComponent() = default;
 	};
-
 }

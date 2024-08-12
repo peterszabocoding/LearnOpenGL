@@ -108,9 +108,9 @@ namespace Moongoose {
 
 	void Shader::SetCamera(const glm::vec3& cameraPosition, const glm::mat4& viewMatrix, const glm::mat4& projection)
 	{
-		UploadUniformMat4("projection", projection);
-		UploadUniformMat4("view", viewMatrix);
-		UploadUniformFloat3("eyePosition", cameraPosition);
+		SetMat4("projection", projection);
+		SetMat4("view", viewMatrix);
+		SetFloat3("eyePosition", cameraPosition);
 	}
 
 	void Shader::SetPolygonMode(const PolygonMode mode)
@@ -234,32 +234,32 @@ namespace Moongoose {
 		glUniform1i(GetUniformLocation(name), value);
 	}
 
-	void Shader::UploadUniformIntArray(const std::string& name, const int* values, const uint32_t count)
+	void Shader::SetIntArray(const std::string& name, const int* values, const uint32_t count)
 	{
 		glUniform1iv(GetUniformLocation(name), count, values);
 	}
 
-	void Shader::UploadUniformFloat(const std::string& name, const float value)
+	void Shader::SetFloat(const std::string& name, const float value)
 	{
 		glUniform1f(GetUniformLocation(name), value);
 	}
 
-	void Shader::UploadUniformFloat2(const std::string& name, const glm::vec2& value)
+	void Shader::SetFloat2(const std::string& name, const glm::vec2& value)
 	{
 		glUniform2f(GetUniformLocation(name), value.x, value.y);
 	}
 
-	void Shader::UploadUniformFloat3(const std::string& name, const glm::vec3& value)
+	void Shader::SetFloat3(const std::string& name, const glm::vec3& value)
 	{
 		glUniform3f(GetUniformLocation(name), value.x, value.y, value.z);
 	}
 
-	void Shader::UploadUniformFloat4(const std::string& name, const glm::vec4& value)
+	void Shader::SetFloat4(const std::string& name, const glm::vec4& value)
 	{
 		glUniform4f(GetUniformLocation(name), value.x, value.y, value.z, value.w);
 	}
 
-	void Shader::UploadUniformMat4(const std::string& name, const glm::mat4& value)
+	void Shader::SetMat4(const std::string& name, const glm::mat4& value)
 	{
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	}

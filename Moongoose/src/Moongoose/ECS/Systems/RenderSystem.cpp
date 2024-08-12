@@ -36,7 +36,7 @@ namespace Moongoose {
 				const Ref<Material> material = cMesh.m_Mesh->GetMaterials()[submesh->materialIndex].material;
 				if (!material) continue;
 
-				Renderer::MeshRenderCmd cmd = { entity, cTransform.GetModelMatrix(), submesh->vertexArray, material };
+				MeshCommand cmd = { entity, cTransform.GetModelMatrix(), submesh->vertexArray, material };
 				Renderer::PushMeshRenderCommand(cmd);
 			}
 		}

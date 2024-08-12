@@ -59,7 +59,7 @@ namespace Moongoose {
 		RenderCommand::Clear();
 
 		m_TransmittanceShader->Bind();
-		m_TransmittanceShader->UploadUniformFloat2("resolution", m_TransmittanceBuffer->GetResolution());
+		m_TransmittanceShader->SetFloat2("resolution", m_TransmittanceBuffer->GetResolution());
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_TransmittanceShader->Unbind();
 		m_TransmittanceBuffer->Unbind();
@@ -69,7 +69,7 @@ namespace Moongoose {
 		RenderCommand::Clear();
 
 		m_MultiScatteringShader->Bind();
-		m_MultiScatteringShader->UploadUniformFloat2("resolution", m_MultiScatteringBuffer->GetResolution());
+		m_MultiScatteringShader->SetFloat2("resolution", m_MultiScatteringBuffer->GetResolution());
 		m_MultiScatteringShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_MultiScatteringShader->Unbind();
@@ -83,8 +83,8 @@ namespace Moongoose {
 		RenderCommand::Clear();
 
 		m_RaymarchingShader->Bind();
-		m_RaymarchingShader->UploadUniformFloat("u_Time", 10.0f);
-		m_RaymarchingShader->UploadUniformFloat2("resolution", m_RaymarchingBuffer->GetResolution());
+		m_RaymarchingShader->SetFloat("u_Time", 10.0f);
+		m_RaymarchingShader->SetFloat2("resolution", m_RaymarchingBuffer->GetResolution());
 		m_RaymarchingShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		m_RaymarchingShader->BindTexture(1, m_MultiScatteringBuffer->GetColorAttachments()[0]);
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
@@ -95,11 +95,11 @@ namespace Moongoose {
 		RenderCommand::SetClearColor(m_SkyBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 		m_SkyShader->Bind();
-		m_SkyShader->UploadUniformFloat("u_Time", 10.0f);
-		m_SkyShader->UploadUniformFloat2("resolution", resolution);
-		m_SkyShader->UploadUniformFloat3("CameraForward", camera->GetForward());
-		m_SkyShader->UploadUniformFloat("CameraFOV", camera->GetFovRad());
-		m_SkyShader->UploadUniformFloat("CameraFar", camera->GetFar());
+		m_SkyShader->SetFloat("u_Time", 10.0f);
+		m_SkyShader->SetFloat2("resolution", resolution);
+		m_SkyShader->SetFloat3("CameraForward", camera->GetForward());
+		m_SkyShader->SetFloat("CameraFOV", camera->GetFovRad());
+		m_SkyShader->SetFloat("CameraFar", camera->GetFar());
 		m_SkyShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		m_SkyShader->BindTexture(1, m_RaymarchingBuffer->GetColorAttachments()[0]);
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);

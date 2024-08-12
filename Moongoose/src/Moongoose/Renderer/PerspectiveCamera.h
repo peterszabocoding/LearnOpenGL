@@ -8,13 +8,13 @@
 #include "Moongoose/Events/KeyboardEvents.h"
 #include "Moongoose/Events/MouseEvents.h"
 
-namespace Moongoose {
-
-	class PerspectiveCamera: public Camera
+namespace Moongoose
+{
+	class PerspectiveCamera : public Camera
 	{
 	public:
-
-		struct Params {
+		struct Params
+		{
 			unsigned int renderWidth = 1280;
 			unsigned int renderHeight = 720;
 			float fov = 45.0f;
@@ -22,8 +22,8 @@ namespace Moongoose {
 			float zFar = 1000.0f;
 			float maxSpeed = 2.0f;
 
-			glm::vec3 startPosition = glm::vec3{ 0.0f , 0.0f , 0.0f };
-			glm::vec3 startUp = glm::vec3{ 0.0f , 1.0f , 0.0f };
+			glm::vec3 startPosition = glm::vec3{0.0f, 0.0f, 0.0f};
+			glm::vec3 startUp = glm::vec3{0.0f, 1.0f, 0.0f};
 
 			float startYaw = -90.0f;
 			float startPitch = 0.0f;
@@ -32,7 +32,7 @@ namespace Moongoose {
 		};
 
 	public:
-		PerspectiveCamera(const PerspectiveCamera::Params& params);
+		PerspectiveCamera(const Params& params);
 		~PerspectiveCamera() = default;
 
 		void OnUpdate(float deltaTime);
@@ -53,15 +53,14 @@ namespace Moongoose {
 		glm::vec3 GetCameraPosition() const;
 		glm::mat4 GetViewMatrix() const;
 
-
 	private:
 		bool OnResize(const WindowResizeEvent& event);
 		bool OnMouseScrolled(const MouseScrolledEvent& event);
 
 	private:
 		bool m_IsCameraMoving = false;
-		glm::vec2 mouseDelta = { 0.0f, 0.0f };
-		glm::vec2 lastMousePos = { 0.0f, 0.0f };
+		glm::vec2 mouseDelta = {0.0f, 0.0f};
+		glm::vec2 lastMousePos = {0.0f, 0.0f};
 
 		glm::vec3 m_Velocity;
 		glm::vec3 m_Position;
@@ -80,7 +79,5 @@ namespace Moongoose {
 		float moveTransitionEffect = 0.5f;
 		float maxSpeed = 0.1f;
 		float cameraDrag = 0.975f;
-
 	};
-
 }

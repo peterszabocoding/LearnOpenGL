@@ -136,12 +136,12 @@ namespace Moongoose {
 		[[nodiscard]] std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
 		void UploadUniformInt(const std::string& name, int value);
-		void UploadUniformIntArray(const std::string& name, const int* values, uint32_t count);
-		void UploadUniformFloat(const std::string& name, float value);
-		void UploadUniformFloat2(const std::string& name, const glm::vec2& value);
-		void UploadUniformFloat3(const std::string& name, const glm::vec3& value);
-		void UploadUniformFloat4(const std::string& name, const glm::vec4& value);
-		void UploadUniformMat4(const std::string& name, const glm::mat4& value);
+		void SetIntArray(const std::string& name, const int* values, uint32_t count);
+		void SetFloat(const std::string& name, float value);
+		void SetFloat2(const std::string& name, const glm::vec2& value);
+		void SetFloat3(const std::string& name, const glm::vec3& value);
+		void SetFloat4(const std::string& name, const glm::vec4& value);
+		void SetMat4(const std::string& name, const glm::mat4& value);
 
 	private:
 		static std::string ReadFile(const char* fileLocation);

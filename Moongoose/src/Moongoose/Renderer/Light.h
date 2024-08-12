@@ -23,6 +23,7 @@ struct Light
 {
 	glm::vec3 color = glm::vec3(1.0f);
 	float intensity = 1.0f;
+	float shadowBias = 0.0005f;
 	ShadowType shadowType = ShadowType::NONE;
 	ShadowMapResolution shadowMapResolution = ShadowMapResolution::MEDIUM;
 	TextureAtlas::AtlasBox* shadowMapRegion = nullptr;
@@ -33,16 +34,56 @@ struct DirectionalLight : Light
 	glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);
 	glm::vec3 ambientColor = glm::vec3(1.0f);
 	float ambientIntensity = 0.1f;
+
+	glm::mat4 GetProjection() const
+	{
+		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -20.0f, 20.0f);
+	}
+
+	glm::mat4 GetTransform() const
+	{
+		return GetProjection() * lookAt(direction, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
 };
 
 struct PointLight : Light
 {
 	glm::vec3 position = glm::vec3(0.0f);
 	float attenuationRadius = 10.0f;
+
+	glm::mat4 GetProjection()
+	{
+		return glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, attenuationRadius * 1.5f);
+	}
+
+	std::vector<glm::mat4> GetTransform()
+	{
+		const glm::mat4 shadowProj = GetProjection();
+		std::vector shadowTransforms =
+		{
+			shadowProj * lookAt(position, position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+			shadowProj * lookAt(position, position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+			shadowProj * lookAt(position, position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+			shadowProj * lookAt(position, position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+			shadowProj * lookAt(position, position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+			shadowProj * lookAt(position, position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+		};
+		return shadowTransforms;
+	}
 };
 
 struct SpotLight : PointLight
 {
 	glm::vec3 direction = glm::vec3(0.0f, -1.0f, 0.0f);
 	float attenuationAngle = 0.75f;
+
+	glm::mat4 GetProjection() const
+	{
+		return glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, attenuationRadius * 1.5f);
+	}
+
+	glm::mat4 GetTransform() const
+	{
+		return GetProjection() * lookAt(position, position - direction, glm::vec3(0.0f, 1.0f, 0.0f));
+	}
 };
