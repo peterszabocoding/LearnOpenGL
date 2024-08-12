@@ -129,6 +129,7 @@ group "Engine"
 		{
 			"Moongoose/src",
 			"Moongoose/vendor",
+			"Moongoose-Editor/src",
 			"Moongoose/vendor/spdlog/include",
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.Glad}",
