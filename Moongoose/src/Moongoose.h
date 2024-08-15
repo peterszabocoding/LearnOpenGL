@@ -40,10 +40,7 @@
 #include "Moongoose/ECS/Entity.h"
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/ECS/WorldManager.h"
-#include "Moongoose/ECS/Systems/BillboardSystem.h"
-#include "Moongoose/ECS/Systems/RenderSystem.h"
-#include "Moongoose/ECS/Systems/EntityListSystem.h"
-#include "Moongoose/ECS/Systems/LightSystem.h"
+
 #include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 
 #include "Moongoose/Util/FileSystem.h"

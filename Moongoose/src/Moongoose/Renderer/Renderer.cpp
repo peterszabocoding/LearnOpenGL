@@ -7,9 +7,6 @@
 #include "ShaderManager.h"
 #include "Moongoose/ECS/World.h"
 #include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
-#include "Moongoose/ECS/Systems/BillboardSystem.h"
-#include "Moongoose/ECS/Systems/LightSystem.h"
-#include "Moongoose/ECS/Systems/RenderSystem.h"
 #include "Moongoose/Renderer/Framebuffer.h"
 #include "Light.h"
 
@@ -319,13 +316,94 @@ namespace Moongoose
 
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
 	{
+		const auto transformComponentArray = world->GetComponentArray<TransformComponent>();
+		const auto meshComponentArray = world->GetComponentArray<MeshComponent>();
+		const auto lightComponentArray = world->GetComponentArray<LightComponent>();
+		const auto billboardComponentArray = world->GetComponentArray<BillboardComponent>();
+
 		SetResolution(camera->GetResolution());
 		BeginScene();
 
 		world->GetSystem<AtmosphericsSystem>()->Update(camera, m_Resolution);
-		world->GetSystem<LightSystem>()->Run(camera, world);
-		world->GetSystem<RenderSystem>()->Run(camera, world);
-		world->GetSystem<BillboardSystem>()->Run(camera, world);
+
+		for (size_t i = 0; i < transformComponentArray->m_Size; i++)
+		{
+			const Entity entity = transformComponentArray->m_IndexToEntityMap[i];
+			auto cTransform = transformComponentArray->GetData(entity);
+
+			if (meshComponentArray->HasData(entity))
+			{
+				const auto cMesh = meshComponentArray->GetData(entity);
+				if (!cMesh.m_Mesh) continue;
+
+				for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
+				{
+					const Ref<Material> material = cMesh.m_Mesh->GetMaterials()[submesh->materialIndex].material;
+					if (!material) continue;
+
+					MeshCommand cmd = {entity, cTransform.GetModelMatrix(), submesh->vertexArray, material};
+					PushMeshRenderCommand(cmd);
+				}
+			}
+
+			if (lightComponentArray->HasData(entity))
+			{
+				const auto cLight = lightComponentArray->GetData(entity);
+				switch (cLight.m_Type)
+				{
+				case LightType::Directional:
+					PushDirectionalLight({
+						cLight.m_Color,
+						cLight.m_Intensity,
+						LightComponent::GetDefaultShadowBias(cLight.m_Type),
+						cLight.m_ShadowType,
+						cLight.m_ShadowMapResolution,
+						nullptr,
+						cTransform.GetForwardDirection(),
+						cLight.m_Color,
+						cLight.m_Intensity * cLight.m_AmbientIntensity
+					});
+					break;
+				case LightType::Point:
+					PushPointLight({
+						cLight.m_Color,
+						cLight.m_Intensity,
+						LightComponent::GetDefaultShadowBias(cLight.m_Type),
+						cLight.m_ShadowType,
+						cLight.m_ShadowMapResolution,
+						nullptr,
+						cTransform.m_Position,
+						cLight.m_AttenuationRadius
+					});
+					break;
+				case LightType::Spot:
+					PushSpotLight({
+						cLight.m_Color,
+						cLight.m_Intensity,
+						LightComponent::GetDefaultShadowBias(cLight.m_Type),
+						cLight.m_ShadowType,
+						cLight.m_ShadowMapResolution,
+						nullptr,
+						cTransform.m_Position,
+						cLight.m_AttenuationRadius,
+						cTransform.GetForwardDirection(),
+						cLight.m_AttenuationAngle
+					});
+					break;
+				}
+			}
+
+			if (billboardComponentArray->HasData(entity))
+			{
+				const auto billboardComponent = billboardComponentArray->GetData(entity);
+
+				if (!billboardComponent.m_BillboardTexture) continue;
+
+				BillboardCommand cmd = {entity, cTransform.GetModelMatrix(), billboardComponent.m_BillboardTexture};
+				cmd.tintColor = billboardComponent.m_TintColor;
+				PushBillboardRenderCommand(cmd);
+			}
+		}
 
 		RenderShadowMaps();
 		RenderGBuffer(camera);

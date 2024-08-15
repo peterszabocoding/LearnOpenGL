@@ -1,20 +1,15 @@
 #include "mgpch.h"
-#include "Moongoose/Util/FileSystem.h"
-
-#include "Moongoose/Asset/AssetManager.h"
-#include "WorldManager.h"
-
 #include <nlohmann/json.hpp>
 
+#include "WorldManager.h"
 #include "Moongoose/Renderer/Transform.h"
-#include "Systems/BillboardSystem.h"
-#include "Systems/RenderSystem.h"
-#include "Systems/EntityListSystem.h"
-#include "Systems/LightSystem.h"
+#include "Moongoose/Asset/AssetManager.h"
+#include "Moongoose/Util/FileSystem.h"
+
 #include "Systems/AtmosphericsSystem.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	Ref<World> WorldManager::createWorld(const std::string& name)
 	{
 		if (m_LoadedWorld) CloseWorld(m_LoadedWorld);
@@ -33,10 +28,6 @@ namespace Moongoose {
 		m_LoadedWorld->RegisterComponent<BillboardComponent>();
 		m_LoadedWorld->RegisterComponent<AtmosphericsComponent>();
 
-		m_LoadedWorld->RegisterSystem<EntityListSystem>();
-		m_LoadedWorld->RegisterSystem<LightSystem>();
-		m_LoadedWorld->RegisterSystem<RenderSystem>();
-		m_LoadedWorld->RegisterSystem<BillboardSystem>();
 		m_LoadedWorld->RegisterSystem<AtmosphericsSystem>();
 
 		return m_LoadedWorld;
@@ -71,9 +62,14 @@ namespace Moongoose {
 			if (!jTransformComponent.empty())
 			{
 				TransformComponent& cTransform = world->GetComponent<TransformComponent>(entity);
-				cTransform.m_Position = glm::vec3(jTransformComponent["position"]["x"], jTransformComponent["position"]["y"], jTransformComponent["position"]["z"]);
-				cTransform.m_Rotation = glm::vec3(jTransformComponent["rotation"]["x"], jTransformComponent["rotation"]["y"], jTransformComponent["rotation"]["z"]);
-				cTransform.m_Scale = glm::vec3(jTransformComponent["scale"]["x"], jTransformComponent["scale"]["y"], jTransformComponent["scale"]["z"]);
+				cTransform.m_Position = glm::vec3(jTransformComponent["position"]["x"],
+				                                  jTransformComponent["position"]["y"],
+				                                  jTransformComponent["position"]["z"]);
+				cTransform.m_Rotation = glm::vec3(jTransformComponent["rotation"]["x"],
+				                                  jTransformComponent["rotation"]["y"],
+				                                  jTransformComponent["rotation"]["z"]);
+				cTransform.m_Scale = glm::vec3(jTransformComponent["scale"]["x"], jTransformComponent["scale"]["y"],
+				                               jTransformComponent["scale"]["z"]);
 			}
 
 			auto jMeshComponent = jsonEntity["MeshComponent"];
@@ -89,20 +85,28 @@ namespace Moongoose {
 			if (!jLightComponent.empty())
 			{
 				LightComponent cLight;
-				cLight.m_Color = glm::vec3(jLightComponent["color"]["r"], jLightComponent["color"]["g"], jLightComponent["color"]["b"]);
+				cLight.m_Color = glm::vec3(jLightComponent["color"]["r"], jLightComponent["color"]["g"],
+				                           jLightComponent["color"]["b"]);
 				cLight.m_Intensity = jLightComponent["intensity"];
-				cLight.m_Type = (LightType) jLightComponent["type"];
-				cLight.m_AttenuationRadius = jLightComponent.contains("attenuationRadius") ? jLightComponent["attenuationRadius"] : 10.0f;
-				cLight.m_AttenuationAngle = jLightComponent.contains("attenuationAngle") ? jLightComponent["attenuationAngle"] : 0.75f;
-				cLight.m_AmbientIntensity = jLightComponent.contains("ambientIntensity") ? jLightComponent["ambientIntensity"] : 0.15f;
-				cLight.m_ShadowType = jLightComponent.contains("shadowType") ? jLightComponent["shadowType"] : ShadowType::NONE;
+				cLight.m_Type = (LightType)jLightComponent["type"];
+				cLight.m_AttenuationRadius = jLightComponent.contains("attenuationRadius")
+					                             ? jLightComponent["attenuationRadius"]
+					                             : 10.0f;
+				cLight.m_AttenuationAngle = jLightComponent.contains("attenuationAngle")
+					                            ? jLightComponent["attenuationAngle"]
+					                            : 0.75f;
+				cLight.m_AmbientIntensity = jLightComponent.contains("ambientIntensity")
+					                            ? jLightComponent["ambientIntensity"]
+					                            : 0.15f;
+				cLight.m_ShadowType = jLightComponent.contains("shadowType")
+					                      ? jLightComponent["shadowType"]
+					                      : ShadowType::NONE;
 				cLight.m_ShadowMapResolution = jLightComponent.contains("shadowResolution")
-				? ShadowMapResolution(jLightComponent["shadowResolution"])
-				: ShadowMapResolution::MEDIUM;
+					                               ? ShadowMapResolution(jLightComponent["shadowResolution"])
+					                               : ShadowMapResolution::MEDIUM;
 
 				world->AddComponent<LightComponent>(entity, cLight);
 			}
-
 		}
 
 		return world;
@@ -150,9 +154,15 @@ namespace Moongoose {
 				nlohmann::json jTransform = nlohmann::json::object();
 				auto& cTransform = m_LoadedWorld->GetComponent<TransformComponent>(entity);
 
-				jTransform["position"] = { {"x", cTransform.m_Position.x}, {"y", cTransform.m_Position.y}, {"z", cTransform.m_Position.z} };
-				jTransform["rotation"] = { {"x", cTransform.m_Rotation.x}, {"y", cTransform.m_Rotation.y}, {"z", cTransform.m_Rotation.z} };
-				jTransform["scale"] = { {"x", cTransform.m_Scale.x}, {"y", cTransform.m_Scale.y}, {"z", cTransform.m_Scale.z} };
+				jTransform["position"] = {
+					{"x", cTransform.m_Position.x}, {"y", cTransform.m_Position.y}, {"z", cTransform.m_Position.z}
+				};
+				jTransform["rotation"] = {
+					{"x", cTransform.m_Rotation.x}, {"y", cTransform.m_Rotation.y}, {"z", cTransform.m_Rotation.z}
+				};
+				jTransform["scale"] = {
+					{"x", cTransform.m_Scale.x}, {"y", cTransform.m_Scale.y}, {"z", cTransform.m_Scale.z}
+				};
 				entityObj["TransformComponent"] = jTransform;
 			}
 
@@ -175,7 +185,7 @@ namespace Moongoose {
 				auto& cLight = m_LoadedWorld->GetComponent<LightComponent>(entity);
 
 				jLight["type"] = cLight.m_Type;
-				jLight["color"] = { {"r", cLight.m_Color.x}, {"g", cLight.m_Color.y}, {"b", cLight.m_Color.z} };
+				jLight["color"] = {{"r", cLight.m_Color.x}, {"g", cLight.m_Color.y}, {"b", cLight.m_Color.z}};
 				jLight["intensity"] = cLight.m_Intensity;
 				jLight["attenuationRadius"] = cLight.m_AttenuationRadius;
 				jLight["attenuationAngle"] = cLight.m_AttenuationAngle;
@@ -204,5 +214,4 @@ namespace Moongoose {
 	{
 		world.reset();
 	}
-
 }

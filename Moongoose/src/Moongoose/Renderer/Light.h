@@ -35,7 +35,7 @@ struct DirectionalLight : Light
 	glm::vec3 ambientColor = glm::vec3(1.0f);
 	float ambientIntensity = 0.1f;
 
-	glm::mat4 GetProjection() const
+	static glm::mat4 GetProjection()
 	{
 		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -20.0f, 20.0f);
 	}
@@ -51,12 +51,12 @@ struct PointLight : Light
 	glm::vec3 position = glm::vec3(0.0f);
 	float attenuationRadius = 10.0f;
 
-	glm::mat4 GetProjection()
+	glm::mat4 GetProjection() const
 	{
 		return glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, attenuationRadius * 1.5f);
 	}
 
-	std::vector<glm::mat4> GetTransform()
+	[[nodiscard]] std::vector<glm::mat4> GetTransform() const
 	{
 		const glm::mat4 shadowProj = GetProjection();
 		std::vector shadowTransforms =

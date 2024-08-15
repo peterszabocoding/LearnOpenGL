@@ -1,26 +1,26 @@
 #pragma once
 
 #include <unordered_map>
-#include "Moongoose/Core.h"	
+#include "Moongoose/Core.h"
 #include "Entity.h"
 
-namespace Moongoose {
-
-	class IComponentArray 
+namespace Moongoose
+{
+	class IComponentArray
 	{
 	public:
 		virtual ~IComponentArray() = default;
 		virtual void EntityDestroyed(Entity entity) = 0;
 	};
 
-	template<typename T>
+	template <typename T>
 	class ComponentArray : public IComponentArray
 	{
 	public:
-
 		void InsertData(Entity entity, T component)
 		{
-			MG_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
+			MG_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(),
+			          "Component added to same entity more than once.");
 
 			size_t newIndex = m_Size;
 			m_EntityToIndexMap[entity] = newIndex;
@@ -51,7 +51,8 @@ namespace Moongoose {
 
 		T& GetData(Entity entity)
 		{
-			MG_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Retrieving non-existent component.");
+			MG_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(),
+			          "Retrieving non-existent component.")
 
 			// Return a reference to the entity's component
 			return m_ComponentArray[m_EntityToIndexMap[entity]];
@@ -77,11 +78,10 @@ namespace Moongoose {
 			}
 		}
 
-	private:
+	public:
 		std::array<T, MAX_ENTITIES> m_ComponentArray;
 		std::unordered_map<Entity, size_t> m_EntityToIndexMap;
 		std::unordered_map<size_t, Entity> m_IndexToEntityMap;
 		size_t m_Size;
 	};
-
 }

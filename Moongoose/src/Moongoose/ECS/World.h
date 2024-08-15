@@ -6,11 +6,10 @@
 #include "SystemManager.h"
 #include "ComponentManager.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	class World
 	{
-
 	public:
 		void Init();
 
@@ -34,13 +33,13 @@ namespace Moongoose {
 		const Entity GetSelectedEntity() const { return m_SelectedEntity; }
 
 		// Components
-		template<typename T>
+		template <typename T>
 		void RegisterComponent()
 		{
 			m_ComponentManager->RegisterComponent<T>();
 		}
 
-		template<typename T>
+		template <typename T>
 		void AddComponent(Entity entity, T component)
 		{
 			m_ComponentManager->AddComponent<T>(entity, component);
@@ -52,32 +51,38 @@ namespace Moongoose {
 			m_SystemManager->EntitySignatureChanged(entity, signature);
 		}
 
-		template<typename T>
+		template <typename T>
 		bool HasComponent(Entity entity)
 		{
 			return m_ComponentManager->HasComponent<T>(entity);
 		}
 
-		template<typename T>
+		template <typename T>
 		T& GetComponent(Entity entity)
 		{
 			return m_ComponentManager->GetComponent<T>(entity);
 		}
 
-		template<typename T>
+		template <typename T>
 		std::vector<T> GetComponentsByType()
 		{
 			return m_ComponentManager->GetComponentsByType<T>();
 		}
 
-		template<typename T>
+		template <typename T>
 		ComponentType GetComponentType() const
 		{
 			return m_ComponentManager->GetComponentType<T>();
 		}
 
+		template <typename T>
+		Ref<ComponentArray<T>> GetComponentArray() const
+		{
+			return m_ComponentManager->GetComponentArray<T>();
+		}
+
 		//Systems
-		template<typename T>
+		template <typename T>
 		Ref<T> RegisterSystem()
 		{
 			Ref<T> system = m_SystemManager->RegisterSystem<T>();
@@ -85,13 +90,13 @@ namespace Moongoose {
 			return system;
 		}
 
-		template<typename T>
+		template <typename T>
 		Ref<T> GetSystem()
 		{
 			return m_SystemManager->GetSystem<T>();
 		}
 
-		template<typename T>
+		template <typename T>
 		void SetSystemSignature(Signature signature)
 		{
 			m_SystemManager->SetSignature<T>(signature);
@@ -106,5 +111,4 @@ namespace Moongoose {
 		Scope<SystemManager> m_SystemManager;
 		Scope<ComponentManager> m_ComponentManager;
 	};
-
 }
