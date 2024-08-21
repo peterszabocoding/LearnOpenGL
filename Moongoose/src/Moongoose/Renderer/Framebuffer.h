@@ -3,9 +3,10 @@
 #include <glm/glm.hpp>
 #include "Moongoose/Log.h"
 
-namespace Moongoose {
-
-	enum class FramebufferTextureFormat: uint32_t {
+namespace Moongoose
+{
+	enum class FramebufferTextureFormat: uint32_t
+	{
 		None = 0,
 
 		// Color
@@ -24,37 +25,49 @@ namespace Moongoose {
 		Depth = DEPTH24STENCIL8
 	};
 
-	namespace Util {
-
-		static std::string FramebufferTextureFormatToString(FramebufferTextureFormat format) {
-			switch (format) {
-				case FramebufferTextureFormat::RGBA8: return "RGBA8";
-				case FramebufferTextureFormat::RGBA16: return "RGBA16";
-				case FramebufferTextureFormat::RGBA16F: return "RGBA16F";
-				case FramebufferTextureFormat::RGBA32F: return "RGBA32F";
-				case FramebufferTextureFormat::RED_INTEGER: return "RED_INTEGER";
-				case FramebufferTextureFormat::DEPTH24: return "DEPTH24";
-				case FramebufferTextureFormat::DEPTH24STENCIL8: return "DEPTH24STENCIL8";
+	namespace Util
+	{
+		static std::string FramebufferTextureFormatToString(FramebufferTextureFormat format)
+		{
+			switch (format)
+			{
+			case FramebufferTextureFormat::RGBA8: return "RGBA8";
+			case FramebufferTextureFormat::RGBA16: return "RGBA16";
+			case FramebufferTextureFormat::RGBA16F: return "RGBA16F";
+			case FramebufferTextureFormat::RGBA32F: return "RGBA32F";
+			case FramebufferTextureFormat::RED_INTEGER: return "RED_INTEGER";
+			case FramebufferTextureFormat::DEPTH24: return "DEPTH24";
+			case FramebufferTextureFormat::DEPTH24STENCIL8: return "DEPTH24STENCIL8";
 			}
 			return "Unknown";
 		}
 	}
 
-	struct FramebufferTextureSpecs {
+	struct FramebufferTextureSpecs
+	{
 		FramebufferTextureSpecs() = default;
-		FramebufferTextureSpecs(FramebufferTextureFormat format) : TextureFormat(format) {}
+
+		FramebufferTextureSpecs(FramebufferTextureFormat format) : TextureFormat(format)
+		{
+		}
 
 		FramebufferTextureFormat TextureFormat;
 	};
 
-	struct FramebufferAttachmentSpecs {
+	struct FramebufferAttachmentSpecs
+	{
 		FramebufferAttachmentSpecs() = default;
-		FramebufferAttachmentSpecs(const std::initializer_list<FramebufferTextureSpecs> attachments) : Attachments(attachments) {}
+
+		FramebufferAttachmentSpecs(const std::initializer_list<FramebufferTextureSpecs> attachments) : Attachments(
+			attachments)
+		{
+		}
 
 		std::vector<FramebufferTextureSpecs> Attachments;
 	};
 
-	struct FramebufferSpecs {
+	struct FramebufferSpecs
+	{
 		uint32_t width, height;
 		uint32_t samples = 1;
 
@@ -67,12 +80,13 @@ namespace Moongoose {
 		FramebufferAttachmentSpecs attachments;
 	};
 
-	class Framebuffer {
-
+	class Framebuffer
+	{
 	public:
-		Framebuffer(const std::string& name, const FramebufferSpecs& specs);
+		explicit Framebuffer(const std::string& name);
 		~Framebuffer();
 
+		void Configure(const FramebufferSpecs& specs);
 		void Bind() const;
 		void Bind(uint32_t viewportWidth, uint32_t viewportHeight) const;
 		void Bind(uint32_t startPosX, uint32_t startPosY, uint32_t viewportWidth, uint32_t viewportHeight) const;
@@ -89,7 +103,7 @@ namespace Moongoose {
 		uint32_t GetDepthAttachment() const { return m_DepthAttachment; }
 		uint32_t GetShadowMapAttachmentID() const { return m_ShadowMapAttachment; }
 		uint32_t GetShadowMapCubeAttachmentID() const { return m_ShadowMapCubeAttachment; }
-		glm::vec2 GetResolution() const { return { m_Specs.width, m_Specs.height }; }
+		glm::vec2 GetResolution() const { return {m_Specs.width, m_Specs.height}; }
 
 	private:
 		void Invalidate();
@@ -113,5 +127,4 @@ namespace Moongoose {
 		std::vector<FramebufferTextureSpecs> m_ColorAttachmentSpecs;
 		FramebufferTextureSpecs m_DepthAttachmentSpec = FramebufferTextureFormat::None;
 	};
-
 }

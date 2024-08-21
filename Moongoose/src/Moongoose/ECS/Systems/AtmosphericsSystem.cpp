@@ -6,42 +6,58 @@
 #include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 
-namespace Moongoose {
+namespace Moongoose
+{
 	AtmosphericsSystem::AtmosphericsSystem()
 	{
 		FramebufferSpecs specs;
 		specs.width = 256;
 		specs.height = 64;
-		specs.attachments = { FramebufferTextureFormat::RGBA32F };
+		specs.attachments = {FramebufferTextureFormat::RGBA32F};
 
-		m_TransmittanceBuffer = FramebufferManager::CreateFramebuffer("TransmittanceBuffer", specs);
+		m_TransmittanceBuffer = FramebufferManager::CreateFramebuffer("TransmittanceBuffer");
+		m_TransmittanceBuffer->Configure(specs);
 
 		FramebufferSpecs specs2;
 		specs2.width = 32;
 		specs2.height = 32;
-		specs2.attachments = { FramebufferTextureFormat::RGBA32F };
+		specs2.attachments = {FramebufferTextureFormat::RGBA32F};
 
-		m_MultiScatteringBuffer = FramebufferManager::CreateFramebuffer("MultiScatteringBuffer", specs2);
+		m_MultiScatteringBuffer = FramebufferManager::CreateFramebuffer("MultiScatteringBuffer");
+		m_MultiScatteringBuffer->Configure(specs2);
 
 		FramebufferSpecs specs3;
 		specs3.width = 200;
 		specs3.height = 200;
-		specs3.attachments = { FramebufferTextureFormat::RGBA32F };
+		specs3.attachments = {FramebufferTextureFormat::RGBA32F};
 
-		m_RaymarchingBuffer = FramebufferManager::CreateFramebuffer("RaymarchingBuffer", specs3);
+		m_RaymarchingBuffer = FramebufferManager::CreateFramebuffer("RaymarchingBuffer");
+		m_RaymarchingBuffer->Configure(specs3);
 
 		FramebufferSpecs specs4;
 		specs4.width = 200;
 		specs4.height = 200;
-		specs4.attachments = { FramebufferTextureFormat::RGBA8 };
+		specs4.attachments = {FramebufferTextureFormat::RGBA8};
 
-		m_SkyBuffer = FramebufferManager::CreateFramebuffer("SkyBuffer", specs4);
+		m_SkyBuffer = FramebufferManager::CreateFramebuffer("SkyBuffer");
+		m_SkyBuffer->Configure(specs4);
 
-		m_TransmittanceShader = CreateRef<Shader>(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\sun_transmittance_lut.fs");
-		m_MultiScatteringShader = CreateRef<Shader>(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\multi-scattering_lut.fs");
-		m_RaymarchingShader = CreateRef<Shader>(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\raymarch_scattering.fs");
-		m_SkyShader = CreateRef<Shader>(ShaderType::ATMOSPHERE, "shader\\atmos_scattering.vs", "shader\\atmospheric_sky.fs");
-	
+		m_TransmittanceShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
+		                                          "shader\\atmos_scattering.vs",
+		                                          "shader\\sun_transmittance_lut.fs");
+
+		m_MultiScatteringShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
+		                                            "shader\\atmos_scattering.vs",
+		                                            "shader\\multi-scattering_lut.fs");
+
+		m_RaymarchingShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
+		                                        "shader\\atmos_scattering.vs",
+		                                        "shader\\raymarch_scattering.fs");
+
+		m_SkyShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
+		                                "shader\\atmos_scattering.vs",
+		                                "shader\\atmospheric_sky.fs");
+
 		Init();
 	}
 
@@ -120,5 +136,4 @@ namespace Moongoose {
 		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		bgShader->Unbind();
 	}
-
 }

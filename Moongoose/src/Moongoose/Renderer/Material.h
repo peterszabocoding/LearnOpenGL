@@ -2,14 +2,17 @@
 
 #include "Moongoose/Asset/Asset.h"
 #include "Moongoose/Renderer/Texture.h"
-#include "Moongoose/Renderer/Shader.h"
+#include "Moongoose/Renderer/Shader/Shader.h"
 
-namespace Moongoose {
-
-	class Material: public Asset
+namespace Moongoose
+{
+	class Material : public Asset
 	{
 	public:
-		explicit Material(const std::string& name, const ShaderType shaderType = ShaderType::STATIC): Material(UUID(), name, shaderType) {}
+		explicit Material(const std::string& name, const ShaderType shaderType = ShaderType::STATIC): Material(
+			UUID(), name, shaderType)
+		{
+		}
 
 		Material(const UUID& id, const std::string& name, const ShaderType shaderType)
 		{
@@ -29,7 +32,8 @@ namespace Moongoose {
 		[[nodiscard]] const std::string& GetName() const { return m_Name; }
 		void SetName(const std::string& newName) { m_Name = newName; }
 
-		void Bind() const { 
+		void Bind() const
+		{
 			if (m_Albedo) m_Albedo->Bind(0);
 			if (m_Normal) m_Normal->Bind(1);
 			if (m_Metallic) m_Metallic->Bind(2);

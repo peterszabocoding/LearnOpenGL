@@ -1,13 +1,13 @@
 #include "mgpch.h"
 #include "FramebufferManager.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	std::unordered_map<std::string, Ref<Framebuffer>> FramebufferManager::s_Framebuffers;
 
-	Ref<Framebuffer> FramebufferManager::CreateFramebuffer(const std::string& name, const FramebufferSpecs& specs)
+	Ref<Framebuffer> FramebufferManager::CreateFramebuffer(const std::string& name)
 	{
-		Ref<Framebuffer> framebuffer = CreateRef<Framebuffer>(name, specs);
+		Ref<Framebuffer> framebuffer = CreateRef<Framebuffer>(name);
 		s_Framebuffers[name] = framebuffer;
 		return framebuffer;
 	}
@@ -23,5 +23,4 @@ namespace Moongoose {
 		for (auto& framebuffer : s_Framebuffers) framebuffers.push_back(framebuffer.second);
 		return framebuffers;
 	}
-
 }

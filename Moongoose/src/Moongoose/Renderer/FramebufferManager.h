@@ -3,8 +3,8 @@
 #include <unordered_map>
 #include "Moongoose/Renderer/Framebuffer.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	class FramebufferManager
 	{
 	public:
@@ -14,7 +14,7 @@ namespace Moongoose {
 			return manager;
 		}
 
-		static Ref<Framebuffer> CreateFramebuffer(const std::string& name, const FramebufferSpecs& specs);
+		static Ref<Framebuffer> CreateFramebuffer(const std::string& name);
 		static Ref<Framebuffer> GetFramebufferByName(const std::string& name);
 		static std::vector<Ref<Framebuffer>> GetFramebuffers();
 
@@ -22,4 +22,3 @@ namespace Moongoose {
 		static std::unordered_map<std::string, Ref<Framebuffer>> s_Framebuffers;
 	};
 }
-

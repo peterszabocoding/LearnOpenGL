@@ -6,7 +6,6 @@ namespace Moongoose
 {
 	class GBuffer
 	{
-
 	public:
 		struct GBufferSpecs
 		{
@@ -14,22 +13,22 @@ namespace Moongoose
 		};
 
 	public:
-
 		GBuffer() = default;
 		GBuffer(GBufferSpecs specs);
 
-		void Bind();
-		void Unbind();
+		void Bind() const;
+		void Unbind() const;
 		void Resize(uint32_t width, uint32_t height);
 
-		uint32_t GetWorldPositionTexutre();
-		uint32_t GetViewPositionTexutre();
-		uint32_t GetNormalTexture();
-		uint32_t GetRoughnessTexture();
+		uint32_t GetWorldPositionTexture() const;
+		uint32_t GetViewPositionTexture() const;
+		uint32_t GetNormalTexture() const;
+		uint32_t GetRoughnessTexture() const;
 
-		uint32_t GetAttachment(int attachmentNumber);
+		uint32_t GetAttachment(int attachmentNumber) const;
+		uint32_t GetDepthAttachment() const;
 
-		Framebuffer* GetGBuffer() const;
+		Framebuffer* GetFramebuffer() const;
 		const FramebufferSpecs& GetSpecs() const;
 
 	private:

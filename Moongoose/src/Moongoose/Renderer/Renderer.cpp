@@ -14,13 +14,11 @@ namespace Moongoose
 {
 	glm::uvec2 Renderer::m_Resolution;
 
-	Ref<GBuffer> Renderer::m_GBuffer;
-	Ref<Framebuffer> Renderer::m_PostProcessingBuffer;
-	Ref<Framebuffer> Renderer::m_RenderBuffer;
-	Ref<Framebuffer> Renderer::m_ShadowBuffer;
-	Ref<Framebuffer> Renderer::m_PointShadowBuffer;
+	SSRPass Renderer::m_SsrPass;
+	GeometryPass Renderer::m_GeometryPass;
+	ShadowMapPass Renderer::m_ShadowMapPass;
 
-	TextureAtlas Renderer::m_TextureAtlas;
+	Ref<Framebuffer> Renderer::m_RenderBuffer;
 
 	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
 	std::vector<PointLight> Renderer::m_PointLights;
@@ -32,34 +30,70 @@ namespace Moongoose
 	unsigned int Renderer::prevDrawCount = 0;
 	unsigned int Renderer::currentDrawCount = 0;
 
-	void Renderer::InitShadowBuffer()
+
+	namespace Utils
 	{
-		FramebufferSpecs specs;
-		specs.width = SHADOW_BUFFER_RESOLUTION.x;
-		specs.height = SHADOW_BUFFER_RESOLUTION.y;
+		static PointLight LightComponentToPointLight(const TransformComponent& cTransform, const LightComponent& cLight)
+		{
+			return {
+				cLight.m_Color,
+				cLight.m_Intensity,
+				LightComponent::GetDefaultShadowBias(cLight.m_Type),
+				cLight.m_ShadowType,
+				cLight.m_ShadowMapResolution,
+				nullptr,
+				cTransform.m_Position,
+				cLight.m_AttenuationRadius
+			};
+		}
 
-		specs.hasShadowMapAttachment = true;
-		specs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-		specs.attachments = {
-			FramebufferTextureFormat::RGBA8
-		};
+		static DirectionalLight LightComponentToDirectionalLight(const TransformComponent& cTransform,
+		                                                         const LightComponent& cLight)
+		{
+			return {
+				cLight.m_Color,
+				cLight.m_Intensity,
+				LightComponent::GetDefaultShadowBias(cLight.m_Type),
+				cLight.m_ShadowType,
+				cLight.m_ShadowMapResolution,
+				nullptr,
+				cTransform.GetForwardDirection(),
+				cLight.m_Color,
+				cLight.m_Intensity * cLight.m_AmbientIntensity
+			};
+		}
 
-		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer", specs);
-
-		FramebufferSpecs pointShadowSpecs;
-		pointShadowSpecs.width = CUBE_SHADOW_MAP_RESOLUTION;
-		pointShadowSpecs.height = CUBE_SHADOW_MAP_RESOLUTION;
-
-		pointShadowSpecs.hasShadowMapCubeAttachment = true;
-		pointShadowSpecs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-
-		m_PointShadowBuffer = FramebufferManager::CreateFramebuffer("PointShadowBuffer", pointShadowSpecs);
+		static SpotLight LightComponentToSpotLight(const TransformComponent& cTransform, const LightComponent& cLight)
+		{
+			return {
+				cLight.m_Color,
+				cLight.m_Intensity,
+				LightComponent::GetDefaultShadowBias(cLight.m_Type),
+				cLight.m_ShadowType,
+				cLight.m_ShadowMapResolution,
+				nullptr,
+				cTransform.m_Position,
+				cLight.m_AttenuationRadius,
+				cTransform.GetForwardDirection(),
+				cLight.m_AttenuationAngle
+			};
+		}
 	}
 
-	void Renderer::InitGBuffer()
+	void Renderer::BeginScene()
 	{
-		m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({m_Resolution.x, m_Resolution.y}));
+		prevDrawCount = currentDrawCount;
+		currentDrawCount = 0;
+
+		m_DirectionalLights.clear();
+		m_PointLights.clear();
+		m_SpotLights.clear();
+
+		m_MeshRenderCmds.clear();
+		m_BillboardRenderCmds.clear();
 	}
+
+	// Init
 
 	void Renderer::InitRenderBuffer()
 	{
@@ -71,37 +105,19 @@ namespace Moongoose
 			FramebufferTextureFormat::RED_INTEGER,
 			FramebufferTextureFormat::DEPTH24STENCIL8
 		};
-		specs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
 
-		m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer", specs);
-	}
-
-	void Renderer::InitPostProcessingBuffer()
-	{
-		FramebufferSpecs specs;
-		specs.width = m_Resolution.x;
-		specs.height = m_Resolution.y;
-		specs.attachments = {
-			FramebufferTextureFormat::RGBA8
-		};
-		specs.clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-
-		m_PostProcessingBuffer = FramebufferManager::CreateFramebuffer("PostProcessingBuffer", specs);
+		m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer");
+		m_RenderBuffer->Configure(specs);
 	}
 
 	void Renderer::SetResolution(const glm::uvec2 newResolution)
 	{
 		if (newResolution == m_Resolution) return;
 		m_Resolution = newResolution;
-
-		// Init framebuffers
-		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitShadowBuffer();
-		if (!m_GBuffer) InitGBuffer();
-		if (!m_PostProcessingBuffer) InitPostProcessingBuffer();
 		if (!m_RenderBuffer) InitRenderBuffer();
 	}
 
-	void Renderer::PrepareLights()
+	void Renderer::SetLights()
 	{
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
 		shader->Bind();
@@ -110,8 +126,8 @@ namespace Moongoose
 		shader->SetFloat3("directionalLight.base.color", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 		shader->SetFloat3("directionalLight.direction", glm::vec4(0.0f, 0.0f, -1.0f, 0.0f));
 
-		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
-		shader->BindCubeMapTexture(5, m_PointShadowBuffer->GetShadowMapCubeAttachmentID());
+		shader->BindTexture(4, m_ShadowMapPass.GetShadowBuffer()->GetShadowMapAttachmentID());
+		shader->BindCubeMapTexture(5, m_ShadowMapPass.GetPointShadowBuffer()->GetShadowMapCubeAttachmentID());
 
 		for (const auto& light : m_DirectionalLights) AddDirectionalLight(light, shader);
 
@@ -121,198 +137,10 @@ namespace Moongoose
 		shader->UploadUniformInt("spotLightCount", m_SpotLights.size());
 		for (size_t i = 0; i < m_SpotLights.size(); i++) AddSpotLight(i, shader, m_SpotLights[i]);
 
-
 		shader->Unbind();
 	}
 
-	void Renderer::AddDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader)
-	{
-		shader->SetFloat3("directionalLight.base.color", light.color);
-		shader->SetFloat("directionalLight.base.intensity", light.intensity);
-		shader->SetFloat("directionalLight.base.isShadowCasting", light.shadowType != ShadowType::NONE);
-		shader->SetFloat("directionalLight.base.useSoftShadow", light.shadowType != ShadowType::NONE);
-		shader->SetFloat("directionalLight.base.bias", light.shadowBias);
-		shader->SetMat4("directionalLight.base.lightTransform", light.GetTransform());
-
-		shader->SetFloat3("directionalLight.direction", light.direction);
-		shader->SetFloat3("directionalLight.ambientColor", light.ambientColor);
-		shader->SetFloat("directionalLight.ambientIntensity", light.ambientIntensity);
-
-		shader->BindTexture(4, m_ShadowBuffer->GetShadowMapAttachmentID());
-
-		if (light.shadowType != ShadowType::NONE && light.shadowMapRegion)
-		{
-			const auto& [topLeft, bottomRight] = *light.shadowMapRegion;
-			const auto shadowMapSize = glm::vec2(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
-
-			shader->SetFloat2("directionalLight.base.shadowMapTopLeft", topLeft);
-			shader->SetFloat2("directionalLight.base.shadowMapSize", shadowMapSize);
-		}
-	}
-
-	Ref<Framebuffer> Renderer::GetRenderBuffer()
-	{
-		return m_PostProcessingBuffer;
-	}
-
-	void Renderer::RenderShadowMaps()
-	{
-		m_ShadowBuffer->Bind();
-		RenderCommand::SetClearColor(m_ShadowBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-
-		m_TextureAtlas.AllocateTextureAtlas(SHADOW_BUFFER_RESOLUTION);
-
-		for (auto& light : m_DirectionalLights)
-		{
-			if (light.shadowType == ShadowType::NONE) continue;
-			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
-
-			auto& [topLeft, bottomRight] = *light.shadowMapRegion;
-			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_DIRECTIONAL);
-
-			m_ShadowBuffer->Bind(
-				topLeft.x, topLeft.y,
-				bottomRight.x - topLeft.x,
-				bottomRight.y - topLeft.y);
-
-			shader->Bind();
-			shader->SetMat4("light.lightTransform", light.GetTransform());
-
-			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
-			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
-
-			for (const MeshCommand& cmd : m_MeshRenderCmds)
-			{
-				shader->SetMat4("model", cmd.transform);
-				RenderMesh(cmd.vertexArray);
-			}
-
-			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
-			shader->Unbind();
-		}
-
-		for (auto& light : m_SpotLights)
-		{
-			if (light.shadowType == ShadowType::NONE) continue;
-			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion(static_cast<uint16_t>(light.shadowMapResolution));
-
-			auto& [topLeft, bottomRight] = *light.shadowMapRegion;
-			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_SPOT);
-
-			m_ShadowBuffer->Bind(
-				topLeft.x, topLeft.y,
-				bottomRight.x - topLeft.x,
-				bottomRight.y - topLeft.y);
-
-			shader->Bind();
-			shader->SetMat4("light.lightTransform", light.GetTransform());
-			shader->SetFloat("farPlane", light.attenuationRadius * 1.5f);
-			shader->SetFloat("nearPlane", 0.1f);
-
-			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
-			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
-
-			for (const MeshCommand& cmd : m_MeshRenderCmds)
-			{
-				shader->SetMat4("model", cmd.transform);
-				RenderMesh(cmd.vertexArray);
-			}
-
-			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
-			shader->Unbind();
-		}
-
-		m_ShadowBuffer->Unbind();
-
-		m_PointShadowBuffer->Bind();
-		RenderCommand::SetClearColor(m_PointShadowBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-
-		for (auto& light : m_PointLights)
-		{
-			if (light.shadowType == ShadowType::NONE) continue;
-			auto shadowMatrices = light.GetTransform();
-
-			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::SHADOW_MAP_POINT);
-			shader->Bind();
-
-			shader->SetMat4("shadowMatrices[0]", shadowMatrices[0]);
-			shader->SetMat4("shadowMatrices[1]", shadowMatrices[1]);
-			shader->SetMat4("shadowMatrices[2]", shadowMatrices[2]);
-			shader->SetMat4("shadowMatrices[3]", shadowMatrices[3]);
-			shader->SetMat4("shadowMatrices[4]", shadowMatrices[4]);
-			shader->SetMat4("shadowMatrices[5]", shadowMatrices[5]);
-
-			shader->SetFloat3("lightPos", light.position);
-
-			shader->SetFloat("farPlane", light.attenuationRadius * 1.5f);
-			shader->SetFloat("nearPlane", 0.1f);
-
-			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
-			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
-
-			for (const MeshCommand& cmd : m_MeshRenderCmds)
-			{
-				shader->SetMat4("model", cmd.transform);
-				RenderMesh(cmd.vertexArray);
-			}
-
-			shader->DisableFeature(GlFeature::POLYGON_OFFSET);
-			shader->Unbind();
-		}
-		m_PointShadowBuffer->Unbind();
-	}
-
-	void Renderer::RenderGBuffer(const Ref<PerspectiveCamera>& camera)
-	{
-		m_GBuffer->Bind();
-		RenderCommand::SetClearColor(m_GBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-
-		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::GBUFFER);
-		shader->Bind();
-
-		for (const MeshCommand& cmd : m_MeshRenderCmds)
-		{
-			shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-
-			if (cmd.material->m_Normal) cmd.material->m_Normal->Bind(0);
-			if (cmd.material->m_Roughness) cmd.material->m_Roughness->Bind(1);
-
-			shader->UploadUniformInt("bUseNormalMap", cmd.material->m_Normal != nullptr ? 1 : 0);
-			shader->UploadUniformInt("bUseRoughnessMap", cmd.material->m_Roughness != nullptr ? 1 : 0);
-
-			shader->SetFloat("roughnessValue", cmd.material->m_RoughnessValue);
-
-			shader->SetMat4("model", cmd.transform);
-			RenderMesh(cmd.vertexArray);
-		}
-
-		shader->Unbind();
-		m_GBuffer->Unbind();
-	}
-
-	void Renderer::RenderPostProcessing(const Ref<PerspectiveCamera>& camera)
-	{
-		m_PostProcessingBuffer->Bind();
-		RenderCommand::SetClearColor(m_PostProcessingBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-
-		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::POST_PROCESS_SSR);
-		shader->Bind();
-		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-		shader->BindTexture(0, m_RenderBuffer->GetColorAttachments()[0]);
-		shader->BindTexture(1, m_GBuffer->GetViewPositionTexutre());
-		shader->BindTexture(2, m_GBuffer->GetNormalTexture());
-		shader->BindTexture(3, m_GBuffer->GetRoughnessTexture());
-		shader->BindTexture(4, m_GBuffer->GetGBuffer()->GetDepthAttachment());
-
-		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
-
-		shader->Unbind();
-		m_PostProcessingBuffer->Unbind();
-	}
+	// Rendering
 
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
 	{
@@ -334,61 +162,31 @@ namespace Moongoose
 			if (meshComponentArray->HasData(entity))
 			{
 				const auto cMesh = meshComponentArray->GetData(entity);
-				if (!cMesh.m_Mesh) continue;
-
-				for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
+				if (cMesh.m_Mesh)
 				{
-					const Ref<Material> material = cMesh.m_Mesh->GetMaterials()[submesh->materialIndex].material;
-					if (!material) continue;
+					for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
+					{
+						const Ref<Material> material = cMesh.m_Mesh->GetMaterials()[submesh->materialIndex].material;
+						if (!material) continue;
 
-					MeshCommand cmd = {entity, cTransform.GetModelMatrix(), submesh->vertexArray, material};
-					PushMeshRenderCommand(cmd);
+						MeshCommand cmd = {entity, cTransform.GetModelMatrix(), submesh->vertexArray, material};
+						PushMeshRenderCommand(cmd);
+					}
 				}
 			}
 
 			if (lightComponentArray->HasData(entity))
 			{
-				const auto cLight = lightComponentArray->GetData(entity);
-				switch (cLight.m_Type)
+				switch (const auto cLight = lightComponentArray->GetData(entity); cLight.m_Type)
 				{
 				case LightType::Directional:
-					PushDirectionalLight({
-						cLight.m_Color,
-						cLight.m_Intensity,
-						LightComponent::GetDefaultShadowBias(cLight.m_Type),
-						cLight.m_ShadowType,
-						cLight.m_ShadowMapResolution,
-						nullptr,
-						cTransform.GetForwardDirection(),
-						cLight.m_Color,
-						cLight.m_Intensity * cLight.m_AmbientIntensity
-					});
+					PushDirectionalLight(Utils::LightComponentToDirectionalLight(cTransform, cLight));
 					break;
 				case LightType::Point:
-					PushPointLight({
-						cLight.m_Color,
-						cLight.m_Intensity,
-						LightComponent::GetDefaultShadowBias(cLight.m_Type),
-						cLight.m_ShadowType,
-						cLight.m_ShadowMapResolution,
-						nullptr,
-						cTransform.m_Position,
-						cLight.m_AttenuationRadius
-					});
+					PushPointLight(Utils::LightComponentToPointLight(cTransform, cLight));
 					break;
 				case LightType::Spot:
-					PushSpotLight({
-						cLight.m_Color,
-						cLight.m_Intensity,
-						LightComponent::GetDefaultShadowBias(cLight.m_Type),
-						cLight.m_ShadowType,
-						cLight.m_ShadowMapResolution,
-						nullptr,
-						cTransform.m_Position,
-						cLight.m_AttenuationRadius,
-						cTransform.GetForwardDirection(),
-						cLight.m_AttenuationAngle
-					});
+					PushSpotLight(Utils::LightComponentToSpotLight(cTransform, cLight));
 					break;
 				}
 			}
@@ -396,17 +194,31 @@ namespace Moongoose
 			if (billboardComponentArray->HasData(entity))
 			{
 				const auto billboardComponent = billboardComponentArray->GetData(entity);
-
 				if (!billboardComponent.m_BillboardTexture) continue;
 
-				BillboardCommand cmd = {entity, cTransform.GetModelMatrix(), billboardComponent.m_BillboardTexture};
-				cmd.tintColor = billboardComponent.m_TintColor;
+				BillboardCommand cmd = {
+					entity,
+					cTransform.GetModelMatrix(),
+					billboardComponent.m_BillboardTexture,
+					0.75f,
+					billboardComponent.m_TintColor
+				};
 				PushBillboardRenderCommand(cmd);
 			}
 		}
 
-		RenderShadowMaps();
-		RenderGBuffer(camera);
+		ShadowMapPass::Params shadowSpecs = {
+			m_Resolution,
+			camera,
+			m_MeshRenderCmds,
+			m_DirectionalLights,
+			m_SpotLights,
+			m_PointLights
+		};
+		m_ShadowMapPass.Render(&shadowSpecs);
+
+		GeometryPass::Specs gSpecs = {m_Resolution, camera, m_MeshRenderCmds};
+		m_GeometryPass.Render(&gSpecs);
 
 		m_RenderBuffer->Bind();
 		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().clearColor);
@@ -415,7 +227,7 @@ namespace Moongoose
 		world->GetSystem<AtmosphericsSystem>()->Run(camera);
 
 		m_RenderBuffer->ClearAttachment(1, -1);
-		PrepareLights();
+		SetLights();
 
 		for (const auto& cmd : m_MeshRenderCmds)
 			ExecuteMeshRenderCommand(camera, cmd);
@@ -426,10 +238,22 @@ namespace Moongoose
 		m_RenderBuffer->Unbind();
 
 
-		RenderPostProcessing(camera);
+		SSRPass::Params ssrParams = {
+			m_Resolution, camera,
+			m_GeometryPass.GetGBuffer(),
+			m_RenderBuffer->GetColorAttachments()[0]
+		};
+		m_SsrPass.Render(&ssrParams);
 
 		EndScene();
 	}
+
+	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
+	{
+		RenderCommand::DrawIndexed(vertexArray);
+		currentDrawCount++;
+	}
+
 
 	void Renderer::ExecuteMeshRenderCommand(const Ref<PerspectiveCamera>& camera, const MeshCommand& cmd)
 	{
@@ -451,6 +275,7 @@ namespace Moongoose
 
 		if (cmd.material) cmd.material->Bind();
 		RenderMesh(cmd.vertexArray);
+
 		shader->Unbind();
 	}
 
@@ -476,6 +301,9 @@ namespace Moongoose
 		shader->Unbind();
 	}
 
+
+	// Render commands
+
 	void Renderer::PushMeshRenderCommand(const MeshCommand& cmd)
 	{
 		m_MeshRenderCmds.push_back(cmd);
@@ -486,10 +314,12 @@ namespace Moongoose
 		m_BillboardRenderCmds.push_back(cmd);
 	}
 
+
+	// Add lights
+
 	void Renderer::PushDirectionalLight(const DirectionalLight& light)
 	{
 		m_DirectionalLights.push_back(light);
-		if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
 	}
 
 	void Renderer::PushPointLight(const PointLight& light)
@@ -500,32 +330,31 @@ namespace Moongoose
 	void Renderer::PushSpotLight(const SpotLight& light)
 	{
 		m_SpotLights.push_back(light);
-		if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
 	}
 
-	void Renderer::BeginScene()
+	void Renderer::AddDirectionalLight(const DirectionalLight& light, const Ref<Shader>& shader)
 	{
-		prevDrawCount = currentDrawCount;
-		currentDrawCount = 0;
+		shader->SetFloat3("directionalLight.base.color", light.color);
+		shader->SetFloat("directionalLight.base.intensity", light.intensity);
+		shader->SetFloat("directionalLight.base.isShadowCasting", light.shadowType != ShadowType::NONE);
+		shader->SetFloat("directionalLight.base.useSoftShadow", light.shadowType != ShadowType::NONE);
+		shader->SetFloat("directionalLight.base.bias", light.shadowBias);
+		shader->SetMat4("directionalLight.base.lightTransform", light.GetTransform());
 
-		m_TextureAtlas.Clear();
+		shader->SetFloat3("directionalLight.direction", light.direction);
+		shader->SetFloat3("directionalLight.ambientColor", light.ambientColor);
+		shader->SetFloat("directionalLight.ambientIntensity", light.ambientIntensity);
 
-		m_DirectionalLights.clear();
-		m_PointLights.clear();
-		m_SpotLights.clear();
+		shader->BindTexture(4, m_ShadowMapPass.GetShadowBuffer()->GetShadowMapAttachmentID());
 
-		m_MeshRenderCmds.clear();
-		m_BillboardRenderCmds.clear();
-	}
+		if (light.shadowType != ShadowType::NONE && light.shadowMapRegion)
+		{
+			const auto& [topLeft, bottomRight] = *light.shadowMapRegion;
+			const auto shadowMapSize = glm::vec2(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
 
-	void Renderer::EndScene()
-	{
-	}
-
-	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
-	{
-		RenderCommand::DrawIndexed(vertexArray);
-		currentDrawCount++;
+			shader->SetFloat2("directionalLight.base.shadowMapTopLeft", topLeft);
+			shader->SetFloat2("directionalLight.base.shadowMapSize", shadowMapSize);
+		}
 	}
 
 	void Renderer::AddSpotLight(const size_t index, const Ref<Shader>& shader, const SpotLight& spotLight)

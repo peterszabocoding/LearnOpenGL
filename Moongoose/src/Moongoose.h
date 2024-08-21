@@ -25,7 +25,7 @@
 #include "Moongoose/Renderer/Framebuffer.h"
 #include "Moongoose/Renderer/FramebufferManager.h"
 #include "Moongoose/Renderer/Material.h"
-#include "Moongoose/Renderer/Shader.h"
+#include "Moongoose/Renderer/Shader/Shader.h"
 #include "Moongoose/Renderer/Texture.h"
 #include "Moongoose/Renderer/Material.h"
 #include "Moongoose/Renderer/VertexArray.h"

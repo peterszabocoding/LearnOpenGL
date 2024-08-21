@@ -1,6 +1,9 @@
 #pragma once
 #include "TextureAtlas.h"
+
 #include "glm/vec3.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 
 enum class ShadowType: uint8_t
 {
@@ -37,7 +40,7 @@ struct DirectionalLight : Light
 
 	static glm::mat4 GetProjection()
 	{
-		return glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, -20.0f, 20.0f);
+		return glm::ortho(-80.0f, 80.0f, -80.0f, 80.0f, -80.0f, 80.0f);
 	}
 
 	glm::mat4 GetTransform() const

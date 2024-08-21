@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Moongoose/Renderer/Shader.h"
+#include "Moongoose/Renderer/Shader/Shader.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	class ShaderManager
 	{
 	public:
@@ -13,10 +13,10 @@ namespace Moongoose {
 			return manager;
 		}
 
-		static void AssignShaderToType(ShaderType type, 
-			const std::string& vertexShaderLocation, 
-			const std::string& fragmentShaderLocation,
-			const std::string& geometryShaderLocation);
+		static void AssignShaderToType(ShaderType type,
+		                               const std::string& vertexShaderLocation,
+		                               const std::string& fragmentShaderLocation,
+		                               const std::string& geometryShaderLocation);
 
 		static Ref<Shader> GetShaderByType(ShaderType type);
 

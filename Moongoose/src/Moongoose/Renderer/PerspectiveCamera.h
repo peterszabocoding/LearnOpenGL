@@ -47,7 +47,7 @@ namespace Moongoose
 		float GetFovRad() const;
 		float GetNear() const;
 		float GetFar() const;
-		glm::vec2 GetResolution() const;
+		glm::uvec2 GetResolution() const;
 
 		glm::vec3 GetForward() const;
 		glm::vec3 GetCameraPosition() const;

@@ -7,8 +7,8 @@
 #include "Moongoose/Input/MouseButtonCodes.h"
 #include "Moongoose/Input/KeyCodes.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	PerspectiveCamera::PerspectiveCamera(const Params& params)
 	{
 		m_Params = params;
@@ -22,7 +22,7 @@ namespace Moongoose {
 
 		m_Projection = glm::perspective(
 			m_Params.fov,
-			(float) m_Params.renderWidth / m_Params.renderHeight,
+			(float)m_Params.renderWidth / m_Params.renderHeight,
 			m_Params.zNear,
 			m_Params.zFar);
 
@@ -44,16 +44,16 @@ namespace Moongoose {
 			MoveCamera(deltaTime);
 			RotateCamera(deltaTime);
 		}
-		else 
+		else
 		{
 			moveTransitionEffect = 0.5f;
-			m_Velocity = { 0.0f, 0.0f, 0.0f };
+			m_Velocity = {0.0f, 0.0f, 0.0f};
 		}
 
 		m_Front = glm::normalize(glm::vec3{
-			 cos(glm::radians(m_Rotation.y))* cos(glm::radians(m_Rotation.x)),
-			 sin(glm::radians(m_Rotation.x)),
-			 sin(glm::radians(m_Rotation.y))* cos(glm::radians(m_Rotation.x))
+			cos(glm::radians(m_Rotation.y)) * cos(glm::radians(m_Rotation.x)),
+			sin(glm::radians(m_Rotation.x)),
+			sin(glm::radians(m_Rotation.y)) * cos(glm::radians(m_Rotation.x))
 		});
 
 		m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
@@ -86,7 +86,7 @@ namespace Moongoose {
 		m_Params.renderHeight = event.getHeight();
 		m_Projection = glm::perspective(
 			m_Params.fov,
-			(float) m_Params.renderWidth / m_Params.renderHeight, 
+			(float)m_Params.renderWidth / m_Params.renderHeight,
 			m_Params.zNear,
 			m_Params.zFar);
 
@@ -103,22 +103,23 @@ namespace Moongoose {
 
 	void PerspectiveCamera::MoveCamera(const float deltaTime)
 	{
-		m_IsCameraMoving = 
-			Input::IsKeyPressed(MG_KEY_W) || 
+		m_IsCameraMoving =
+			Input::IsKeyPressed(MG_KEY_W) ||
 			Input::IsKeyPressed(MG_KEY_S) ||
 			Input::IsKeyPressed(MG_KEY_D) ||
 			Input::IsKeyPressed(MG_KEY_A) ||
 			Input::IsKeyPressed(MG_KEY_SPACE) ||
 			Input::IsKeyPressed(MG_KEY_LEFT_CONTROL);
-		
-		float speed;
-		glm::vec3 newVel = { 0.0f, 0.0f, 0.0f };
 
-		if (!m_IsCameraMoving) {
+		float speed;
+		glm::vec3 newVel = {0.0f, 0.0f, 0.0f};
+
+		if (!m_IsCameraMoving)
+		{
 			speed = maxSpeed * deltaTime;
 			newVel = -m_Velocity;
 		}
-		else 
+		else
 		{
 			moveTransitionEffect += 0.75f * deltaTime;
 			moveTransitionEffect = std::min(moveTransitionEffect, 1.0f);
@@ -137,7 +138,8 @@ namespace Moongoose {
 		m_Position += m_Velocity;
 	}
 
-	void PerspectiveCamera::RotateCamera(float deltaTime) {
+	void PerspectiveCamera::RotateCamera(float deltaTime)
+	{
 		mouseDelta *= turnSpeed;
 
 		m_Rotation.y -= mouseDelta.x;
@@ -145,7 +147,7 @@ namespace Moongoose {
 
 		m_Rotation.x = std::clamp(m_Rotation.x, -89.0f, 89.0f);
 
-		mouseDelta = { 0.0f, 0.0f };
+		mouseDelta = {0.0f, 0.0f};
 	}
 
 	float PerspectiveCamera::GetFov() const
@@ -168,9 +170,9 @@ namespace Moongoose {
 		return m_Params.zFar;
 	}
 
-	glm::vec2 PerspectiveCamera::GetResolution() const
+	glm::uvec2 PerspectiveCamera::GetResolution() const
 	{
-		return { m_Params.renderWidth, m_Params.renderHeight };
+		return {m_Params.renderWidth, m_Params.renderHeight};
 	}
 
 	glm::vec3 PerspectiveCamera::GetForward() const
@@ -187,5 +189,4 @@ namespace Moongoose {
 	{
 		return glm::lookAt(m_Position, m_Position + m_Front, m_Up);
 	}
-
 }
