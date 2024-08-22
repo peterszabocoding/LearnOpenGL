@@ -4,14 +4,17 @@
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 
+#include "Moongoose/Renderer/GBuffer.h"
+
 namespace Moongoose
 {
-	void SSRPass::Render(void* renderParams)
+	void SsrPass::Render(const RenderPassParams& renderPassParams)
 	{
-		const auto params = static_cast<Params*>(renderParams);
+		const SsrPassData* data = static_cast<SsrPassData*>(renderPassParams.additionalData);
+		const auto resolution = renderPassParams.camera->GetResolution();
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::POST_PROCESS_SSR);
 
-		if (!framebuffer) InitFramebuffer(params->resolution);
+		if (!framebuffer) InitFramebuffer(resolution);
 
 		framebuffer->Bind();
 		RenderCommand::SetClearColor(framebuffer->GetSpecs().clearColor);
@@ -19,15 +22,15 @@ namespace Moongoose
 
 		shader->Bind();
 		shader->SetCamera(
-			params->camera->GetCameraPosition(),
-			params->camera->GetViewMatrix(),
-			params->camera->GetProjection());
+			renderPassParams.camera->GetCameraPosition(),
+			renderPassParams.camera->GetViewMatrix(),
+			renderPassParams.camera->GetProjection());
 
-		shader->BindTexture(0, params->renderTexture);
-		shader->BindTexture(1, params->gBuffer->GetViewPositionTexture());
-		shader->BindTexture(2, params->gBuffer->GetNormalTexture());
-		shader->BindTexture(3, params->gBuffer->GetRoughnessTexture());
-		shader->BindTexture(4, params->gBuffer->GetDepthAttachment());
+		shader->BindTexture(0, data->renderTexture);
+		shader->BindTexture(1, data->gBuffer->GetViewPositionTexture());
+		shader->BindTexture(2, data->gBuffer->GetNormalTexture());
+		shader->BindTexture(3, data->gBuffer->GetRoughnessTexture());
+		shader->BindTexture(4, data->gBuffer->GetDepthAttachment());
 
 		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 
@@ -35,7 +38,13 @@ namespace Moongoose
 		framebuffer->Unbind();
 	}
 
-	void SSRPass::InitFramebuffer(const glm::uvec2 resolution)
+	void SsrPass::Resize(const glm::uvec2& resolution)
+	{
+		if (!framebuffer) return;
+		framebuffer->Resize(resolution.x, resolution.y);
+	}
+
+	void SsrPass::InitFramebuffer(const glm::uvec2 resolution)
 	{
 		FramebufferSpecs specs;
 		specs.width = resolution.x;

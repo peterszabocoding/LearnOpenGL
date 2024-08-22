@@ -1,33 +1,45 @@
 #pragma once
 
-#include "Moongoose/Renderer/Framebuffer.h"
-#include "Moongoose/Renderer/GBuffer.h"
 #include "Moongoose/Renderer/Light.h"
 #include "Moongoose/Renderer/PerspectiveCamera.h"
 #include "Moongoose/Renderer/RenderCommand.h"
 
 namespace Moongoose
 {
+	class GBuffer;
+	class Framebuffer;
+	class World;
+
+	struct RenderPassParams
+	{
+		Ref<World> world;
+		Ref<PerspectiveCamera> camera;
+		std::vector<MeshCommand> meshCommands;
+
+		void* additionalData;
+	};
+
 	class RenderPass
 	{
 	public:
-		virtual ~RenderPass() = default;
-		virtual void Render(void* renderSpecs) = 0;
+		virtual ~RenderPass()
+		{
+		};
+		virtual void Render(const RenderPassParams& renderPassParams) = 0;
+
+		virtual void Resize(const glm::uvec2& resolution)
+		{
+		}
 	};
 
 	class GeometryPass : public RenderPass
 	{
 	public:
-		struct Specs
+		~GeometryPass() override
 		{
-			glm::uvec2 resolution;
-			const Ref<PerspectiveCamera> camera;
-			const std::vector<MeshCommand>& meshCommands;
 		};
-
-	public:
-		~GeometryPass() override = default;
-		virtual void Render(void* renderSpecs) override;
+		virtual void Render(const RenderPassParams& renderPassParams) override;
+		virtual void Resize(const glm::uvec2& resolution) override;
 
 		[[nodiscard]] Ref<GBuffer> GetGBuffer() const { return m_GBuffer; }
 
@@ -35,20 +47,55 @@ namespace Moongoose
 		Ref<GBuffer> m_GBuffer;
 	};
 
-	class SSRPass : public RenderPass
+	class LightingPass : public RenderPass
 	{
 	public:
-		struct Params
+		struct LightingPassData
 		{
-			glm::uvec2 resolution;
-			const Ref<PerspectiveCamera> camera;
+			Ref<Framebuffer> shadowMapBuffer;
+			Ref<Framebuffer> pointShadowMapBuffer;
+
+			std::vector<DirectionalLight>& directionalLights;
+			std::vector<SpotLight>& spotLights;
+			std::vector<PointLight>& pointLights;
+		};
+
+	public:
+		~LightingPass() override = default;
+
+		virtual void Render(const RenderPassParams& renderPassParams) override;
+		virtual void Resize(const glm::uvec2& resolution) override;
+
+		Ref<Framebuffer> GetFramebuffer() const { return framebuffer; }
+
+	private:
+		void InitFramebuffer(glm::uvec2 resolution);
+		void AddDirectionalLight(
+			const DirectionalLight& light,
+			const Ref<Shader>& shader,
+			const Ref<Framebuffer>& shadowMapBuffer);
+		void AddSpotLight(size_t index, const Ref<Shader>& shader, const SpotLight& spotLight);
+		void AddPointLight(size_t index, const Ref<Shader>& shader, const PointLight& pointLight);
+
+	private:
+		Ref<Framebuffer> framebuffer;
+	};
+
+	class SsrPass : public RenderPass
+	{
+	public:
+		struct SsrPassData
+		{
 			Ref<GBuffer> gBuffer;
 			uint32_t renderTexture;
 		};
 
 	public:
-		~SSRPass() override = default;
-		virtual void Render(void* renderParams) override;
+		~SsrPass() override
+		{
+		};
+		virtual void Render(const RenderPassParams& renderPassParams) override;
+		virtual void Resize(const glm::uvec2& resolution) override;
 
 		Ref<Framebuffer> GetFramebuffer() const { return framebuffer; }
 
@@ -62,20 +109,18 @@ namespace Moongoose
 	class ShadowMapPass : public RenderPass
 	{
 	public:
-		struct Params
+		struct ShadowMapPassData
 		{
-			glm::uvec2 resolution;
-			const Ref<PerspectiveCamera> camera;
-			const std::vector<MeshCommand>& meshCommands;
-
 			std::vector<DirectionalLight>& directionalLights;
 			std::vector<SpotLight>& spotLights;
 			std::vector<PointLight>& pointLights;
 		};
 
 	public:
-		~ShadowMapPass() override = default;
-		virtual void Render(void* renderParams) override;
+		~ShadowMapPass() override
+		{
+		};
+		virtual void Render(const RenderPassParams& renderPassParams) override;
 
 		Ref<Framebuffer> GetShadowBuffer() const { return m_ShadowBuffer; }
 		Ref<Framebuffer> GetPointShadowBuffer() const { return m_PointShadowBuffer; }

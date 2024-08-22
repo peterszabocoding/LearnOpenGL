@@ -5,27 +5,26 @@
 
 namespace Moongoose
 {
-	void ShadowMapPass::Render(void* renderParams)
+	void ShadowMapPass::Render(const RenderPassParams& renderPassParams)
 	{
-		const Params* params = static_cast<Params*>(renderParams);
-		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitFramebuffer();
+		ShadowMapPassData* data = static_cast<ShadowMapPassData*>(renderPassParams.additionalData);
 
+		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitFramebuffer();
 		m_TextureAtlas.Clear();
 
-		for (auto& light : params->directionalLights)
-		{
-			if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
-		}
+		for (auto& light : data->directionalLights)
+			if (light.shadowType > ShadowType::NONE)
+				m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
 
-		for (auto& light : params->spotLights)
-		{
-			if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
-		}
 
-		for (auto& light : params->pointLights)
-		{
-			if (light.shadowType > ShadowType::NONE) m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
-		}
+		for (auto& light : data->spotLights)
+			if (light.shadowType > ShadowType::NONE)
+				m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
+
+
+		for (auto& light : data->pointLights)
+			if (light.shadowType > ShadowType::NONE)
+				m_TextureAtlas.AddTexture((uint16_t)light.shadowMapResolution);
 
 
 		m_ShadowBuffer->Bind();
@@ -34,7 +33,7 @@ namespace Moongoose
 
 		m_TextureAtlas.AllocateTextureAtlas(SHADOW_BUFFER_RESOLUTION);
 
-		for (auto& light : params->directionalLights)
+		for (auto& light : data->directionalLights)
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
 			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion((uint16_t)light.shadowMapResolution);
@@ -53,7 +52,7 @@ namespace Moongoose
 			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
-			for (const MeshCommand& cmd : params->meshCommands)
+			for (const MeshCommand& cmd : renderPassParams.meshCommands)
 			{
 				shader->SetMat4("model", cmd.transform);
 				RenderCommand::DrawIndexed(cmd.vertexArray);
@@ -63,7 +62,7 @@ namespace Moongoose
 			shader->Unbind();
 		}
 
-		for (auto& light : params->spotLights)
+		for (auto& light : data->spotLights)
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
 			light.shadowMapRegion = m_TextureAtlas.GetTextureRegion(static_cast<uint16_t>(light.shadowMapResolution));
@@ -84,7 +83,7 @@ namespace Moongoose
 			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
-			for (const MeshCommand& cmd : params->meshCommands)
+			for (const MeshCommand& cmd : renderPassParams.meshCommands)
 			{
 				shader->SetMat4("model", cmd.transform);
 				RenderCommand::DrawIndexed(cmd.vertexArray);
@@ -100,7 +99,7 @@ namespace Moongoose
 		RenderCommand::SetClearColor(m_PointShadowBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
-		for (auto& light : params->pointLights)
+		for (auto& light : data->pointLights)
 		{
 			if (light.shadowType == ShadowType::NONE) continue;
 			auto shadowMatrices = light.GetTransform();
@@ -123,7 +122,7 @@ namespace Moongoose
 			shader->EnableFeature(GlFeature::POLYGON_OFFSET);
 			shader->SetPolygonOffset(glm::vec2(2.0f, 4.0f));
 
-			for (const MeshCommand& cmd : params->meshCommands)
+			for (const MeshCommand& cmd : renderPassParams.meshCommands)
 			{
 				shader->SetMat4("model", cmd.transform);
 				RenderCommand::DrawIndexed(cmd.vertexArray);
@@ -146,7 +145,6 @@ namespace Moongoose
 
 		m_ShadowBuffer = FramebufferManager::CreateFramebuffer("ShadowBuffer");
 		m_ShadowBuffer->Configure(specs);
-
 
 		FramebufferSpecs pointShadowSpecs;
 		pointShadowSpecs.width = CUBE_SHADOW_MAP_RESOLUTION;

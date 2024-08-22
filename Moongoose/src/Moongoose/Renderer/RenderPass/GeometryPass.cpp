@@ -3,17 +3,19 @@
 #include "Moongoose/Renderer/RenderCommand.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 
+#include "Moongoose/Renderer/GBuffer.h"
+
 namespace Moongoose
 {
-	void GeometryPass::Render(void* renderSpecs)
+	void GeometryPass::Render(const RenderPassParams& renderPassParams)
 	{
-		const auto specs = static_cast<Specs*>(renderSpecs);
 		const auto shader = ShaderManager::GetShaderByType(ShaderType::GBUFFER);
+		const auto resolution = renderPassParams.camera->GetResolution();
 
 		if (!m_GBuffer)
-			m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({specs->resolution.x, specs->resolution.y}));
+			m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({resolution.x, resolution.y}));
 		else
-			m_GBuffer->Resize(specs->resolution.x, specs->resolution.y);
+			m_GBuffer->Resize(resolution.x, resolution.y);
 
 
 		m_GBuffer->Bind();
@@ -22,12 +24,12 @@ namespace Moongoose
 
 		shader->Bind();
 
-		for (const MeshCommand& cmd : specs->meshCommands)
+		for (const MeshCommand& cmd : renderPassParams.meshCommands)
 		{
 			shader->SetCamera(
-				specs->camera->GetCameraPosition(),
-				specs->camera->GetViewMatrix(),
-				specs->camera->GetProjection());
+				renderPassParams.camera->GetCameraPosition(),
+				renderPassParams.camera->GetViewMatrix(),
+				renderPassParams.camera->GetProjection());
 
 			if (cmd.material->m_Normal) cmd.material->m_Normal->Bind(0);
 			if (cmd.material->m_Roughness) cmd.material->m_Roughness->Bind(1);
@@ -44,5 +46,11 @@ namespace Moongoose
 		shader->Unbind();
 
 		m_GBuffer->Unbind();
+	}
+
+	void GeometryPass::Resize(const glm::uvec2& resolution)
+	{
+		if (!m_GBuffer) return;
+		m_GBuffer->Resize(resolution.x, resolution.y);
 	}
 }

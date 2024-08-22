@@ -1,16 +1,14 @@
 #include "mgpch.h"
 #include "Shader.h"
+
 #include <glm/glm.hpp>
+#include <glad/glad.h>
 
-#include "Light.h"
-#include "glad/glad.h"
-#include "Moongoose/Application.h"
-
-namespace Moongoose {
-
-	Shader::Shader(const ShaderType type, 
-		const std::string& vertexShaderLocation, 
-		const std::string& fragmentShaderLocation)
+namespace Moongoose
+{
+	Shader::Shader(const ShaderType type,
+	               const std::string& vertexShaderLocation,
+	               const std::string& fragmentShaderLocation)
 	{
 		shaderId = 0;
 		shaderType = type;
@@ -25,8 +23,8 @@ namespace Moongoose {
 		);
 	}
 
-	Shader::Shader(const ShaderType type, 
-	               const std::string& vertexShaderLocation, 
+	Shader::Shader(const ShaderType type,
+	               const std::string& vertexShaderLocation,
 	               const std::string& fragmentShaderLocation,
 	               const std::string& geometryShaderLocation)
 	{
@@ -37,7 +35,8 @@ namespace Moongoose {
 		fragmentShaderSourcePath = fragmentShaderLocation;
 		geometryShaderSourcePath = geometryShaderLocation;
 
-		LOG_CORE_INFO("Compile shader: {0} | {1} | {2}", vertexShaderSourcePath, fragmentShaderSourcePath, geometryShaderSourcePath);
+		LOG_CORE_INFO("Compile shader: {0} | {1} | {2}", vertexShaderSourcePath, fragmentShaderSourcePath,
+		              geometryShaderSourcePath);
 		CompileShader(
 			ReadFile(vertexShaderSourcePath.c_str()).c_str(),
 			ReadFile(fragmentShaderSourcePath.c_str()).c_str(),
@@ -52,7 +51,8 @@ namespace Moongoose {
 
 	void Shader::ClearShader()
 	{
-		if (shaderId != 0) {
+		if (shaderId != 0)
+		{
 			glDeleteProgram(shaderId);
 			shaderId = 0;
 		}
@@ -71,8 +71,8 @@ namespace Moongoose {
 		{
 			SetLineWidth(2.0f);
 			DisableFeature(GlFeature::CULL_FACE);
-		} 
-		else 
+		}
+		else
 		{
 			SetLineWidth(1.0f);
 			EnableFeature(GlFeature::DEPTH_TEST);
@@ -91,13 +91,15 @@ namespace Moongoose {
 		std::string content;
 		std::ifstream fileStream(fileLocation, std::ios::in);
 
-		if (!fileStream.is_open()) {
+		if (!fileStream.is_open())
+		{
 			printf("Failed to read %s! File does not exist.", fileLocation);
 			return "";
 		}
 
 		std::string line;
-		while (!fileStream.eof()) {
+		while (!fileStream.eof())
+		{
 			std::getline(fileStream, line);
 			content.append(line + "\n");
 		}
@@ -125,13 +127,13 @@ namespace Moongoose {
 
 	void Shader::EnableFeature(GlFeature feature)
 	{
-		glEnable((int) feature);
+		glEnable((int)feature);
 	}
 
 	void Shader::DisableFeature(GlFeature feature)
 	{
-		glDisable((int) feature);
-	}	
+		glDisable((int)feature);
+	}
 
 	void Shader::SetPolygonOffset(const glm::vec2 offset)
 	{
@@ -140,7 +142,7 @@ namespace Moongoose {
 
 	void Shader::SetBlendMode(GlBlendOption source, GlBlendOption destination)
 	{
-		glBlendFunc((int) source, (int) destination);
+		glBlendFunc((int)source, (int)destination);
 	}
 
 	void Shader::BindTexture(const size_t textureUnit, const uint32_t textureId)
@@ -159,7 +161,8 @@ namespace Moongoose {
 	{
 		shaderId = glCreateProgram();
 
-		if (!shaderId) {
+		if (!shaderId)
+		{
 			LOG_CORE_ERROR("Error creating shader program!");
 			return;
 		}
@@ -170,11 +173,12 @@ namespace Moongoose {
 		if (geometryCode) AddShader(shaderId, geometryCode, GL_GEOMETRY_SHADER);
 
 		int result = 0;
-		char eLog[1024] = { 0 };
+		char eLog[1024] = {0};
 
 		glLinkProgram(shaderId);
 		glGetProgramiv(shaderId, GL_LINK_STATUS, &result);
-		if (!result) {
+		if (!result)
+		{
 			glGetProgramInfoLog(shaderId, sizeof(eLog), nullptr, eLog);
 			printf("Error linking program: '%s'\n", eLog);
 			return;
@@ -182,7 +186,8 @@ namespace Moongoose {
 
 		glValidateProgram(shaderId);
 		glGetProgramiv(shaderId, GL_VALIDATE_STATUS, &result);
-		if (!result) {
+		if (!result)
+		{
 			glGetProgramInfoLog(shaderId, sizeof(eLog), nullptr, eLog);
 			printf("Error validating program: '%s'\n", eLog);
 		}
@@ -201,10 +206,11 @@ namespace Moongoose {
 		glCompileShader(shader);
 
 		int result = 0;
-		char eLog[1024] = { 0 };
+		char eLog[1024] = {0};
 
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-		if (!result) {
+		if (!result)
+		{
 			glGetShaderInfoLog(shader, sizeof(eLog), nullptr, eLog);
 			printf("Error compiling the %d shader: '%s'\n", shaderType, eLog);
 			return;
@@ -217,10 +223,11 @@ namespace Moongoose {
 	{
 		unsigned int location;
 
-		if (const auto it = uniformLocationCache.find(name); it != uniformLocationCache.end()) {
+		if (const auto it = uniformLocationCache.find(name); it != uniformLocationCache.end())
+		{
 			location = it->second;
 		}
-		else 
+		else
 		{
 			location = glGetUniformLocation(shaderId, name.c_str());
 			uniformLocationCache[name] = location;
@@ -263,5 +270,4 @@ namespace Moongoose {
 	{
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	}
-
 }
