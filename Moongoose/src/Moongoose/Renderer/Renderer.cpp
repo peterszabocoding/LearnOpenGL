@@ -1,12 +1,13 @@
 #include "mgpch.h"
 #include "Renderer.h"
 
+#include "Light.h"
 #include "MeshPrimitives.h"
 #include "RenderCommand.h"
 #include "Moongoose/ECS/World.h"
-#include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 #include "Moongoose/Renderer/Framebuffer.h"
-#include "Light.h"
+#include "Moongoose/ECS/Components.h"
+#include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 
 namespace Moongoose
 {
@@ -89,7 +90,6 @@ namespace Moongoose
 		m_BillboardRenderCmds.clear();
 	}
 
-	// Init
 	void Renderer::SetResolution(const glm::uvec2 newResolution)
 	{
 		if (newResolution == m_Resolution) return;
@@ -100,70 +100,22 @@ namespace Moongoose
 		m_SsrPass.Resize(m_Resolution);
 	}
 
-	// Rendering
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
 	{
-		const auto transformComponentArray = world->GetComponentArray<TransformComponent>();
-		const auto meshComponentArray = world->GetComponentArray<MeshComponent>();
-		const auto lightComponentArray = world->GetComponentArray<LightComponent>();
-		const auto billboardComponentArray = world->GetComponentArray<BillboardComponent>();
-
 		SetResolution(camera->GetResolution());
 		BeginScene();
 
 		world->GetSystem<AtmosphericsSystem>()->Update(camera, m_Resolution);
 
+		const auto transformComponentArray = world->GetComponentArray<TransformComponent>();
 		for (size_t i = 0; i < transformComponentArray->m_Size; i++)
 		{
 			const Entity entity = transformComponentArray->m_IndexToEntityMap[i];
 			auto cTransform = transformComponentArray->GetData(entity);
 
-			if (meshComponentArray->HasData(entity))
-			{
-				const auto cMesh = meshComponentArray->GetData(entity);
-				if (cMesh.m_Mesh)
-				{
-					for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
-					{
-						const Ref<Material> material = cMesh.m_Mesh->GetMaterials()[submesh->materialIndex].material;
-						if (!material) continue;
-
-						MeshCommand cmd = {entity, cTransform.GetModelMatrix(), submesh->vertexArray, material};
-						m_MeshRenderCmds.push_back(cmd);
-					}
-				}
-			}
-
-			if (lightComponentArray->HasData(entity))
-			{
-				switch (const auto cLight = lightComponentArray->GetData(entity); cLight.m_Type)
-				{
-				case LightType::Directional:
-					m_DirectionalLights.push_back(Utils::LightComponentToDirectionalLight(cTransform, cLight));
-					break;
-				case LightType::Point:
-					m_PointLights.push_back(Utils::LightComponentToPointLight(cTransform, cLight));
-					break;
-				case LightType::Spot:
-					m_SpotLights.push_back(Utils::LightComponentToSpotLight(cTransform, cLight));
-					break;
-				}
-			}
-
-			if (billboardComponentArray->HasData(entity))
-			{
-				const auto billboardComponent = billboardComponentArray->GetData(entity);
-				if (!billboardComponent.m_BillboardTexture) continue;
-
-				BillboardCommand cmd = {
-					entity,
-					cTransform.GetModelMatrix(),
-					billboardComponent.m_BillboardTexture,
-					0.75f,
-					billboardComponent.m_TintColor
-				};
-				m_BillboardRenderCmds.push_back(cmd);
-			}
+			ProcessMeshComponent(entity, cTransform, world);
+			ProcessLightComponent(entity, cTransform, world);
+			ProcessBillboardComponent(entity, cTransform, world);
 		}
 
 		RenderPassParams renderPassParams;
@@ -173,52 +125,123 @@ namespace Moongoose
 
 		m_GeometryPass.Render(renderPassParams);
 
-
-		ShadowMapPass::ShadowMapPassData shadowMapPassData = {m_DirectionalLights, m_SpotLights, m_PointLights};
-		RenderPassParams shadowMapRenderPassParams = renderPassParams;
-		shadowMapRenderPassParams.additionalData = &shadowMapPassData;
-
-		m_ShadowMapPass.Render(shadowMapRenderPassParams);
-
-		LightingPass::LightingPassData lightingPassData =
+		// Shadow Map Pass
 		{
-			m_ShadowMapPass.GetShadowBuffer(),
-			m_ShadowMapPass.GetPointShadowBuffer(),
-			m_DirectionalLights,
-			m_SpotLights,
-			m_PointLights
-		};
+			ShadowMapPass::ShadowMapPassData shadowMapPassData = {m_DirectionalLights, m_SpotLights, m_PointLights};
+			RenderPassParams shadowMapRenderPassParams = renderPassParams;
+			shadowMapRenderPassParams.additionalData = &shadowMapPassData;
 
-		RenderPassParams lightingPassRenderPassParams = renderPassParams;
-		lightingPassRenderPassParams.additionalData = &lightingPassData;
+			m_ShadowMapPass.Render(shadowMapRenderPassParams);
+		}
 
-		m_LightingPass.Render(lightingPassRenderPassParams);
+		// Lighting Pass
+		{
+			LightingPass::LightingPassData lightingPassData =
+			{
+				m_ShadowMapPass.GetShadowBuffer(),
+				m_ShadowMapPass.GetPointShadowBuffer(),
+				m_DirectionalLights,
+				m_SpotLights,
+				m_PointLights
+			};
 
-		BillboardPass::BillboardPassData billboardPassData;
-		billboardPassData.targetBuffer = m_LightingPass.GetFramebuffer();
-		billboardPassData.billboardCommands = m_BillboardRenderCmds;
+			RenderPassParams lightingPassRenderPassParams = renderPassParams;
+			lightingPassRenderPassParams.additionalData = &lightingPassData;
 
-		RenderPassParams billboardRenderPassParams = renderPassParams;
-		billboardRenderPassParams.additionalData = &billboardPassData;
+			m_LightingPass.Render(lightingPassRenderPassParams);
+		}
 
-		m_BillboardPass.Render(billboardRenderPassParams);
+		// Billboard Pass
+		{
+			BillboardPass::BillboardPassData billboardPassData;
+			billboardPassData.targetBuffer = m_LightingPass.GetFramebuffer();
+			billboardPassData.billboardCommands = m_BillboardRenderCmds;
 
+			RenderPassParams billboardRenderPassParams = renderPassParams;
+			billboardRenderPassParams.additionalData = &billboardPassData;
 
-		SsrPass::SsrPassData ssrPassData;
-		ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
-		ssrPassData.renderTexture = m_LightingPass.GetFramebuffer()->GetColorAttachments()[0];
+			m_BillboardPass.Render(billboardRenderPassParams);
+		}
 
-		RenderPassParams ssrRenderPassParams = renderPassParams;
-		ssrRenderPassParams.additionalData = &ssrPassData;
+		// Screen Space Reflection Pass
+		{
+			SsrPass::SsrPassData ssrPassData;
+			ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
+			ssrPassData.renderTexture = m_LightingPass.GetFramebuffer()->GetColorAttachments()[0];
 
-		m_SsrPass.Render(ssrRenderPassParams);
+			RenderPassParams ssrRenderPassParams = renderPassParams;
+			ssrRenderPassParams.additionalData = &ssrPassData;
+
+			m_SsrPass.Render(ssrRenderPassParams);
+		}
 
 		prevDrawCount = RenderCommand::GetDrawCallCount();
 		EndScene();
 	}
 
-	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
+	void Renderer::ProcessMeshComponent(const Entity entity, const TransformComponent& cTransform,
+	                                    const Ref<World>& world)
 	{
-		RenderCommand::DrawIndexed(vertexArray);
+		const auto meshComponentArray = world->GetComponentArray<MeshComponent>();
+		if (!meshComponentArray->HasData(entity)) return;
+
+		const auto cMesh = meshComponentArray->GetData(entity);
+		if (!cMesh.m_Mesh) return;
+
+
+		for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
+		{
+			const Ref<Material> material = cMesh.m_Mesh->GetMaterials()[submesh->materialIndex].material;
+			if (!material) continue;
+
+			MeshCommand cmd;
+			cmd.id = entity;
+			cmd.transform = cTransform.GetModelMatrix();
+			cmd.vertexArray = submesh->vertexArray;
+			cmd.material = material;
+
+			m_MeshRenderCmds.push_back(cmd);
+		}
+	}
+
+	void Renderer::ProcessLightComponent(const Entity entity, const TransformComponent& cTransform,
+	                                     const Ref<World>& world)
+	{
+		const auto lightComponentArray = world->GetComponentArray<LightComponent>();
+		if (!lightComponentArray->HasData(entity)) return;
+
+		const auto cLight = lightComponentArray->GetData(entity);
+		switch (cLight.m_Type)
+		{
+		case LightType::Directional:
+			m_DirectionalLights.push_back(Utils::LightComponentToDirectionalLight(cTransform, cLight));
+			break;
+		case LightType::Point:
+			m_PointLights.push_back(Utils::LightComponentToPointLight(cTransform, cLight));
+			break;
+		case LightType::Spot:
+			m_SpotLights.push_back(Utils::LightComponentToSpotLight(cTransform, cLight));
+			break;
+		}
+	}
+
+	void Renderer::ProcessBillboardComponent(const Entity entity, const TransformComponent& cTransform,
+	                                         const Ref<World>& world)
+	{
+		const auto billboardComponentArray = world->GetComponentArray<BillboardComponent>();
+		if (!billboardComponentArray->HasData(entity)) return;
+
+		const auto cBillboard = billboardComponentArray->GetData(entity);
+		if (!cBillboard.billboardTexture) return;
+
+
+		BillboardCommand cmd;
+		cmd.id = entity;
+		cmd.scale = 0.75f;
+		cmd.transform = cTransform.GetModelMatrix();
+		cmd.tintColor = cBillboard.tintColor;
+		cmd.texture = cBillboard.billboardTexture;
+
+		m_BillboardRenderCmds.push_back(cmd);
 	}
 }

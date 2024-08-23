@@ -8,19 +8,6 @@ namespace Moongoose
 {
 	struct MeshCommand
 	{
-		MeshCommand(const Ref<VertexArray>& vArray, const Ref<Material>& mat) : vertexArray(vArray), material(mat)
-		{
-		}
-
-		MeshCommand(const size_t id, const glm::mat4& transform, const Ref<VertexArray>& vArray,
-		            const Ref<Material>& mat) :
-			id(id),
-			transform(transform),
-			vertexArray(vArray),
-			material(mat)
-		{
-		}
-
 		size_t id = -1;
 		glm::mat4 transform = glm::mat4(1.0f);
 

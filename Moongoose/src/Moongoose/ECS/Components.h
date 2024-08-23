@@ -227,12 +227,12 @@ namespace Moongoose
 	{
 		BillboardComponent() = default;
 
-		BillboardComponent(const Ref<Texture2D>& texture): m_BillboardTexture(texture)
+		BillboardComponent(const Ref<Texture2D>& texture): billboardTexture(texture)
 		{
 		}
 
-		Ref<Texture2D> m_BillboardTexture;
-		glm::vec3 m_TintColor = glm::vec3(1.0f);
+		Ref<Texture2D> billboardTexture;
+		glm::vec3 tintColor = glm::vec3(1.0f);
 	};
 
 	struct AtmosphericsComponent : Component

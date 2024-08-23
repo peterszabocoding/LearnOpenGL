@@ -30,12 +30,12 @@ static ShadowMapResolution GetResolutionFromPositionInList(uint8_t pos)
 {
 	switch (pos)
 	{
-		case 0: return ShadowMapResolution::ULTRA_LOW;
-		case 1: return ShadowMapResolution::LOW;
-		case 2: return ShadowMapResolution::MEDIUM;
-		case 3: return ShadowMapResolution::HIGH;
-		case 4: return ShadowMapResolution::VERY_HIGH;
-		case 5: return ShadowMapResolution::ULTRA_HIGH;
+	case 0: return ShadowMapResolution::ULTRA_LOW;
+	case 1: return ShadowMapResolution::LOW;
+	case 2: return ShadowMapResolution::MEDIUM;
+	case 3: return ShadowMapResolution::HIGH;
+	case 4: return ShadowMapResolution::VERY_HIGH;
+	case 5: return ShadowMapResolution::ULTRA_HIGH;
 	}
 }
 
@@ -57,17 +57,16 @@ static std::vector<std::string> GetShadowMapResolutionStrings()
 }
 
 
-
 static uint8_t GetShadowTypePositionInList(ShadowType shadowType)
 {
 	switch (shadowType)
 	{
-		case ShadowType::NONE:
-			return 0;
-		case ShadowType::HARD:
-			return 1;
-		case ShadowType::SOFT:
-			return 2;
+	case ShadowType::NONE:
+		return 0;
+	case ShadowType::HARD:
+		return 1;
+	case ShadowType::SOFT:
+		return 2;
 	}
 }
 
@@ -75,11 +74,10 @@ static ShadowType GetShadowTypeFromPositionInList(uint8_t pos)
 {
 	switch (pos)
 	{
-		case 0: return ShadowType::NONE;
-		case 1: return ShadowType::HARD;
-		case 2: return ShadowType::SOFT;
+	case 0: return ShadowType::NONE;
+	case 1: return ShadowType::HARD;
+	case 2: return ShadowType::SOFT;
 	}
-
 }
 
 static std::string ShadowTypeToString(ShadowType shadowType)
@@ -105,8 +103,6 @@ static std::vector<std::string> GetShadowTypeStrings()
 }
 
 
-
-
 void EntityInspectorLayer::onAttach()
 {
 	m_AssetManager = GetApplication()->GetAssetManager();
@@ -125,7 +121,8 @@ void EntityInspectorLayer::onImGuiRender()
 	}
 
 	const Entity selectedEntity = world->GetSelectedEntity();
-	if (selectedEntity == -1) {
+	if (selectedEntity == -1)
+	{
 		ImGui::End();
 		return;
 	}
@@ -150,11 +147,11 @@ void EntityInspectorLayer::onImGuiRender()
 	{
 		const IDComponent& cId = world->GetComponent<IDComponent>(selectedEntity);
 		TagComponent& cTag = world->GetComponent<TagComponent>(selectedEntity);
-		ImGui::Dummy({ windowSize.x , 1.0f });
+		ImGui::Dummy({windowSize.x, 1.0f});
 
 		static char tagArray[50];
 		strcpy(tagArray, cTag.Tag.c_str());
-		
+
 		ImGui::Text("ID:");
 		ImGui::SameLine();
 		ImGui::Text(std::to_string(cId.m_ID).c_str());
@@ -169,7 +166,7 @@ void EntityInspectorLayer::onImGuiRender()
 			cTag.Tag = std::string(tagArray);
 		}
 
-		ImGui::Dummy({ windowSize.x , 10.0f });
+		ImGui::Dummy({windowSize.x, 10.0f});
 		ImGui::Separator();
 	}
 
@@ -178,12 +175,13 @@ void EntityInspectorLayer::onImGuiRender()
 		if (world->HasComponent<TransformComponent>(selectedEntity))
 		{
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			if (ImGui::TreeNode("Transform")) {
+			if (ImGui::TreeNode("Transform"))
+			{
 				TransformComponent& cTransform = world->GetComponent<TransformComponent>(selectedEntity);
 				GuiWidgets::DrawVec3Control("Position", cTransform.m_Position, 0.0f, windowSize.x / 4);
 				GuiWidgets::DrawVec3Control("Rotation", cTransform.m_Rotation, 0.0f, windowSize.x / 4);
 				GuiWidgets::DrawVec3Control("Scale", cTransform.m_Scale, 1.0f, windowSize.x / 4);
-				ImGui::Dummy({ windowSize.x , 10.0f });
+				ImGui::Dummy({windowSize.x, 10.0f});
 
 				ImGui::TreePop();
 			}
@@ -196,7 +194,8 @@ void EntityInspectorLayer::onImGuiRender()
 		{
 			auto& cMesh = world->GetComponent<MeshComponent>(selectedEntity);
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			if (ImGui::TreeNode("Mesh Renderer")) {
+			if (ImGui::TreeNode("Mesh Renderer"))
+			{
 				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 				ImGui::SeparatorText("Mesh");
 
@@ -207,7 +206,8 @@ void EntityInspectorLayer::onImGuiRender()
 
 				if (ImGui::BeginDragDropTarget())
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+					{
 						UUID meshId = ((const AssetDeclaration*)payload->Data)->id;
 						cMesh.m_Mesh = m_AssetManager->GetAssetById<Mesh>(meshId);
 					}
@@ -237,26 +237,35 @@ void EntityInspectorLayer::onImGuiRender()
 		if (world->HasComponent<LightComponent>(selectedEntity) && ImGui::TreeNode("Light"))
 		{
 			auto& cLight = world->GetComponent<LightComponent>(selectedEntity);
-			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int)cLight.m_Type, [&](int selected)
-			{
-				cLight.m_Type = (LightType) selected;
-			});
+			GuiWidgets::DrawSingleSelectDropdown("Type", Utils::GetLightTypeStrings(), (int)cLight.m_Type,
+			                                     [&](int selected)
+			                                     {
+				                                     cLight.m_Type = (LightType)selected;
+			                                     });
 
 			GuiWidgets::DrawFloatControl("Intensity", cLight.m_Intensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
-			GuiWidgets::DrawFloatControl("Ambient Intensity", cLight.m_AmbientIntensity, 0.0f, 10000.0f, 0.01f, 1.0f, windowSize.x);
-			GuiWidgets::DrawFloatControl("Attenuation Radius", cLight.m_AttenuationRadius, 0.0f, 10000.0f, 0.1f, 50.0f, windowSize.x);
-			GuiWidgets::DrawFloatControl("Attenuation Angle", cLight.m_AttenuationAngle, 0.0f, 1.0f, 0.005f, 0.75f, windowSize.x);
+			GuiWidgets::DrawFloatControl("Ambient Intensity", cLight.m_AmbientIntensity, 0.0f, 10000.0f, 0.01f, 1.0f,
+			                             windowSize.x);
+			GuiWidgets::DrawFloatControl("Attenuation Radius", cLight.m_AttenuationRadius, 0.0f, 10000.0f, 0.1f, 50.0f,
+			                             windowSize.x);
+			GuiWidgets::DrawFloatControl("Attenuation Angle", cLight.m_AttenuationAngle, 0.0f, 1.0f, 0.005f, 0.75f,
+			                             windowSize.x);
 			GuiWidgets::DrawRGBColorPicker("Color", cLight.m_Color, 1.0f, windowSize.x);
 
-			GuiWidgets::DrawSingleSelectDropdown("Shadow Type", GetShadowTypeStrings(), GetShadowTypePositionInList(cLight.m_ShadowType), [&](const int selected)
-			{
-					cLight.m_ShadowType = GetShadowTypeFromPositionInList(selected);
-			});
+			GuiWidgets::DrawSingleSelectDropdown("Shadow Type", GetShadowTypeStrings(),
+			                                     GetShadowTypePositionInList(cLight.m_ShadowType),
+			                                     [&](const int selected)
+			                                     {
+				                                     cLight.m_ShadowType = GetShadowTypeFromPositionInList(selected);
+			                                     });
 
-			GuiWidgets::DrawSingleSelectDropdown("Shadow Map Resolution", GetShadowMapResolutionStrings(), GetResolutionPositionInList(cLight.m_ShadowMapResolution), [&](const int selected)
-			{
-				cLight.m_ShadowMapResolution = GetResolutionFromPositionInList(selected);
-			});
+			GuiWidgets::DrawSingleSelectDropdown("Shadow Map Resolution", GetShadowMapResolutionStrings(),
+			                                     GetResolutionPositionInList(cLight.m_ShadowMapResolution),
+			                                     [&](const int selected)
+			                                     {
+				                                     cLight.m_ShadowMapResolution = GetResolutionFromPositionInList(
+					                                     selected);
+			                                     });
 
 			ImGui::TreePop();
 		}
@@ -268,29 +277,31 @@ void EntityInspectorLayer::onImGuiRender()
 		{
 			auto& cBillboard = world->GetComponent<BillboardComponent>(selectedEntity);
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			if (ImGui::TreeNode("Billboard")) {
+			if (ImGui::TreeNode("Billboard"))
+			{
 				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
 				if (world->HasComponent<LightComponent>(selectedEntity))
 				{
 					LightType type = world->GetComponent<LightComponent>(selectedEntity).m_Type;
-					cBillboard.m_BillboardTexture = ResourceManager::GetIcon(type == LightType::Directional 
-						? Icon::DirectionalLight 
-						: Icon::PointLight);
+					cBillboard.billboardTexture = ResourceManager::GetIcon(type == LightType::Directional
+						                                                       ? Icon::DirectionalLight
+						                                                       : Icon::PointLight);
 				}
 
-				GuiWidgets::DrawRGBColorPicker("Color Tint", cBillboard.m_TintColor, 1.0f, windowSize.x);
+				GuiWidgets::DrawRGBColorPicker("Color Tint", cBillboard.tintColor, 1.0f, windowSize.x);
 
 				RenderImageTextButton(
 					ImVec2(50.0f, 50.0f),
-					cBillboard.m_BillboardTexture ? cBillboard.m_BillboardTexture : ResourceManager::GetIcon(Icon::Texture),
-					cBillboard.m_BillboardTexture ? cBillboard.m_BillboardTexture->m_Name : "None");
+					cBillboard.billboardTexture ? cBillboard.billboardTexture : ResourceManager::GetIcon(Icon::Texture),
+					cBillboard.billboardTexture ? cBillboard.billboardTexture->m_Name : "None");
 
 				if (ImGui::BeginDragDropTarget())
 				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET")) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET"))
+					{
 						UUID textureId = ((const AssetDeclaration*)payload->Data)->id;
-						cBillboard.m_BillboardTexture = m_AssetManager->GetAssetById<Texture2D>(textureId);
+						cBillboard.billboardTexture = m_AssetManager->GetAssetById<Texture2D>(textureId);
 					}
 					ImGui::EndDragDropTarget();
 				}
@@ -298,20 +309,22 @@ void EntityInspectorLayer::onImGuiRender()
 			}
 		}
 	}
-	
+
 	// Atmospherics Component
 	{
 		if (world->HasComponent<AtmosphericsComponent>(selectedEntity))
 		{
 			auto& cAtmospherics = world->GetComponent<AtmosphericsComponent>(selectedEntity);
 			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-			if (ImGui::TreeNode("Atmospherics")) {
+			if (ImGui::TreeNode("Atmospherics"))
+			{
 				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
 				GuiWidgets::DrawVec3Control("Sun Direction", cAtmospherics.m_SunDirection, 0.0f, windowSize.x / 4);
 				GuiWidgets::DrawRGBColorPicker("Sun Color", cAtmospherics.m_SunColor, 1.0f, windowSize.x);
-				GuiWidgets::DrawFloatControl("Sun Intensity", cAtmospherics.m_SunIntensity, 0.0f, 10000.0f, 0.1f, 1.0f, windowSize.x);
-				
+				GuiWidgets::DrawFloatControl("Sun Intensity", cAtmospherics.m_SunIntensity, 0.0f, 10000.0f, 0.1f, 1.0f,
+				                             windowSize.x);
+
 				ImGui::TreePop();
 			}
 		}
@@ -332,19 +345,21 @@ void EntityInspectorLayer::DrawMaterialControls(const Ref<Mesh>& mesh, const uns
 	ImGui::PushID(material->m_Id);
 	ImGui::Text("%s:", materialSlots[materialIndex].name.c_str());
 
-	RenderImageTextButton(ImVec2(50.0f, 50.0f), material->m_Albedo ? material->m_Albedo : ResourceManager::GetIcon(Icon::Material), matName);
+	RenderImageTextButton(ImVec2(50.0f, 50.0f),
+	                      material->m_Albedo ? material->m_Albedo : ResourceManager::GetIcon(Icon::Material), matName);
 
 	ImGui::PopID();
 }
 
-void EntityInspectorLayer::RenderImageTextButton(const ImVec2 imageSize, const Ref<Texture2D>& icon, const std::string& text)
+void EntityInspectorLayer::RenderImageTextButton(const ImVec2 imageSize, const Ref<Texture2D>& icon,
+                                                 const std::string& text)
 {
 	ImGui::BeginGroup();
 
 	const auto availSpace = ImGui::GetContentRegionAvail();
 	const auto& ogPos = ImGui::GetCursorPos();
 
-	ImGui::Image(icon->GetPointerToData(), ImVec2{ 50.0f, 50.0f });
+	ImGui::Image(icon->GetPointerToData(), ImVec2{50.0f, 50.0f});
 	ImGui::SameLine();
 	ImGui::Spacing();
 	ImGui::SameLine();
@@ -420,7 +435,7 @@ void EntityInspectorLayer::DisplayAddAtmosphericsComponentEntry(const std::strin
 				directionalLight.m_Type = LightType::Directional;
 				m_WorldManager->GetLoadedWorld()->AddComponent(entityId, directionalLight);
 			}
-			
+
 			ImGui::CloseCurrentPopup();
 		}
 	}

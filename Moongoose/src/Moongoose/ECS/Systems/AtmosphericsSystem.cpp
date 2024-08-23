@@ -76,7 +76,7 @@ namespace Moongoose
 
 		m_TransmittanceShader->Bind();
 		m_TransmittanceShader->SetFloat2("resolution", m_TransmittanceBuffer->GetResolution());
-		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_TransmittanceShader->Unbind();
 		m_TransmittanceBuffer->Unbind();
 
@@ -87,7 +87,7 @@ namespace Moongoose
 		m_MultiScatteringShader->Bind();
 		m_MultiScatteringShader->SetFloat2("resolution", m_MultiScatteringBuffer->GetResolution());
 		m_MultiScatteringShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
-		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_MultiScatteringShader->Unbind();
 		m_MultiScatteringBuffer->Unbind();
 	}
@@ -103,7 +103,7 @@ namespace Moongoose
 		m_RaymarchingShader->SetFloat2("resolution", m_RaymarchingBuffer->GetResolution());
 		m_RaymarchingShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		m_RaymarchingShader->BindTexture(1, m_MultiScatteringBuffer->GetColorAttachments()[0]);
-		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_RaymarchingShader->Unbind();
 		m_RaymarchingBuffer->Unbind();
 
@@ -118,7 +118,7 @@ namespace Moongoose
 		m_SkyShader->SetFloat("CameraFar", camera->GetFar());
 		m_SkyShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		m_SkyShader->BindTexture(1, m_RaymarchingBuffer->GetColorAttachments()[0]);
-		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_SkyShader->Unbind();
 		m_SkyBuffer->Unbind();
 	}
@@ -133,7 +133,7 @@ namespace Moongoose
 		bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
 		bgShader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
 		bgShader->DisableFeature(GlFeature::DEPTH_TEST);
-		Renderer::RenderMesh(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		bgShader->Unbind();
 	}
 }

@@ -8,12 +8,18 @@
 #include "RenderCommand.h"
 #include "Moongoose/Core.h"
 #include "PerspectiveCamera.h"
+#include "Moongoose/ECS/Entity.h"
 #include "RenderPass/RenderPass.h"
 
 namespace Moongoose
 {
-	class Framebuffer;
 	class World;
+	class Framebuffer;
+
+	struct BillboardComponent;
+	struct LightComponent;
+	struct MeshComponent;
+	struct TransformComponent;
 
 	class Renderer
 	{
@@ -32,13 +38,17 @@ namespace Moongoose
 		}
 
 		static void RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world);
-		static void RenderMesh(const Ref<VertexArray>& vertexArray);
 
 		static unsigned int GetDrawCount() { return prevDrawCount; }
 		static Ref<Framebuffer> GetRenderBuffer() { return m_LightingPass.GetFramebuffer(); }
 
 	private:
 		static void SetResolution(glm::uvec2 newResolution);
+		static void ProcessMeshComponent(const Entity entity, const TransformComponent& cTransform,
+		                                 const Ref<World>& world);
+		static void ProcessLightComponent(Entity entity, const TransformComponent& cTransform, const Ref<World>& world);
+		static void ProcessBillboardComponent(Entity entity, const TransformComponent& cTransform,
+		                                      const Ref<World>& world);
 
 	private:
 		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = {4096, 4096};
