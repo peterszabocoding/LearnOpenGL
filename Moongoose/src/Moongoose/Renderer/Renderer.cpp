@@ -3,7 +3,6 @@
 
 #include "MeshPrimitives.h"
 #include "RenderCommand.h"
-#include "ShaderManager.h"
 #include "Moongoose/ECS/World.h"
 #include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 #include "Moongoose/Renderer/Framebuffer.h"
@@ -17,6 +16,7 @@ namespace Moongoose
 	LightingPass Renderer::m_LightingPass;
 	GeometryPass Renderer::m_GeometryPass;
 	ShadowMapPass Renderer::m_ShadowMapPass;
+	BillboardPass Renderer::m_BillboardPass;
 
 	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
 	std::vector<PointLight> Renderer::m_PointLights;
@@ -26,8 +26,6 @@ namespace Moongoose
 	std::vector<BillboardCommand> Renderer::m_BillboardRenderCmds;
 
 	unsigned int Renderer::prevDrawCount = 0;
-	unsigned int Renderer::currentDrawCount = 0;
-
 
 	namespace Utils
 	{
@@ -80,8 +78,8 @@ namespace Moongoose
 
 	void Renderer::BeginScene()
 	{
-		prevDrawCount = currentDrawCount;
-		currentDrawCount = 0;
+		prevDrawCount = 0;
+		RenderCommand::ResetCounter();
 
 		m_DirectionalLights.clear();
 		m_PointLights.clear();
@@ -177,12 +175,10 @@ namespace Moongoose
 
 
 		ShadowMapPass::ShadowMapPassData shadowMapPassData = {m_DirectionalLights, m_SpotLights, m_PointLights};
-
 		RenderPassParams shadowMapRenderPassParams = renderPassParams;
 		shadowMapRenderPassParams.additionalData = &shadowMapPassData;
 
 		m_ShadowMapPass.Render(shadowMapRenderPassParams);
-
 
 		LightingPass::LightingPassData lightingPassData =
 		{
@@ -198,6 +194,15 @@ namespace Moongoose
 
 		m_LightingPass.Render(lightingPassRenderPassParams);
 
+		BillboardPass::BillboardPassData billboardPassData;
+		billboardPassData.targetBuffer = m_LightingPass.GetFramebuffer();
+		billboardPassData.billboardCommands = m_BillboardRenderCmds;
+
+		RenderPassParams billboardRenderPassParams = renderPassParams;
+		billboardRenderPassParams.additionalData = &billboardPassData;
+
+		m_BillboardPass.Render(billboardRenderPassParams);
+
 
 		SsrPass::SsrPassData ssrPassData;
 		ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
@@ -208,39 +213,12 @@ namespace Moongoose
 
 		m_SsrPass.Render(ssrRenderPassParams);
 
-
-		for (const auto& cmd : m_BillboardRenderCmds)
-			ExecuteBillboardRenderCommand(camera, cmd);
-
-
+		prevDrawCount = RenderCommand::GetDrawCallCount();
 		EndScene();
 	}
 
 	void Renderer::RenderMesh(const Ref<VertexArray>& vertexArray)
 	{
 		RenderCommand::DrawIndexed(vertexArray);
-		currentDrawCount++;
-	}
-
-	void Renderer::ExecuteBillboardRenderCommand(const Ref<PerspectiveCamera>& camera, const BillboardCommand& cmd)
-	{
-		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
-
-		shader->Bind();
-		shader->EnableFeature(GlFeature::BLEND);
-		shader->SetBlendMode(GlBlendOption::SRC_ALPHA, GlBlendOption::ONE_MINUS_SRC_ALPHA);
-
-		shader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-
-		shader->SetMat4("model", cmd.transform);
-		shader->UploadUniformInt("aEntityID", cmd.id);
-
-		shader->SetFloat3("TintColor", cmd.tintColor);
-		cmd.texture->Bind(0);
-
-		RenderMesh(QuadMeshWorld(cmd.scale).GetSubmeshes()[0]->vertexArray);
-
-		shader->DisableFeature(GlFeature::BLEND);
-		shader->Unbind();
 	}
 }

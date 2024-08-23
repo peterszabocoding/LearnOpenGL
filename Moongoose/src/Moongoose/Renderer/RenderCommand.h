@@ -40,29 +40,38 @@ namespace Moongoose
 	class RenderCommand
 	{
 	public:
-		inline static void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
+		static void SetViewport(const uint32_t x, const uint32_t y, const uint32_t width, const uint32_t height)
 		{
 			s_RendererAPI->SetViewport(x, y, width, height);
 		}
 
-		inline static void SetClearColor(const glm::vec4& color)
+		static void SetClearColor(const glm::vec4& color)
 		{
 			s_RendererAPI->SetClearColor(color);
 		}
 
-		inline static void Clear()
+		static void Clear()
 		{
 			s_RendererAPI->Clear();
 		}
 
-		inline static void DrawIndexed(const Ref<VertexArray>& vertexArray)
+		static void DrawIndexed(const Ref<VertexArray>& vertexArray)
 		{
 			vertexArray->Bind();
 			s_RendererAPI->DrawIndexed(vertexArray);
 			vertexArray->Unbind();
+			drawCount++;
+		}
+
+		static unsigned int GetDrawCallCount() { return drawCount; }
+
+		static void ResetCounter()
+		{
+			drawCount = 0;
 		}
 
 	private:
 		static Scope<RendererAPI> s_RendererAPI;
+		static unsigned int drawCount;
 	};
 }

@@ -35,9 +35,7 @@ namespace Moongoose
 	class GeometryPass : public RenderPass
 	{
 	public:
-		~GeometryPass() override
-		{
-		};
+		~GeometryPass() override = default;
 		virtual void Render(const RenderPassParams& renderPassParams) override;
 		virtual void Resize(const glm::uvec2& resolution) override;
 
@@ -70,12 +68,12 @@ namespace Moongoose
 
 	private:
 		void InitFramebuffer(glm::uvec2 resolution);
-		void AddDirectionalLight(
+		static void AddDirectionalLight(
 			const DirectionalLight& light,
 			const Ref<Shader>& shader,
 			const Ref<Framebuffer>& shadowMapBuffer);
-		void AddSpotLight(size_t index, const Ref<Shader>& shader, const SpotLight& spotLight);
-		void AddPointLight(size_t index, const Ref<Shader>& shader, const PointLight& pointLight);
+		static void AddSpotLight(size_t index, const Ref<Shader>& shader, const SpotLight& spotLight);
+		static void AddPointLight(size_t index, const Ref<Shader>& shader, const PointLight& pointLight);
 
 	private:
 		Ref<Framebuffer> framebuffer;
@@ -93,7 +91,8 @@ namespace Moongoose
 	public:
 		~SsrPass() override
 		{
-		};
+		}
+
 		virtual void Render(const RenderPassParams& renderPassParams) override;
 		virtual void Resize(const glm::uvec2& resolution) override;
 
@@ -135,5 +134,19 @@ namespace Moongoose
 		TextureAtlas m_TextureAtlas;
 		Ref<Framebuffer> m_ShadowBuffer;
 		Ref<Framebuffer> m_PointShadowBuffer;
+	};
+
+	class BillboardPass : public RenderPass
+	{
+	public:
+		struct BillboardPassData
+		{
+			Ref<Framebuffer> targetBuffer;
+			std::vector<BillboardCommand> billboardCommands;
+		};
+
+	public:
+		~BillboardPass() override = default;
+		virtual void Render(const RenderPassParams& renderPassParams) override;
 	};
 }

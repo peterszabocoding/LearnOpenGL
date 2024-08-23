@@ -7,7 +7,7 @@ namespace Moongoose
 {
 	void ShadowMapPass::Render(const RenderPassParams& renderPassParams)
 	{
-		ShadowMapPassData* data = static_cast<ShadowMapPassData*>(renderPassParams.additionalData);
+		const auto data = static_cast<ShadowMapPassData*>(renderPassParams.additionalData);
 
 		if (!m_ShadowBuffer || !m_PointShadowBuffer) InitFramebuffer();
 		m_TextureAtlas.Clear();

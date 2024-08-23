@@ -39,7 +39,6 @@ namespace Moongoose
 
 	private:
 		static void SetResolution(glm::uvec2 newResolution);
-		static void ExecuteBillboardRenderCommand(const Ref<PerspectiveCamera>& camera, const BillboardCommand& cmd);
 
 	private:
 		static constexpr glm::uvec2 SHADOW_BUFFER_RESOLUTION = {4096, 4096};
@@ -55,11 +54,11 @@ namespace Moongoose
 		static std::vector<BillboardCommand> m_BillboardRenderCmds;
 
 		static unsigned int prevDrawCount;
-		static unsigned int currentDrawCount;
 
 		static SsrPass m_SsrPass;
 		static LightingPass m_LightingPass;
 		static GeometryPass m_GeometryPass;
 		static ShadowMapPass m_ShadowMapPass;
+		static BillboardPass m_BillboardPass;
 	};
 }

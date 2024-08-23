@@ -1,8 +1,8 @@
 #include "mgpch.h"
 #include "RenderCommand.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	Scope<RendererAPI> RenderCommand::s_RendererAPI = CreateScope<RendererAPI>();
-
+	unsigned int RenderCommand::drawCount;
 }
