@@ -52,7 +52,7 @@ namespace Moongoose
 		T& GetData(Entity entity)
 		{
 			MG_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(),
-			          "Retrieving non-existent component.")
+			          "Retrieving non-existent component. " + std::to_string(entity))
 
 			// Return a reference to the entity's component
 			return m_ComponentArray[m_EntityToIndexMap[entity]];

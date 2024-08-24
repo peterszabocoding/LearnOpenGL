@@ -2,7 +2,6 @@
 #include "AtmosphericsSystem.h"
 #include "Moongoose/Renderer/FramebufferManager.h"
 #include "Moongoose/Renderer/RenderCommand.h"
-#include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 
@@ -99,7 +98,7 @@ namespace Moongoose
 		RenderCommand::Clear();
 
 		m_RaymarchingShader->Bind();
-		m_RaymarchingShader->SetFloat("u_Time", 10.0f);
+		m_RaymarchingShader->SetFloat("u_Time", 5.0f);
 		m_RaymarchingShader->SetFloat2("resolution", m_RaymarchingBuffer->GetResolution());
 		m_RaymarchingShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
 		m_RaymarchingShader->BindTexture(1, m_MultiScatteringBuffer->GetColorAttachments()[0]);
@@ -111,7 +110,7 @@ namespace Moongoose
 		RenderCommand::SetClearColor(m_SkyBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 		m_SkyShader->Bind();
-		m_SkyShader->SetFloat("u_Time", 10.0f);
+		m_SkyShader->SetFloat("u_Time", 5.0f);
 		m_SkyShader->SetFloat2("resolution", resolution);
 		m_SkyShader->SetFloat3("CameraForward", camera->GetForward());
 		m_SkyShader->SetFloat("CameraFOV", camera->GetFovRad());

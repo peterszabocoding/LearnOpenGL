@@ -20,18 +20,28 @@ void OutlinerLayer::onImGuiRender()
 		return;
 	}
 
-	static size_t itemCurrentIdx = 0;
-	itemCurrentIdx = world->GetSelectedEntity();
 
-	const auto entityCount = world->GetEntityCount();
 	const auto tagComponentArray = world->GetComponentArray<TagComponent>();
 
-	if (ImGui::Button("Add Entity")) world->CreateEntity("New Entity " + std::to_string(++m_NewEntityCounter));
-	ImGui::SameLine();
-	if (ImGui::Button("Delete Entity")) world->DestroyEntity(world->GetSelectedEntity());
+	if (ImGui::Button("Add Entity"))
+	{
+		world->CreateEntity("New Entity " + std::to_string(++m_NewEntityCounter));
+	}
 
+	ImGui::SameLine();
+
+	if (ImGui::Button("Delete Entity"))
+	{
+		world->DestroyEntity(world->GetSelectedEntity());
+	}
+
+
+	static size_t itemCurrentIdx = 0;
+	itemCurrentIdx = world->GetSelectedEntity();
 	if (ImGui::BeginListBox("##hierarchyList", ImGui::GetContentRegionAvail()))
 	{
+		const auto entityCount = world->GetEntityCount();
+		if (itemCurrentIdx >= entityCount) itemCurrentIdx = 0;
 		for (uint32_t n = 0; n < entityCount; n++)
 		{
 			const bool isSelected = (itemCurrentIdx == n);

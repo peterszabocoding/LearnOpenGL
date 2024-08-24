@@ -8,8 +8,8 @@
 #include "Entity.h"
 #include "Components.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	class EntityManager
 	{
 	public:
@@ -27,9 +27,8 @@ namespace Moongoose {
 		uint32_t GetLivingEntityCount() const { return m_LivingEntityCount; }
 
 	private:
-		std::queue<Entity> m_AvailableEntities{};
+		std::deque<Entity> m_AvailableEntities{};
 		uint32_t m_LivingEntityCount{};
 		std::array<Signature, MAX_ENTITIES> m_Signatures{};
 	};
-
 }
