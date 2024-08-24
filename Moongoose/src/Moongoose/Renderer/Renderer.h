@@ -40,7 +40,8 @@ namespace Moongoose
 		static void RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world);
 
 		static unsigned int GetDrawCount() { return prevDrawCount; }
-		static Ref<Framebuffer> GetRenderBuffer() { return m_LightingPass.GetFramebuffer(); }
+		static Ref<Framebuffer> GetRenderBuffer() { return m_SsrPass.GetFramebuffer(); }
+		static int ReadEntityId(uint32_t x, uint32_t y);
 
 	private:
 		static void SetResolution(glm::uvec2 newResolution);
@@ -70,5 +71,6 @@ namespace Moongoose
 		static GeometryPass m_GeometryPass;
 		static ShadowMapPass m_ShadowMapPass;
 		static BillboardPass m_BillboardPass;
+		static BoxBlurPass m_BoxBlurPass;
 	};
 }

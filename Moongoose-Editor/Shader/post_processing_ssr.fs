@@ -41,9 +41,9 @@ float perspectiveDepthToViewZ( const in float depth, const in float near, const 
 void main()
 {
     float maxDistance = 15;
-    float resolution  = 0.15;
+    float resolution  = 0.3;
     int   steps       = 10;
-    float thickness   = 1.5;
+    float thickness   = 0.5;
 
     vec2 texSize = textureSize(gPositionTexture, 0).xy;
     vec2 texCoord = gl_FragCoord.xy / texSize; // == TexCoords
@@ -145,14 +145,8 @@ void main()
     uv.ba = vec2(visibility);
 
     float roughness = 1 - texture(gRoughnessTexture, texCoord).r;
-    float alpha = clamp(uv.b, 0, 1);
-    vec3 reflection = mix(vec3(0), texture(renderTexture, uv.xy).rgb, alpha);
+    vec3 reflection = mix(vec3(0), texture(renderTexture, uv.xy).rgb, uv.b);
 
     vec3 color = mix(renderPixelColor.rgb, mix(renderPixelColor.rgb, reflection, roughness), uv.a);
     FragColor =  vec4(color, 1.0);
-
-    //FragColor = vec4(vec3(map(delta, 0.0, 10.0, 0.0, 1.0) / 1000.0, 0.0, 0.0), 1.0);
-    //FragColor = vec4(vec3(map(delta, -1000.0, 1000.0, 0.0, 1.0), deltaX > 1000 ? 1.0 : 0.0, deltaY > 1000 ? 1.0 : 0.0), 1.0);
-    //FragColor = vec4(vec3(abs(startFrag.x - gl_FragCoord.x) > 0.5 ? 1.0 : 0.0 ), 1.0);
-    //FragColor = vec4(vec3(texture(gDepthTexture, TexCoords).r), 1.0);
 }

@@ -50,6 +50,14 @@ namespace Moongoose
 			drawCount++;
 		}
 
+		static void DrawIndexedStrip(const Ref<VertexArray>& vertexArray)
+		{
+			vertexArray->Bind();
+			s_RendererAPI->DrawIndexedStrip(vertexArray);
+			vertexArray->Unbind();
+			drawCount++;
+		}
+
 		static unsigned int GetDrawCallCount() { return drawCount; }
 
 		static void ResetCounter()

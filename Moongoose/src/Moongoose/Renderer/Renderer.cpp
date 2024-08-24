@@ -18,6 +18,7 @@ namespace Moongoose
 	GeometryPass Renderer::m_GeometryPass;
 	ShadowMapPass Renderer::m_ShadowMapPass;
 	BillboardPass Renderer::m_BillboardPass;
+	BoxBlurPass Renderer::m_BoxBlurPass;
 
 	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
 	std::vector<PointLight> Renderer::m_PointLights;
@@ -90,6 +91,14 @@ namespace Moongoose
 		m_BillboardRenderCmds.clear();
 	}
 
+	int Renderer::ReadEntityId(const uint32_t x, const uint32_t y)
+	{
+		m_LightingPass.GetFramebuffer()->Bind();
+		const int entityId = m_LightingPass.GetFramebuffer()->ReadPixel(1, x, y);
+		m_LightingPass.GetFramebuffer()->Unbind();
+		return entityId;
+	}
+
 	void Renderer::SetResolution(const glm::uvec2 newResolution)
 	{
 		if (newResolution == m_Resolution) return;
@@ -108,9 +117,10 @@ namespace Moongoose
 		world->GetSystem<AtmosphericsSystem>()->Update(camera, m_Resolution);
 
 		const auto transformComponentArray = world->GetComponentArray<TransformComponent>();
-		for (size_t i = 0; i < transformComponentArray->m_Size; i++)
+
+		for (Entity entity = 0; entity < world->GetEntityCount(); entity++)
 		{
-			const Entity entity = transformComponentArray->m_IndexToEntityMap[i];
+			//const Entity entity = transformComponentArray->m_IndexToEntityMap[i];
 			auto cTransform = transformComponentArray->GetData(entity);
 
 			ProcessMeshComponent(entity, cTransform, world);
@@ -175,6 +185,19 @@ namespace Moongoose
 			m_SsrPass.Render(ssrRenderPassParams);
 		}
 
+		/*
+		{
+			BoxBlurPass::BoxBlurPassData boxBlurPassData;
+			boxBlurPassData.targetBuffer = m_SsrPass.GetFramebuffer();
+			boxBlurPassData.colorTexture = m_SsrPass.GetFramebuffer()->GetColorAttachments()[0];
+
+			RenderPassParams boxBlurPassRenderParams = renderPassParams;
+			boxBlurPassRenderParams.additionalData = &boxBlurPassData;
+
+			m_BoxBlurPass.Render(boxBlurPassRenderParams);
+		}
+		*/
+
 		prevDrawCount = RenderCommand::GetDrawCallCount();
 		EndScene();
 	}
@@ -187,7 +210,6 @@ namespace Moongoose
 
 		const auto cMesh = meshComponentArray->GetData(entity);
 		if (!cMesh.m_Mesh) return;
-
 
 		for (const Ref<SubMesh>& submesh : cMesh.m_Mesh->GetSubmeshes())
 		{
@@ -204,8 +226,10 @@ namespace Moongoose
 		}
 	}
 
-	void Renderer::ProcessLightComponent(const Entity entity, const TransformComponent& cTransform,
-	                                     const Ref<World>& world)
+	void Renderer::ProcessLightComponent(
+		const Entity entity,
+		const TransformComponent& cTransform,
+		const Ref<World>& world)
 	{
 		const auto lightComponentArray = world->GetComponentArray<LightComponent>();
 		if (!lightComponentArray->HasData(entity)) return;
@@ -233,7 +257,6 @@ namespace Moongoose
 
 		const auto cBillboard = billboardComponentArray->GetData(entity);
 		if (!cBillboard.billboardTexture) return;
-
 
 		BillboardCommand cmd;
 		cmd.id = entity;

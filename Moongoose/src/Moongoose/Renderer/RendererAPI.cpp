@@ -3,8 +3,8 @@
 #include "RendererAPI.h"
 #include  <Glad/glad.h>
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	void RendererAPI::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 	{
 		glViewport(x, y, width, height);
@@ -25,9 +25,12 @@ namespace Moongoose {
 		glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 	}
 
-	void RendererAPI::DrawShadowMap(const Ref<VertexArray>& vertexArray)
+	void RendererAPI::DrawIndexedStrip(const Ref<VertexArray>& vertexArray)
 	{
-
+		glDrawElements(GL_TRIANGLE_STRIP, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 	}
 
+	void RendererAPI::DrawShadowMap(const Ref<VertexArray>& vertexArray)
+	{
+	}
 }

@@ -149,4 +149,45 @@ namespace Moongoose
 		~BillboardPass() override = default;
 		virtual void Render(const RenderPassParams& renderPassParams) override;
 	};
+
+	class BoxBlurPass : public RenderPass
+	{
+	public:
+		struct BoxBlurPassData
+		{
+			Ref<Framebuffer> targetBuffer;
+			uint32_t colorTexture;
+		};
+
+	public:
+		~BoxBlurPass() override = default;
+		virtual void Render(const RenderPassParams& renderPassParams) override;
+	};
+
+	class SkyPass : public RenderPass
+	{
+	public:
+		struct SkyPassData
+		{
+			Ref<Framebuffer> targetBuffer;
+		};
+
+	public:
+		SkyPass();
+		~SkyPass() override = default;
+		virtual void Render(const RenderPassParams& renderPassParams) override;
+
+	private:
+		bool initialized;
+
+		Ref<Framebuffer> m_TransmittanceBuffer;
+		Ref<Framebuffer> m_MultiScatteringBuffer;
+		Ref<Framebuffer> m_RaymarchingBuffer;
+		Ref<Framebuffer> m_SkyBuffer;
+
+		Ref<Shader> m_TransmittanceShader;
+		Ref<Shader> m_MultiScatteringShader;
+		Ref<Shader> m_RaymarchingShader;
+		Ref<Shader> m_SkyShader;
+	};
 }

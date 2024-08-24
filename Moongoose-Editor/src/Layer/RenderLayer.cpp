@@ -26,7 +26,7 @@ void RenderLayer::CalculateWindowMousePosition()
 	my -= m_ViewportBounds[0].y;
 	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 	my = viewportSize.y - my;
-	m_WindowMousePos = { mx, my };
+	m_WindowMousePos = {mx, my};
 }
 
 void RenderLayer::onUpdate(const float deltaTime)
@@ -66,7 +66,7 @@ void RenderLayer::onImGuiRender()
 	ImVec2 windowSize = ImGui::GetContentRegionAvail();
 	if (windowSize.x != m_WindowSize.x || windowSize.y != m_WindowSize.y)
 	{
-		m_WindowSize = { windowSize.x, windowSize.y };
+		m_WindowSize = {windowSize.x, windowSize.y};
 		m_EditorCamera->SetRenderResolution(m_WindowSize.x, m_WindowSize.y);
 	}
 
@@ -74,15 +74,15 @@ void RenderLayer::onImGuiRender()
 	const ImVec2 viewportMaxRegion = ImGui::GetWindowContentRegionMax();
 	const ImVec2 viewportOffset = ImGui::GetWindowPos();
 
-	m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-	m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+	m_ViewportBounds[0] = {viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y};
+	m_ViewportBounds[1] = {viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y};
 
 	if (Renderer::GetRenderBuffer())
 	{
 		ImGui::Image((void*)Renderer::GetRenderBuffer()->GetColorAttachments()[0],
-			windowSize,
-			ImVec2(0, 1),
-			ImVec2(1, 0));
+		             windowSize,
+		             ImVec2(0, 1),
+		             ImVec2(1, 0));
 
 		RenderGizmo();
 		RenderDebugInfo(viewportMinRegion.x, viewportMinRegion.y);
@@ -96,7 +96,7 @@ void RenderLayer::CreateCamera()
 	PerspectiveCamera::Params params;
 	params.renderWidth = m_WindowSize.x;
 	params.renderHeight = m_WindowSize.y;
-	params.startPosition = { 0.0f, 0.0f, 5.0f };
+	params.startPosition = {0.0f, 0.0f, 5.0f};
 	m_EditorCamera = CreateRef<PerspectiveCamera>(params);
 }
 
@@ -123,7 +123,9 @@ void RenderLayer::RenderToolbarMenu() const
 			}
 
 			ImGui::Separator();
-			if (ImGui::MenuItem("Quit", nullptr)) {}
+			if (ImGui::MenuItem("Quit", nullptr))
+			{
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
@@ -173,15 +175,15 @@ void RenderLayer::RenderGizmo() const
 void RenderLayer::RenderDebugInfo(const float posX, const float posY) const
 {
 	constexpr float debugMargin = 15.0f;
-	ImGui::SetCursorPos({ posX + debugMargin, posY + debugMargin });
+	ImGui::SetCursorPos({posX + debugMargin, posY + debugMargin});
 
 	ImGui::SetCursorPos(ImGui::GetCursorPos());
 	ImGui::Text("Hovered entity: %d", m_HoveredEntityId);
-	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
+	ImGui::SetCursorPos({ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y});
 	ImGui::Text("Mouse: X: %f Y: %f", m_WindowMousePos.x, m_WindowMousePos.y);
-	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
+	ImGui::SetCursorPos({ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y});
 	ImGui::Text("Is mouse inside window: %s", IsMouseInWindow() ? "True" : "False");
-	ImGui::SetCursorPos({ ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y });
+	ImGui::SetCursorPos({ImGui::GetCursorPos().x + debugMargin, ImGui::GetCursorPos().y});
 	ImGui::Text("Draw call count: %d", Renderer::GetDrawCount());
 }
 
@@ -210,8 +212,8 @@ bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 	if (event.getKeyCode() == MG_KEY_GRAVE_ACCENT)
 	{
 		m_GizmoTransformMode = m_GizmoTransformMode == ImGuizmo::MODE::LOCAL
-		? ImGuizmo::MODE::WORLD
-		: ImGuizmo::MODE::LOCAL;
+			                       ? ImGuizmo::MODE::WORLD
+			                       : ImGuizmo::MODE::LOCAL;
 		return false;
 	}
 
@@ -226,13 +228,11 @@ bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 
 bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 {
-	const bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(MG_KEY_LEFT_SHIFT);
+	const bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(
+		MG_KEY_LEFT_SHIFT);
 	if (m_WorldManager->GetLoadedWorld() && IsMouseInWindow() && entitySelectButtonsPressed)
 	{
-		Renderer::GetRenderBuffer()->Bind();
-		m_HoveredEntityId = Renderer::GetRenderBuffer()->ReadPixel(1, m_WindowMousePos.x, m_WindowMousePos.y);
-		Renderer::GetRenderBuffer()->Unbind();
-
+		m_HoveredEntityId = Renderer::ReadEntityId(m_WindowMousePos.x, m_WindowMousePos.y);
 		m_WorldManager->GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
 	}
 	return false;
@@ -241,5 +241,6 @@ bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 bool RenderLayer::IsMouseInWindow() const
 {
 	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
-	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < (int)viewportSize.x && m_WindowMousePos.y < (int)viewportSize.y;
+	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < (int)viewportSize.x &&
+		m_WindowMousePos.y < (int)viewportSize.y;
 }

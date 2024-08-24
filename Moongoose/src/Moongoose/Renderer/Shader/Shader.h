@@ -10,10 +10,12 @@
 
 #include "Moongoose/Log.h"
 
-namespace Moongoose {
-
-	enum class ShaderType : uint32_t {
-		STATIC = 0,
+namespace Moongoose
+{
+	enum class ShaderType : uint32_t
+	{
+		NONE = 0,
+		STATIC,
 		LIGHTING,
 		STATIC_ALPHA,
 		SHADOW_MAP_DIRECTIONAL,
@@ -28,10 +30,12 @@ namespace Moongoose {
 		BILLBOARD,
 		ATMOSPHERE,
 		GBUFFER,
-		POST_PROCESS_SSR
+		POST_PROCESS_SSR,
+		POST_PROCESS_BOX_BLUR,
 	};
 
-	enum class PolygonMode : uint8_t {
+	enum class PolygonMode : uint8_t
+	{
 		FILL = 0,
 		WIREFRAME
 	};
@@ -54,7 +58,8 @@ namespace Moongoose {
 		ONE_MINUS_SRC_ALPHA = GL_ONE_MINUS_SRC_ALPHA
 	};
 
-	struct UniformDirectionalLight {
+	struct UniformDirectionalLight
+	{
 		unsigned int uniformColor;
 		unsigned int uniformIntensity;
 		unsigned int uniformDirection;
@@ -62,7 +67,8 @@ namespace Moongoose {
 		bool uniformUseSoftShadow;
 	};
 
-	struct UniformPointLight {
+	struct UniformPointLight
+	{
 		unsigned int uniformColor;
 		unsigned int uniformIntensity;
 		bool uniformIsShadowCasting;
@@ -71,7 +77,8 @@ namespace Moongoose {
 		unsigned int uniformPosition;
 	};
 
-	struct UniformSpotLight {
+	struct UniformSpotLight
+	{
 		unsigned int uniformColor;
 		unsigned int uniformIntensity;
 		bool uniformIsShadowCasting;
@@ -82,37 +89,39 @@ namespace Moongoose {
 		unsigned int uniformAttenuationAngle;
 	};
 
-	namespace Utils {
-		static std::string GetShaderTypeString(ShaderType type) {
-			switch (type) {
-				case ShaderType::STATIC:					return "STATIC";
-				case ShaderType::STATIC_ALPHA:				return "STATIC_ALPHA";
-				case ShaderType::LIGHTING:					return "LIGHTING";
-				case ShaderType::SHADOW_MAP_DIRECTIONAL:	return "SHADOW_MAP_DIRECTIONAL";
-				case ShaderType::SHADOW_MAP_POINT:			return "SHADOW_MAP_POINT";
-				case ShaderType::SHADOW_MAP_ALPHA:			return "SHADOW_MAP_ALPHA";
-				case ShaderType::EQUIRECTANGULAR_TO_CUBE:	return "EQUIRECTANGULAR_TO_CUBE";
-				case ShaderType::IRRADIANCE_MAP:			return "IRRADIANCE_MAP";
-				case ShaderType::BACKGROUND:				return "BACKGROUND";
-				case ShaderType::PREFILTER:					return "PREFILTER";
-				case ShaderType::BRDF:						return "BRDF";
-				case ShaderType::BILLBOARD:					return "BILLBOARD";
-				case ShaderType::ATMOSPHERE:				return "ATMOSPHERE";
+	namespace Utils
+	{
+		static std::string GetShaderTypeString(ShaderType type)
+		{
+			switch (type)
+			{
+			case ShaderType::STATIC: return "STATIC";
+			case ShaderType::STATIC_ALPHA: return "STATIC_ALPHA";
+			case ShaderType::LIGHTING: return "LIGHTING";
+			case ShaderType::SHADOW_MAP_DIRECTIONAL: return "SHADOW_MAP_DIRECTIONAL";
+			case ShaderType::SHADOW_MAP_POINT: return "SHADOW_MAP_POINT";
+			case ShaderType::SHADOW_MAP_ALPHA: return "SHADOW_MAP_ALPHA";
+			case ShaderType::EQUIRECTANGULAR_TO_CUBE: return "EQUIRECTANGULAR_TO_CUBE";
+			case ShaderType::IRRADIANCE_MAP: return "IRRADIANCE_MAP";
+			case ShaderType::BACKGROUND: return "BACKGROUND";
+			case ShaderType::PREFILTER: return "PREFILTER";
+			case ShaderType::BRDF: return "BRDF";
+			case ShaderType::BILLBOARD: return "BILLBOARD";
+			case ShaderType::ATMOSPHERE: return "ATMOSPHERE";
 			}
 		}
 	}
 
 	class Shader
 	{
-
 	public:
-		Shader(ShaderType type, 
-			const std::string& vertexShaderLocation, 
-			const std::string& fragmentShaderLocation);
-		Shader(ShaderType type, 
-			const std::string& vertexShaderLocation, 
-			const std::string& fragmentShaderLocation, 
-			const std::string& geometryShaderLocation);
+		Shader(ShaderType type,
+		       const std::string& vertexShaderLocation,
+		       const std::string& fragmentShaderLocation);
+		Shader(ShaderType type,
+		       const std::string& vertexShaderLocation,
+		       const std::string& fragmentShaderLocation,
+		       const std::string& geometryShaderLocation);
 		virtual ~Shader();
 		void ClearShader();
 
