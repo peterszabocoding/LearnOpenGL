@@ -1,43 +1,83 @@
 #version 450
 
+// ------------------------------------------------------------------
+// DEFINES ----------------------------------------------------------
+// ------------------------------------------------------------------
+
+#define PI 3.14159265358
+
 // Units are in megameters.
-const float groundRadiusMM = 6.360;
-const float atmosphereRadiusMM = 6.460;
+#define GROUND_RADIOUS_MM 6.360
+#define ATMOSPHERE_RADIOUS_MM 6.460
+
+#define RAYLEIGH_SCATTERING_BASE vec3(5.802, 13.558, 33.1)
+#define RAYLEIGH_ABSORPTION_BASE 0.0
+
+#define MIE_SCATTERING_BASE 3.996
+#define MIE_ABSORPTION_BASE 4.4
+
+#define OZONE_ABSORPTION_BASE vec3(0.650, 1.881, .085)
+
+// ------------------------------------------------------------------
+// CONSTANTS --------------------------------------------------------
+// ------------------------------------------------------------------
 
 const vec2 tLUTRes = vec2(256.0, 64.0);
 
-// These are per megameter.
-const vec3 rayleighScatteringBase = vec3(5.802, 13.558, 33.1);
-const float rayleighAbsorptionBase = 0.0;
+// Buffer A generates the Transmittance LUT. Each pixel coordinate corresponds to a height and sun zenith angle, and
+// the value is the transmittance from that point to sun, through the atmosphere.
+const float sunTransmittanceSteps = 40.0;
 
-const float mieScatteringBase = 3.996;
-const float mieAbsorptionBase = 4.4;
+// ------------------------------------------------------------------
+// INPUT VARIABLES --------------------------------------------------
+// ------------------------------------------------------------------
 
-const vec3 ozoneAbsorptionBase = vec3(0.650, 1.881, .085);
+in vec2 TexCoords;
+
+// ------------------------------------------------------------------
+// OUTPUT VARIABLES -------------------------------------------------
+// ------------------------------------------------------------------
+
+layout (location = 0) out vec4 bTransmittance;
+
+// ------------------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
+// ------------------------------------------------------------------
+
+uniform vec2 resolution;
+
+// ------------------------------------------------------------------
+// FUNCTIONS --------------------------------------------------------
+// ------------------------------------------------------------------
 
 void getScatteringValues(vec3 pos, 
                          out vec3 rayleighScattering, 
                          out float mieScattering,
                          out vec3 extinction) {
-    float altitudeKM = (length(pos)-groundRadiusMM)*1000.0;
+    float altitudeKM = (length(pos)-GROUND_RADIOUS_MM) * 1000.0;
+
     // Note: Paper gets these switched up.
     float rayleighDensity = exp(-altitudeKM/8.0);
     float mieDensity = exp(-altitudeKM/1.2);
     
-    rayleighScattering = rayleighScatteringBase*rayleighDensity;
-    float rayleighAbsorption = rayleighAbsorptionBase*rayleighDensity;
+    rayleighScattering = RAYLEIGH_SCATTERING_BASE * rayleighDensity;
+    float rayleighAbsorption = RAYLEIGH_ABSORPTION_BASE * rayleighDensity;
     
-    mieScattering = mieScatteringBase*mieDensity;
-    float mieAbsorption = mieAbsorptionBase*mieDensity;
+    mieScattering = MIE_SCATTERING_BASE * mieDensity;
+    float mieAbsorption = MIE_ABSORPTION_BASE * mieDensity;
     
-    vec3 ozoneAbsorption = ozoneAbsorptionBase*max(0.0, 1.0 - abs(altitudeKM-25.0)/15.0);
+    vec3 ozoneAbsorption = OZONE_ABSORPTION_BASE * max(0.0, 1.0 - abs(altitudeKM-25.0)/15.0);
     
     extinction = rayleighScattering + rayleighAbsorption + mieScattering + mieAbsorption + ozoneAbsorption;
 }
 
+// ------------------------------------------------------------------
+
 float safeacos(const float x) {
     return acos(clamp(x, -1.0, 1.0));
 }
+
+// ------------------------------------------------------------------
 
 // From https://gamedev.stackexchange.com/questions/96459/fast-ray-sphere-collision-code.
 float rayIntersectSphere(vec3 ro, vec3 rd, float rad) {
@@ -53,16 +93,14 @@ float rayIntersectSphere(vec3 ro, vec3 rd, float rad) {
     return -b - sqrt(discr);
 }
 
-// Buffer A generates the Transmittance LUT. Each pixel coordinate corresponds to a height and sun zenith angle, and
-// the value is the transmittance from that point to sun, through the atmosphere.
-const float sunTransmittanceSteps = 40.0;
+// ------------------------------------------------------------------
 
 vec3 getSunTransmittance(vec3 pos, vec3 sunDir) {
-    if (rayIntersectSphere(pos, sunDir, groundRadiusMM) > 0.0) {
+    if (rayIntersectSphere(pos, sunDir, GROUND_RADIOUS_MM) > 0.0) {
         return vec3(0.0);
     }
     
-    float atmoDist = rayIntersectSphere(pos, sunDir, atmosphereRadiusMM);
+    float atmoDist = rayIntersectSphere(pos, sunDir, ATMOSPHERE_RADIOUS_MM);
     float t = 0.0;
     
     vec3 transmittance = vec3(1.0);
@@ -82,10 +120,7 @@ vec3 getSunTransmittance(vec3 pos, vec3 sunDir) {
     return transmittance;
 }
 
-in vec2 TexCoords;
-uniform vec2 resolution;
-
-layout (location = 0) out vec4 bTransmittance;
+// ------------------------------------------------------------------
 
 void main()
 {
@@ -99,7 +134,7 @@ void main()
     
     float sunCosTheta = 2.0 * u - 1.0;
     float sunTheta = safeacos(sunCosTheta);
-    float height = mix(groundRadiusMM, atmosphereRadiusMM, v);
+    float height = mix(GROUND_RADIOUS_MM, ATMOSPHERE_RADIOUS_MM, v);
     
     vec3 pos = vec3(0.0, height, 0.0); 
     vec3 sunDir = normalize(vec3(0.0, sunCosTheta, -sin(sunTheta)));

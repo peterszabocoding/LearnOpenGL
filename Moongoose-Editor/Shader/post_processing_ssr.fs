@@ -3,21 +3,40 @@
 
 #version 450
 
+// ------------------------------------------------------------------
+// INPUT VARIABLES --------------------------------------------------
+// ------------------------------------------------------------------
+
+in vec2 TexCoords;
+
+// ------------------------------------------------------------------
+// OUTPUT VARIABLES -------------------------------------------------
+// ------------------------------------------------------------------
+
+out vec4 FragColor;
+
+// ------------------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
+// ------------------------------------------------------------------
+
 layout(binding = 0) uniform sampler2D renderTexture;
 layout(binding = 1) uniform sampler2D gPositionTexture;
 layout(binding = 2) uniform sampler2D gNormalTexture;
 layout(binding = 3) uniform sampler2D gRoughnessTexture;
 layout(binding = 4) uniform sampler2D gDepthTexture;
 
-in vec2 TexCoords;
-out vec4 FragColor;
-
 uniform mat4 projection;
 uniform mat4 view;
+
+// ------------------------------------------------------------------
+// FUNCTIONS --------------------------------------------------------
+// ------------------------------------------------------------------
 
 float map(float value, float min1, float max1, float min2, float max2) {
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
+
+// ------------------------------------------------------------------
 
 vec4 viewToUV(vec4 point, mat4 projection, vec2 textureSize)
 {
@@ -33,10 +52,14 @@ vec4 viewToUV(vec4 point, mat4 projection, vec2 textureSize)
     return point;
 }
 
+// ------------------------------------------------------------------
+
 float perspectiveDepthToViewZ( const in float depth, const in float near, const in float far ) {
 	// maps perspective depth in [ 0, 1 ] to viewZ
 	return ( near * far ) / ( ( far - near ) * depth - far );
 }
+
+// ------------------------------------------------------------------
 
 void main()
 {
@@ -53,10 +76,8 @@ void main()
     vec4 positionFrom = texture(gPositionTexture, texCoord);
     vec3 unitPositionFrom = normalize(positionFrom.xyz);
 
-
     vec3 viewSpaceNormal = normalize(texture(gNormalTexture, texCoord).xyz);
     vec3 pivot = normalize(reflect(unitPositionFrom, viewSpaceNormal));
-
 
     vec4 positionTo = positionFrom;
     vec4 startView = vec4(positionFrom.xyz, 1);
@@ -64,8 +85,6 @@ void main()
 
     vec4 startFrag = gl_FragCoord;
     vec4 endFrag = viewToUV(endView, projection, texSize);
-
-
 
     vec2 frag = startFrag.xy;
     uv.xy = frag / texSize;

@@ -1,15 +1,49 @@
 #version 450
 
-const float PI = 3.14159265358;
+// ------------------------------------------------------------------
+// DEFINES ----------------------------------------------------------
+// ------------------------------------------------------------------
+
+#define PI 3.14159265358
 
 // Units are in megameters.
-const float groundRadiusMM = 6.360;
-const float atmosphereRadiusMM = 6.460;
+#define GROUND_RADIOUS_MM 6.360
+#define ATMOSPHERE_RADIOUS_MM 6.460
+
+// ------------------------------------------------------------------
+// VARIABLES --------------------------------------------------------
+// ------------------------------------------------------------------
 
 // 200M above the ground.
-const vec3 viewPos = vec3(0.0, groundRadiusMM + 0.0002, 0.0);
+const vec3 viewPos = vec3(0.0, GROUND_RADIOUS_MM + 0.0002, 0.0);
 const vec2 tLUTRes = vec2(256.0, 64.0);
 const vec2 skyLUTRes = vec2(200.0, 200.0);
+
+// ------------------------------------------------------------------
+// INPUT VARIABLES --------------------------------------------------
+// ------------------------------------------------------------------
+
+in vec3 FragPos;
+in vec3 EyePosition;
+in vec2 TexCoords;
+
+// ------------------------------------------------------------------
+// OUTPUT VARIABLES --------------------------------------------------
+// ------------------------------------------------------------------
+
+layout (location = 0) out vec4 bSky;
+
+// ------------------------------------------------------------------
+// UNIFORMS ---------------------------------------------------------
+// ------------------------------------------------------------------
+
+layout(binding = 0) uniform sampler2D TransmittanceLUT;
+layout(binding = 1) uniform sampler2D RaymarchingLUT;
+uniform vec3 CameraForward;
+uniform float CameraFOV;
+uniform float CameraNear;
+uniform float u_Time;
+uniform vec2 resolution;
 
 /*
  * Animates the sun movement.
@@ -46,8 +80,6 @@ float rayIntersectSphere(vec3 ro, vec3 rd, float rad) {
     return -b - sqrt(discr);
 }
 
-uniform vec2 resolution;
-
 /*
  * Same parameterization here.
  */
@@ -56,7 +88,7 @@ vec3 getValFromTLUT(sampler2D tex, vec2 bufferRes, vec3 pos, vec3 sunDir) {
     vec3 up = pos / height;
 	float sunCosZenithAngle = dot(sunDir, up);
     vec2 uv = vec2(tLUTRes.x * clamp(0.5 + 0.5 * sunCosZenithAngle, 0.0, 1.0),
-                   tLUTRes.y * max(0.0, min(1.0, (height - groundRadiusMM) / (atmosphereRadiusMM - groundRadiusMM))));
+                   tLUTRes.y * max(0.0, min(1.0, (height - GROUND_RADIOUS_MM) / (ATMOSPHERE_RADIOUS_MM - GROUND_RADIOUS_MM))));
     uv /= bufferRes;
     return texture(tex, uv).rgb;
 }
@@ -87,14 +119,11 @@ vec3 getValFromTLUT(sampler2D tex, vec2 bufferRes, vec3 pos, vec3 sunDir) {
  * does some tonemapping.
  */
 
-layout(binding = 0) uniform sampler2D TransmittanceLUT;
-layout(binding = 1) uniform sampler2D RaymarchingLUT;
-
 vec3 getValFromSkyLUT(vec3 rayDir, vec3 sunDir) {
     float height = length(viewPos);
     vec3 up = viewPos / height;
     
-    float horizonAngle = safeacos(sqrt(height * height - groundRadiusMM * groundRadiusMM) / height);
+    float horizonAngle = safeacos(sqrt(height * height - GROUND_RADIOUS_MM * GROUND_RADIOUS_MM) / height);
     float altitudeAngle = horizonAngle - acos(dot(rayDir, up)); // Between -PI/2 and PI/2
     float azimuthAngle; // Between 0 and 2*PI
     if (abs(altitudeAngle) > (0.5*PI - .0001)) {
@@ -139,16 +168,6 @@ vec3 sunWithBloom(vec3 rayDir, vec3 sunDir) {
     return vec3(gaussianBloom+invBloom);
 }
 
-in vec3 FragPos;
-in vec3 EyePosition;
-in vec2 TexCoords;
-uniform vec3 CameraForward;
-uniform float CameraFOV;
-uniform float CameraNear;
-uniform float u_Time;
-
-layout (location = 0) out vec4 bSky;
-
 void main()
 {
     vec3 sunDir = getSunDir(u_Time);
@@ -170,7 +189,7 @@ void main()
     // Use smoothstep to limit the effect, so it drops off to actual zero.
     sunLum = smoothstep(0.002, 1.0, sunLum);
     if (length(sunLum) > 0.0) {
-        if (rayIntersectSphere(viewPos, rayDir, groundRadiusMM) >= 0.0) {
+        if (rayIntersectSphere(viewPos, rayDir, GROUND_RADIOUS_MM) >= 0.0) {
             sunLum *= 0.0;
         } else {
             // If the sun value is applied to this pixel, we need to calculate the transmittance to obscure it.

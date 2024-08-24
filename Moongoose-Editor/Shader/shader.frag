@@ -1,7 +1,16 @@
 #version 450
 
-const int MAX_POINT_LIGHTS = 10;
-const int MAX_SPOT_LIGHTS = 10;
+// ------------------------------------------------------------------
+// DEFINES  ---------------------------------------------------------
+// ------------------------------------------------------------------ 
+
+#define MAX_POINT_LIGHTS 10
+#define MAX_SPOT_LIGHTS 10
+#define PI 3.14159265359
+
+// ------------------------------------------------------------------
+// INPUT VARIABLES  -------------------------------------------------
+// ------------------------------------------------------------------
 
 in vec4 WorldPos;
 in vec3 FragPos;
@@ -11,16 +20,16 @@ in vec3 EyePosition;
 in mat3 TBN;
 in flat int EntityID;
 
+// ------------------------------------------------------------------
+// OUTPUT VARIABLES  ------------------------------------------------
+// ------------------------------------------------------------------
+
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out int oEntityID;
 
-layout(binding = 0) uniform sampler2D AlbedoTexture;
-layout(binding = 1) uniform sampler2D NormalTexture;
-layout(binding = 2) uniform sampler2D MetallicTexture;
-layout(binding = 3) uniform sampler2D RoughnessTexture;
-
-layout(binding = 4) uniform sampler2DShadow ShadowMapTexture;
-layout(binding = 5) uniform samplerCube PointLightShadowMap;
+// ------------------------------------------------------------------
+// STRUCTS  ---------------------------------------------------------
+// ------------------------------------------------------------------
 
 struct Light {
 	vec3 color;
@@ -65,6 +74,18 @@ struct Material {
 	int useMetallicTexture;
 };
 
+// ------------------------------------------------------------------
+// UNIFORMS  --------------------------------------------------------
+// ------------------------------------------------------------------
+
+layout(binding = 0) uniform sampler2D AlbedoTexture;
+layout(binding = 1) uniform sampler2D NormalTexture;
+layout(binding = 2) uniform sampler2D MetallicTexture;
+layout(binding = 3) uniform sampler2D RoughnessTexture;
+
+layout(binding = 4) uniform sampler2DShadow ShadowMapTexture;
+layout(binding = 5) uniform samplerCube PointLightShadowMap;
+
 uniform int pointLightCount;
 uniform int spotLightCount;
 
@@ -73,9 +94,11 @@ uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
 uniform Material material;
 
+// ------------------------------------------------------------------
+// VARIABLES  -------------------------------------------------------
+// ------------------------------------------------------------------
+
 vec2 shadowMapTextureSize;
-
-
 vec3 sampleOffsetDirections[20] = vec3[]
 (
    vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
@@ -85,9 +108,9 @@ vec3 sampleOffsetDirections[20] = vec3[]
    vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 ); 
 
-
-const float PI = 3.14159265359;
-// ----------------------------------------------------------------------------
+// ------------------------------------------------------------------
+// FUNCTIONS  -------------------------------------------------------
+// ------------------------------------------------------------------
 
 float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a = roughness*roughness;

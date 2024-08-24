@@ -3,7 +3,6 @@ out vec4 FragColor;
 
 uniform float nearPlane;
 uniform float farPlane;
-uniform 
 
 float LinearizeDepth(float depth)
 {
