@@ -56,27 +56,22 @@ namespace Moongoose
 			std::vector<DirectionalLight>& directionalLights;
 			std::vector<SpotLight>& spotLights;
 			std::vector<PointLight>& pointLights;
+
+			Ref<Framebuffer> targetBuffer;
 		};
 
 	public:
 		~LightingPass() override = default;
 
 		virtual void Render(const RenderPassParams& renderPassParams) override;
-		virtual void Resize(const glm::uvec2& resolution) override;
-
-		Ref<Framebuffer> GetFramebuffer() const { return framebuffer; }
 
 	private:
-		void InitFramebuffer(glm::uvec2 resolution);
 		static void AddDirectionalLight(
 			const DirectionalLight& light,
 			const Ref<Shader>& shader,
 			const Ref<Framebuffer>& shadowMapBuffer);
 		static void AddSpotLight(size_t index, const Ref<Shader>& shader, const SpotLight& spotLight);
 		static void AddPointLight(size_t index, const Ref<Shader>& shader, const PointLight& pointLight);
-
-	private:
-		Ref<Framebuffer> framebuffer;
 	};
 
 	class SsrPass : public RenderPass
@@ -170,12 +165,15 @@ namespace Moongoose
 		struct SkyPassData
 		{
 			Ref<Framebuffer> targetBuffer;
+			float time;
 		};
 
 	public:
-		SkyPass();
 		~SkyPass() override = default;
 		virtual void Render(const RenderPassParams& renderPassParams) override;
+
+	private:
+		void Init();
 
 	private:
 		bool initialized;

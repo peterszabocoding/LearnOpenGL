@@ -66,11 +66,14 @@ namespace Moongoose
 
 		static unsigned int prevDrawCount;
 
+		static Ref<Framebuffer> m_RenderBuffer;
+
 		static SsrPass m_SsrPass;
 		static LightingPass m_LightingPass;
 		static GeometryPass m_GeometryPass;
 		static ShadowMapPass m_ShadowMapPass;
 		static BillboardPass m_BillboardPass;
 		static BoxBlurPass m_BoxBlurPass;
+		static SkyPass m_SkyPass;
 	};
 }

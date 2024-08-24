@@ -1,7 +1,6 @@
 #include "mgpch.h"
 #include "RenderPass.h"
 
-#include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 #include "Moongoose/Renderer/FramebufferManager.h"
 #include "Moongoose/Renderer/Renderer.h"
 #include "Moongoose/Renderer/ShaderManager.h"
@@ -12,15 +11,7 @@ namespace Moongoose
 	{
 		const LightingPassData* data = static_cast<LightingPassData*>(renderPassParams.additionalData);
 
-		if (!framebuffer) InitFramebuffer(renderPassParams.camera->GetResolution());
-
-		framebuffer->Bind();
-		RenderCommand::SetClearColor(framebuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-
-		renderPassParams.world->GetSystem<AtmosphericsSystem>()->Run(renderPassParams.camera);
-
-		framebuffer->ClearAttachment(1, -1);
+		data->targetBuffer->Bind();
 
 		{
 			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
@@ -75,28 +66,7 @@ namespace Moongoose
 		}
 
 
-		framebuffer->Unbind();
-	}
-
-	void LightingPass::Resize(const glm::uvec2& resolution)
-	{
-		if (!framebuffer) return;
-		framebuffer->Resize(resolution.x, resolution.y);
-	}
-
-	void LightingPass::InitFramebuffer(glm::uvec2 resolution)
-	{
-		FramebufferSpecs bufferSpecs;
-		bufferSpecs.width = resolution.x;
-		bufferSpecs.height = resolution.y;
-		bufferSpecs.attachments = {
-			FramebufferTextureFormat::RGBA8,
-			FramebufferTextureFormat::RED_INTEGER,
-			FramebufferTextureFormat::DEPTH24STENCIL8
-		};
-
-		framebuffer = FramebufferManager::CreateFramebuffer("RenderBuffer");
-		framebuffer->Configure(bufferSpecs);
+		data->targetBuffer->Unbind();
 	}
 
 	void LightingPass::AddDirectionalLight(

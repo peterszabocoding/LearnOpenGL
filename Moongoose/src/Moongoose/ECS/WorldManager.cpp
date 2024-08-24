@@ -6,8 +6,6 @@
 #include "Moongoose/Asset/AssetManager.h"
 #include "Moongoose/Util/FileSystem.h"
 
-#include "Systems/AtmosphericsSystem.h"
-
 namespace Moongoose
 {
 	Ref<World> WorldManager::createWorld(const std::string& name)
@@ -27,8 +25,6 @@ namespace Moongoose
 		m_LoadedWorld->RegisterComponent<LightComponent>();
 		m_LoadedWorld->RegisterComponent<BillboardComponent>();
 		m_LoadedWorld->RegisterComponent<AtmosphericsComponent>();
-
-		m_LoadedWorld->RegisterSystem<AtmosphericsSystem>();
 
 		return m_LoadedWorld;
 	}

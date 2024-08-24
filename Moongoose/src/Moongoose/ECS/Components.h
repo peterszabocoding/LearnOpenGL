@@ -241,6 +241,7 @@ namespace Moongoose
 		glm::vec3 m_SunColor = glm::vec3(1.0f, 1.0f, 1.0f);
 		float m_SunIntensity = 10.0f;
 		float m_SunAmbientIntensity = 2.0f;
+		float time = 45.0f;
 
 		AtmosphericsComponent() = default;
 	};

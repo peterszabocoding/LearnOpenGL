@@ -1,13 +1,63 @@
 #include "mgpch.h"
-#include "AtmosphericsSystem.h"
+#include "RenderPass.h"
+#include "Moongoose/Renderer/Framebuffer.h"
 #include "Moongoose/Renderer/FramebufferManager.h"
-#include "Moongoose/Renderer/RenderCommand.h"
-#include "Moongoose/Renderer/ShaderManager.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
+#include "Moongoose/Renderer/ShaderManager.h"
 
 namespace Moongoose
 {
-	AtmosphericsSystem::AtmosphericsSystem()
+	void SkyPass::Render(const RenderPassParams& renderPassParams)
+	{
+		SkyPassData* skyPassData = static_cast<SkyPassData*>(renderPassParams.additionalData);
+
+		if (!initialized) Init();
+
+		m_RaymarchingBuffer->Bind();
+		RenderCommand::SetClearColor(m_RaymarchingBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+
+		m_RaymarchingShader->Bind();
+		m_RaymarchingShader->SetFloat("u_Time", skyPassData->time);
+		m_RaymarchingShader->SetFloat2("resolution", m_RaymarchingBuffer->GetResolution());
+		m_RaymarchingShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
+		m_RaymarchingShader->BindTexture(1, m_MultiScatteringBuffer->GetColorAttachments()[0]);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		m_RaymarchingShader->Unbind();
+		m_RaymarchingBuffer->Unbind();
+
+		m_SkyBuffer->Bind();
+		RenderCommand::SetClearColor(m_SkyBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+		m_SkyShader->Bind();
+		m_SkyShader->SetFloat("u_Time", skyPassData->time);
+		m_SkyShader->SetFloat2("resolution", renderPassParams.camera->GetResolution());
+		m_SkyShader->SetFloat3("CameraForward", renderPassParams.camera->GetForward());
+		m_SkyShader->SetFloat("CameraFOV", renderPassParams.camera->GetFovRad());
+		m_SkyShader->SetFloat("CameraFar", renderPassParams.camera->GetFar());
+		m_SkyShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
+		m_SkyShader->BindTexture(1, m_RaymarchingBuffer->GetColorAttachments()[0]);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		m_SkyShader->Unbind();
+		m_SkyBuffer->Unbind();
+
+
+		const Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
+
+		skyPassData->targetBuffer->Bind();
+		bgShader->Bind();
+		bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
+		bgShader->SetCamera(
+			renderPassParams.camera->GetCameraPosition(),
+			renderPassParams.camera->GetViewMatrix(),
+			renderPassParams.camera->GetProjection());
+		bgShader->DisableFeature(GlFeature::DEPTH_TEST);
+		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
+		bgShader->Unbind();
+		skyPassData->targetBuffer->Unbind();
+	}
+
+	void SkyPass::Init()
 	{
 		FramebufferSpecs specs;
 		specs.width = 256;
@@ -57,18 +107,6 @@ namespace Moongoose
 		                                "shader\\atmos_scattering.vs",
 		                                "shader\\atmospheric_sky.fs");
 
-		Init();
-	}
-
-	Signature AtmosphericsSystem::GetSystemSignature(World* world)
-	{
-		Signature signature;
-		signature.set(world->GetComponentType<AtmosphericsComponent>());
-		return signature;
-	}
-
-	void AtmosphericsSystem::Init() const
-	{
 		m_TransmittanceBuffer->Bind();
 		RenderCommand::SetClearColor(m_TransmittanceBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
@@ -89,50 +127,7 @@ namespace Moongoose
 		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		m_MultiScatteringShader->Unbind();
 		m_MultiScatteringBuffer->Unbind();
-	}
 
-	void AtmosphericsSystem::Update(const Ref<PerspectiveCamera>& camera, glm::vec2 resolution) const
-	{
-		m_RaymarchingBuffer->Bind();
-		RenderCommand::SetClearColor(m_RaymarchingBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-
-		m_RaymarchingShader->Bind();
-		m_RaymarchingShader->SetFloat("u_Time", 5.0f);
-		m_RaymarchingShader->SetFloat2("resolution", m_RaymarchingBuffer->GetResolution());
-		m_RaymarchingShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
-		m_RaymarchingShader->BindTexture(1, m_MultiScatteringBuffer->GetColorAttachments()[0]);
-		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
-		m_RaymarchingShader->Unbind();
-		m_RaymarchingBuffer->Unbind();
-
-		m_SkyBuffer->Bind();
-		RenderCommand::SetClearColor(m_SkyBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-		m_SkyShader->Bind();
-		m_SkyShader->SetFloat("u_Time", 5.0f);
-		m_SkyShader->SetFloat2("resolution", resolution);
-		m_SkyShader->SetFloat3("CameraForward", camera->GetForward());
-		m_SkyShader->SetFloat("CameraFOV", camera->GetFovRad());
-		m_SkyShader->SetFloat("CameraFar", camera->GetFar());
-		m_SkyShader->BindTexture(0, m_TransmittanceBuffer->GetColorAttachments()[0]);
-		m_SkyShader->BindTexture(1, m_RaymarchingBuffer->GetColorAttachments()[0]);
-		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
-		m_SkyShader->Unbind();
-		m_SkyBuffer->Unbind();
-	}
-
-	void AtmosphericsSystem::Run(const Ref<PerspectiveCamera>& camera) const
-	{
-		if (m_Entities.empty()) return;
-
-		const Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
-
-		bgShader->Bind();
-		bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
-		bgShader->SetCamera(camera->GetCameraPosition(), camera->GetViewMatrix(), camera->GetProjection());
-		bgShader->DisableFeature(GlFeature::DEPTH_TEST);
-		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
-		bgShader->Unbind();
+		initialized = true;
 	}
 }

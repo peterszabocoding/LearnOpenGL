@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 
-
 #include "Moongoose/Log.h"
 #include "Moongoose/Layer.h"
 #include "Moongoose/Ui/ImGuiLayer.h"
@@ -40,7 +39,5 @@
 #include "Moongoose/ECS/Entity.h"
 #include "Moongoose/ECS/Components.h"
 #include "Moongoose/ECS/WorldManager.h"
-
-#include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 
 #include "Moongoose/Util/FileSystem.h"

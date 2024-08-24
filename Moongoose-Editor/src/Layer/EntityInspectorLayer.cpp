@@ -325,6 +325,8 @@ void EntityInspectorLayer::onImGuiRender()
 				GuiWidgets::DrawFloatControl("Sun Intensity", cAtmospherics.m_SunIntensity, 0.0f, 10000.0f, 0.1f, 1.0f,
 				                             windowSize.x);
 
+				GuiWidgets::DrawFloatControl("Time", cAtmospherics.time, 0.0, 180.0, 0.1, 1.0, windowSize.x);
+
 				ImGui::TreePop();
 			}
 		}

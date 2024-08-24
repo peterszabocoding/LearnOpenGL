@@ -1,17 +1,19 @@
 #include "mgpch.h"
 #include "Renderer.h"
 
+#include "FramebufferManager.h"
 #include "Light.h"
 #include "MeshPrimitives.h"
 #include "RenderCommand.h"
 #include "Moongoose/ECS/World.h"
 #include "Moongoose/Renderer/Framebuffer.h"
 #include "Moongoose/ECS/Components.h"
-#include "Moongoose/ECS/Systems/AtmosphericsSystem.h"
 
 namespace Moongoose
 {
 	glm::uvec2 Renderer::m_Resolution;
+
+	Ref<Framebuffer> Renderer::m_RenderBuffer;
 
 	SsrPass Renderer::m_SsrPass;
 	LightingPass Renderer::m_LightingPass;
@@ -19,6 +21,7 @@ namespace Moongoose
 	ShadowMapPass Renderer::m_ShadowMapPass;
 	BillboardPass Renderer::m_BillboardPass;
 	BoxBlurPass Renderer::m_BoxBlurPass;
+	SkyPass Renderer::m_SkyPass;
 
 	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
 	std::vector<PointLight> Renderer::m_PointLights;
@@ -93,9 +96,9 @@ namespace Moongoose
 
 	int Renderer::ReadEntityId(const uint32_t x, const uint32_t y)
 	{
-		m_LightingPass.GetFramebuffer()->Bind();
-		const int entityId = m_LightingPass.GetFramebuffer()->ReadPixel(1, x, y);
-		m_LightingPass.GetFramebuffer()->Unbind();
+		m_RenderBuffer->Bind();
+		const int entityId = m_RenderBuffer->ReadPixel(1, x, y);
+		m_RenderBuffer->Unbind();
 		return entityId;
 	}
 
@@ -107,6 +110,9 @@ namespace Moongoose
 		m_GeometryPass.Resize(m_Resolution);
 		m_LightingPass.Resize(m_Resolution);
 		m_SsrPass.Resize(m_Resolution);
+
+		if (m_RenderBuffer)
+			m_RenderBuffer->Resize(m_Resolution.x, m_Resolution.y);
 	}
 
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
@@ -114,15 +120,26 @@ namespace Moongoose
 		SetResolution(camera->GetResolution());
 		BeginScene();
 
-		world->GetSystem<AtmosphericsSystem>()->Update(camera, m_Resolution);
+
+		if (!m_RenderBuffer)
+		{
+			FramebufferSpecs bufferSpecs;
+			bufferSpecs.width = m_Resolution.x;
+			bufferSpecs.height = m_Resolution.y;
+			bufferSpecs.attachments = {
+				FramebufferTextureFormat::RGBA8,
+				FramebufferTextureFormat::RED_INTEGER,
+				FramebufferTextureFormat::DEPTH24STENCIL8
+			};
+
+			m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer");
+			m_RenderBuffer->Configure(bufferSpecs);
+		}
 
 		const auto transformComponentArray = world->GetComponentArray<TransformComponent>();
-
 		for (Entity entity = 0; entity < world->GetEntityCount(); entity++)
 		{
-			//const Entity entity = transformComponentArray->m_IndexToEntityMap[i];
 			auto cTransform = transformComponentArray->GetData(entity);
-
 			ProcessMeshComponent(entity, cTransform, world);
 			ProcessLightComponent(entity, cTransform, world);
 			ProcessBillboardComponent(entity, cTransform, world);
@@ -144,6 +161,32 @@ namespace Moongoose
 			m_ShadowMapPass.Render(shadowMapRenderPassParams);
 		}
 
+
+		m_RenderBuffer->Bind();
+		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+		m_RenderBuffer->ClearAttachment(1, -1);
+		m_RenderBuffer->Unbind();
+
+		// Sky Pass
+		{
+			auto skyComponents = world->GetComponentsByType<AtmosphericsComponent>();
+
+			if (!skyComponents.empty())
+			{
+				auto cAtmos = skyComponents[0];
+
+				SkyPass::SkyPassData skyPassData;
+				skyPassData.targetBuffer = m_RenderBuffer;
+				skyPassData.time = cAtmos.time;
+
+				RenderPassParams skyPassRenderParams = renderPassParams;
+				skyPassRenderParams.additionalData = &skyPassData;
+
+				m_SkyPass.Render(skyPassRenderParams);
+			}
+		}
+
 		// Lighting Pass
 		{
 			LightingPass::LightingPassData lightingPassData =
@@ -152,7 +195,8 @@ namespace Moongoose
 				m_ShadowMapPass.GetPointShadowBuffer(),
 				m_DirectionalLights,
 				m_SpotLights,
-				m_PointLights
+				m_PointLights,
+				m_RenderBuffer
 			};
 
 			RenderPassParams lightingPassRenderPassParams = renderPassParams;
@@ -164,7 +208,7 @@ namespace Moongoose
 		// Billboard Pass
 		{
 			BillboardPass::BillboardPassData billboardPassData;
-			billboardPassData.targetBuffer = m_LightingPass.GetFramebuffer();
+			billboardPassData.targetBuffer = m_RenderBuffer;
 			billboardPassData.billboardCommands = m_BillboardRenderCmds;
 
 			RenderPassParams billboardRenderPassParams = renderPassParams;
@@ -177,7 +221,7 @@ namespace Moongoose
 		{
 			SsrPass::SsrPassData ssrPassData;
 			ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
-			ssrPassData.renderTexture = m_LightingPass.GetFramebuffer()->GetColorAttachments()[0];
+			ssrPassData.renderTexture = m_RenderBuffer->GetColorAttachments()[0];
 
 			RenderPassParams ssrRenderPassParams = renderPassParams;
 			ssrRenderPassParams.additionalData = &ssrPassData;
