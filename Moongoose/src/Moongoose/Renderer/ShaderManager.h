@@ -14,9 +14,9 @@ namespace Moongoose
 		}
 
 		static void AssignShaderToType(ShaderType type,
-		                               const std::string& vertexShaderLocation,
-		                               const std::string& fragmentShaderLocation,
-		                               const std::string& geometryShaderLocation);
+		                               const std::string& vsLocation,
+		                               const std::string& fsLocation,
+		                               const std::string& geoLocation);
 
 		static Ref<Shader> GetShaderByType(ShaderType type);
 

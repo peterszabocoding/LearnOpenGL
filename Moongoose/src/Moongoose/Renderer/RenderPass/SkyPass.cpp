@@ -91,21 +91,30 @@ namespace Moongoose
 		m_SkyBuffer = FramebufferManager::CreateFramebuffer("SkyBuffer");
 		m_SkyBuffer->Configure(specs4);
 
-		m_TransmittanceShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
-		                                          "shader\\atmos_scattering.vs",
-		                                          "shader\\sun_transmittance_lut.fs");
+		m_TransmittanceShader = CreateRef<Shader>(Shader::ShaderParams{
+			ShaderType::ATMOSPHERE,
+			"shader\\atmos_scattering.vs",
+			"shader\\sun_transmittance_lut.fs"
+		});
 
-		m_MultiScatteringShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
-		                                            "shader\\atmos_scattering.vs",
-		                                            "shader\\multi-scattering_lut.fs");
 
-		m_RaymarchingShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
-		                                        "shader\\atmos_scattering.vs",
-		                                        "shader\\raymarch_scattering.fs");
+		m_MultiScatteringShader = CreateRef<Shader>(Shader::ShaderParams{
+			ShaderType::ATMOSPHERE,
+			"shader\\atmos_scattering.vs",
+			"shader\\multi-scattering_lut.fs"
+		});
 
-		m_SkyShader = CreateRef<Shader>(ShaderType::ATMOSPHERE,
-		                                "shader\\atmos_scattering.vs",
-		                                "shader\\atmospheric_sky.fs");
+		m_RaymarchingShader = CreateRef<Shader>(Shader::ShaderParams{
+			ShaderType::ATMOSPHERE,
+			"shader\\atmos_scattering.vs",
+			"shader\\raymarch_scattering.fs"
+		});
+
+		m_SkyShader = CreateRef<Shader>(Shader::ShaderParams{
+			ShaderType::ATMOSPHERE,
+			"shader\\atmos_scattering.vs",
+			"shader\\atmospheric_sky.fs"
+		});
 
 		m_TransmittanceBuffer->Bind();
 		RenderCommand::SetClearColor(m_TransmittanceBuffer->GetSpecs().clearColor);

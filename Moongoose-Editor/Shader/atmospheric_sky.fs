@@ -1,23 +1,7 @@
 #version 450
 
-// ------------------------------------------------------------------
-// DEFINES ----------------------------------------------------------
-// ------------------------------------------------------------------
-
-#define PI 3.14159265358
-
-// Units are in megameters.
-#define GROUND_RADIOUS_MM 6.360
-#define ATMOSPHERE_RADIOUS_MM 6.460
-
-// ------------------------------------------------------------------
-// VARIABLES --------------------------------------------------------
-// ------------------------------------------------------------------
-
-// 200M above the ground.
-const vec3 viewPos = vec3(0.0, GROUND_RADIOUS_MM + 0.0002, 0.0);
-const vec2 tLUTRes = vec2(256.0, 64.0);
-const vec2 skyLUTRes = vec2(200.0, 200.0);
+#include <common.glsl>
+#include <sky_common.glsl>
 
 // ------------------------------------------------------------------
 // INPUT VARIABLES --------------------------------------------------
@@ -55,7 +39,7 @@ float getSunAltitude(float time)
     const float sunriseShift = 0.1;
     float cyclePoint = (1.0 - abs((mod(time,periodSec)-halfPeriod)/halfPeriod));
     cyclePoint = (cyclePoint*(1.0+sunriseShift))-sunriseShift;
-    return (0.5*PI)*cyclePoint;
+    return (0.5*PI) * cyclePoint;
 }
 
 vec3 getSunDir(float time)
@@ -81,7 +65,7 @@ float rayIntersectSphere(vec3 ro, vec3 rd, float rad) {
 }
 
 /*
- * Same parameterization here.
+ * Same parameterization here.0
  */
 vec3 getValFromTLUT(sampler2D tex, vec2 bufferRes, vec3 pos, vec3 sunDir) {
     float height = length(pos);

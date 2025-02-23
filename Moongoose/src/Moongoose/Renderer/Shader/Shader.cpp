@@ -6,42 +6,36 @@
 
 namespace Moongoose
 {
-	Shader::Shader(const ShaderType type,
-	               const std::string& vertexShaderLocation,
-	               const std::string& fragmentShaderLocation)
+	Shader::Shader(const ShaderParams& params)
 	{
 		shaderId = 0;
-		shaderType = type;
+		shaderType = params.type;
 
-		vertexShaderSourcePath = vertexShaderLocation;
-		fragmentShaderSourcePath = fragmentShaderLocation;
+		vertexShaderSourcePath = params.vertexShaderFilePath;
+		fragmentShaderSourcePath = params.fragmentShaderFilePath;
+		geometryShaderSourcePath = params.geometryShaderFilePath;
 
-		LOG_CORE_INFO("Compile shader: {0} | {1}", vertexShaderSourcePath, fragmentShaderSourcePath);
-		CompileShader(
-			ReadFile(vertexShaderSourcePath.c_str()).c_str(),
-			ReadFile(fragmentShaderSourcePath.c_str()).c_str()
-		);
-	}
-
-	Shader::Shader(const ShaderType type,
-	               const std::string& vertexShaderLocation,
-	               const std::string& fragmentShaderLocation,
-	               const std::string& geometryShaderLocation)
-	{
-		shaderId = 0;
-		shaderType = type;
-
-		vertexShaderSourcePath = vertexShaderLocation;
-		fragmentShaderSourcePath = fragmentShaderLocation;
-		geometryShaderSourcePath = geometryShaderLocation;
-
-		LOG_CORE_INFO("Compile shader: {0} | {1} | {2}", vertexShaderSourcePath, fragmentShaderSourcePath,
+		LOG_CORE_INFO("Compile shader: {0} | {1} | {2}",
+		              vertexShaderSourcePath,
+		              fragmentShaderSourcePath,
 		              geometryShaderSourcePath);
-		CompileShader(
-			ReadFile(vertexShaderSourcePath.c_str()).c_str(),
-			ReadFile(fragmentShaderSourcePath.c_str()).c_str(),
-			ReadFile(geometryShaderSourcePath.c_str()).c_str()
-		);
+
+
+		if (!geometryShaderSourcePath.empty())
+		{
+			CompileShader(
+				ReadFile(vertexShaderSourcePath.c_str()).c_str(),
+				ReadFile(fragmentShaderSourcePath.c_str()).c_str(),
+				ReadFile(geometryShaderSourcePath.c_str()).c_str()
+			);
+		}
+		else
+		{
+			CompileShader(
+				ReadFile(vertexShaderSourcePath.c_str()).c_str(),
+				ReadFile(fragmentShaderSourcePath.c_str()).c_str()
+			);
+		}
 	}
 
 	Shader::~Shader()
@@ -101,7 +95,22 @@ namespace Moongoose
 		while (!fileStream.eof())
 		{
 			std::getline(fileStream, line);
-			content.append(line + "\n");
+			if (line.find("#include") != std::string::npos)
+			{
+				std::filesystem::path shaderFolder = std::filesystem::path(fileLocation);
+				size_t fileNameStart = line.find('<');
+				size_t fileNameEnd = line.find('>');
+
+				std::string includeFile = line.substr(++fileNameStart, (fileNameEnd - fileNameStart) - 1);
+				std::string includeFileString = ReadFile(
+					(shaderFolder.parent_path().string() + "//" + includeFile).c_str());
+
+				content.append(includeFileString + "\n");
+			}
+			else
+			{
+				content.append(line + "\n");
+			}
 		}
 
 		fileStream.close();

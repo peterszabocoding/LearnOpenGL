@@ -1,24 +1,27 @@
 #include "mgpch.h"
 #include "ShaderManager.h"
 
-namespace Moongoose {
-
+namespace Moongoose
+{
 	std::unordered_map<ShaderType, Ref<Shader>> ShaderManager::s_ShadersByType;
 
-	void ShaderManager::AssignShaderToType(ShaderType type, 
-		const std::string& vertexShaderLocation, 
-		const std::string& fragmentShaderLocation,
-		const std::string& geometryShaderLocation)
+	void ShaderManager::AssignShaderToType(const ShaderType type,
+	                                       const std::string& vsLocation,
+	                                       const std::string& fsLocation,
+	                                       const std::string& geoLocation)
 	{
 		if (s_ShadersByType[type]) s_ShadersByType[type]->ClearShader();
 
 		Ref<Shader> shader;
-		if (!geometryShaderLocation.empty())
+		if (!geoLocation.empty())
 		{
-			shader = CreateRef<Shader>(type, vertexShaderLocation, fragmentShaderLocation, geometryShaderLocation);
-		} else
+			shader = CreateRef<Shader>(Shader::ShaderParams{
+				type, vsLocation, fsLocation, geoLocation
+			});
+		}
+		else
 		{
-			shader = CreateRef<Shader>(type, vertexShaderLocation, fragmentShaderLocation);
+			shader = CreateRef<Shader>(Shader::ShaderParams{type, vsLocation, fsLocation});
 		}
 
 		s_ShadersByType[type] = shader;

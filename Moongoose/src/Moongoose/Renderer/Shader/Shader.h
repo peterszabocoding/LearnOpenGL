@@ -115,14 +115,18 @@ namespace Moongoose
 	class Shader
 	{
 	public:
-		Shader(ShaderType type,
-		       const std::string& vertexShaderLocation,
-		       const std::string& fragmentShaderLocation);
-		Shader(ShaderType type,
-		       const std::string& vertexShaderLocation,
-		       const std::string& fragmentShaderLocation,
-		       const std::string& geometryShaderLocation);
+		struct ShaderParams
+		{
+			ShaderType type = ShaderType::NONE;
+			std::string vertexShaderFilePath;
+			std::string fragmentShaderFilePath;
+			std::string geometryShaderFilePath;
+		};
+
+	public:
+		Shader(const ShaderParams& params);
 		virtual ~Shader();
+
 		void ClearShader();
 
 		[[nodiscard]] ShaderType GetShaderType() const;

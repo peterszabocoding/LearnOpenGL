@@ -43,3 +43,5 @@ bin-int
 *.sln
 *.json
 *.png~
+Moongoose-Editor/Content/
+.editorconfig
