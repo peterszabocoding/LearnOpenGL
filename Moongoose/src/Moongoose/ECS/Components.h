@@ -245,4 +245,14 @@ namespace Moongoose
 
 		AtmosphericsComponent() = default;
 	};
+
+	struct PostProcessingVolumeComponent : Component 
+	{
+		float SSR_maxDistance = 6.0f;
+		float SSR_resolution = 0.55f;
+		float SSR_thickness = 0.085f;
+		int SSR_steps = 15;
+
+		PostProcessingVolumeComponent() = default;
+	};
 }

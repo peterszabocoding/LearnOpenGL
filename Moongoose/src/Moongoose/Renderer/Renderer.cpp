@@ -219,14 +219,27 @@ namespace Moongoose
 
 		// Screen Space Reflection Pass
 		{
-			SsrPass::SsrPassData ssrPassData;
-			ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
-			ssrPassData.renderTexture = m_RenderBuffer->GetColorAttachments()[0];
+			auto postProcessComponent = world->GetComponentsByType<PostProcessingVolumeComponent>();
 
-			RenderPassParams ssrRenderPassParams = renderPassParams;
-			ssrRenderPassParams.additionalData = &ssrPassData;
+			if (!postProcessComponent.empty())
+			{
+				SsrPass::SsrPassData ssrPassData;
+				ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
+				ssrPassData.renderTexture = m_RenderBuffer->GetColorAttachments()[0];
 
-			m_SsrPass.Render(ssrRenderPassParams);
+				auto params = SsrPass::SsrParams();
+				params.maxDistance = postProcessComponent[0].SSR_maxDistance;
+				params.thickness = postProcessComponent[0].SSR_thickness;
+				params.resolution = postProcessComponent[0].SSR_resolution;
+				params.steps = postProcessComponent[0].SSR_steps;
+
+				ssrPassData.ssrParams = params;
+
+				RenderPassParams ssrRenderPassParams = renderPassParams;
+				ssrRenderPassParams.additionalData = &ssrPassData;
+
+				m_SsrPass.Render(ssrRenderPassParams);
+			}
 		}
 
 		/*

@@ -25,6 +25,7 @@ namespace Moongoose
 		m_LoadedWorld->RegisterComponent<LightComponent>();
 		m_LoadedWorld->RegisterComponent<BillboardComponent>();
 		m_LoadedWorld->RegisterComponent<AtmosphericsComponent>();
+		m_LoadedWorld->RegisterComponent<PostProcessingVolumeComponent>();
 
 		return m_LoadedWorld;
 	}
@@ -133,6 +134,19 @@ namespace Moongoose
 				);
 
 				world->AddComponent<AtmosphericsComponent>(entity, cAtmospherics);
+			}
+
+			auto& jPostProcessingVolumeComponent = jsonEntity["PostProcessingVolumeComponent"];
+			if (!jPostProcessingVolumeComponent.empty())
+			{
+				PostProcessingVolumeComponent cPostProcessingVolumeComponent;
+
+				cPostProcessingVolumeComponent.SSR_maxDistance = jPostProcessingVolumeComponent["SSR_maxDistance"];
+				cPostProcessingVolumeComponent.SSR_resolution = jPostProcessingVolumeComponent["SSR_resolution"];
+				cPostProcessingVolumeComponent.SSR_thickness = jPostProcessingVolumeComponent["SSR_thickness"];
+				cPostProcessingVolumeComponent.SSR_steps = jPostProcessingVolumeComponent["SSR_steps"];
+
+				world->AddComponent<PostProcessingVolumeComponent>(entity, cPostProcessingVolumeComponent);
 			}
 		}
 
@@ -244,6 +258,21 @@ namespace Moongoose
 				jAtmospherics["sun_ambientIntensity"] = cAtmospherics.m_SunAmbientIntensity;
 
 				entityObj["AtmosphericsComponent"] = jAtmospherics;
+			}
+
+
+			// PostProcessingVolumeComponent
+			if (m_LoadedWorld->HasComponent<PostProcessingVolumeComponent>(entity))
+			{
+				nlohmann::json jPostProcessing = nlohmann::json::object();
+				auto& cPostProcessing = m_LoadedWorld->GetComponent<PostProcessingVolumeComponent>(entity);
+
+				jPostProcessing["SSR_maxDistance"] = cPostProcessing.SSR_maxDistance;
+				jPostProcessing["SSR_resolution"] = cPostProcessing.SSR_resolution;
+				jPostProcessing["SSR_steps"] = cPostProcessing.SSR_steps;
+				jPostProcessing["SSR_thickness"] = cPostProcessing.SSR_thickness;
+
+				entityObj["PostProcessingVolumeComponent"] = jPostProcessing;
 			}
 
 			jsonEntityArray.push_back(entityObj);

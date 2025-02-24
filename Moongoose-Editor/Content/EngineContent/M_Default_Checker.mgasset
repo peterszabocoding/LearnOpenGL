@@ -11,7 +11,7 @@
     "id": "12295842333264798360",
     "metallicValue": 0.0,
     "name": "M_Default_Checker",
-    "roughnessValue": 0.7799999713897705,
+    "roughnessValue": 0.75,
     "source": "Content\\EngineContent\\",
     "type": "Material"
 }

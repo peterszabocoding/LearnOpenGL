@@ -28,6 +28,11 @@ layout(binding = 4) uniform sampler2D gDepthTexture;
 uniform mat4 projection;
 uniform mat4 view;
 
+uniform float maxDistance;
+uniform float resolution;
+uniform float thickness;
+uniform int steps;
+
 // ------------------------------------------------------------------
 // FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
@@ -63,10 +68,12 @@ float perspectiveDepthToViewZ( const in float depth, const in float near, const 
 
 void main()
 {
-    float maxDistance = 15;
-    float resolution  = 0.3;
-    int   steps       = 10;
-    float thickness   = 0.5;
+    //float maxDistance = 6;
+    //float resolution  = 0.55;
+    //float thickness   = 0.085;
+    //int   steps       = 15;
+
+    int localSteps = steps;
 
     vec2 texSize = textureSize(gPositionTexture, 0).xy;
     vec2 texCoord = gl_FragCoord.xy / texSize; // == TexCoords
@@ -132,9 +139,9 @@ void main()
     }
 
     search1 = search0 + ((search1 - search0) / 2.0);
-    steps *= hit0;
+    localSteps *= hit0;
 
-    for (int j = 0; j < steps; ++j) {
+    for (int j = 0; j < localSteps; ++j) {
         frag = mix(startFrag.xy, endFrag.xy, search1);
         uv.xy = frag / texSize;
         positionTo = texture(gPositionTexture, uv.xy);

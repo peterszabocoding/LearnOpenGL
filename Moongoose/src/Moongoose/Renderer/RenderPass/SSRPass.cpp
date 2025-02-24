@@ -32,6 +32,11 @@ namespace Moongoose
 		shader->BindTexture(3, data->gBuffer->GetRoughnessTexture());
 		shader->BindTexture(4, data->gBuffer->GetDepthAttachment());
 
+		shader->SetFloat("maxDistance", data->ssrParams.maxDistance);
+		shader->SetFloat("resolution", data->ssrParams.resolution);
+		shader->SetFloat("thickness", data->ssrParams.thickness);
+		shader->UploadUniformInt("steps", data->ssrParams.steps);
+
 		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 
 		shader->Unbind();

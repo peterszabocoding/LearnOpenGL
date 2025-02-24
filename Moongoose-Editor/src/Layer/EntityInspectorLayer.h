@@ -25,6 +25,7 @@ private:
 	void DisplayAddLightComponentEntry(const std::string& entryName, size_t entityId) const;
 	void DisplayAddBillboardComponentEntry(const std::string& entryName, size_t entityId) const;
 	void DisplayAddAtmosphericsComponentEntry(const std::string& entryName, size_t entityId) const;
+	void DisplayAddPostProcessingComponentEntry(const std::string& entryName, size_t entityId) const;
 
 private:
 	Moongoose::AssetManager* m_AssetManager;

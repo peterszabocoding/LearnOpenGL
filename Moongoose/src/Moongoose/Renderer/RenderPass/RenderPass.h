@@ -77,10 +77,19 @@ namespace Moongoose
 	class SsrPass : public RenderPass
 	{
 	public:
+		struct SsrParams
+		{
+			float maxDistance = 6.0f;
+			float resolution = 0.55f;
+			uint32_t steps = 15;
+			float thickness = 0.085f;
+		};
+
 		struct SsrPassData
 		{
 			Ref<GBuffer> gBuffer;
 			uint32_t renderTexture;
+			SsrParams ssrParams;
 		};
 
 	public:

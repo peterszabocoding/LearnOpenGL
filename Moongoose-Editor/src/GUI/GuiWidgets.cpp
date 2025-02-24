@@ -33,6 +33,30 @@ void GuiWidgets::DrawFloatControl(const std::string& label, float& values, float
 	ImGui::PopID();
 }
 
+void GuiWidgets::DrawIntControl(const std::string& label, int& values, int min, int max, int resetValue, float columnWidth)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	auto boldFont = io.Fonts->Fonts[0];
+
+	ImGui::PushID(label.c_str());
+
+	auto& labelSize = ImGui::CalcTextSize(label.c_str());
+
+	ImGui::Text(label.c_str());
+	ImGui::SameLine();
+
+	ImGui::Columns(2);
+	ImGui::SetColumnWidth(0, labelSize.x + 15.0);
+	ImGui::NextColumn();
+
+	ImGui::SetColumnWidth(1, columnWidth);
+	ImGui::DragInt("", &values, min, max);
+
+	ImGui::Columns(1);
+
+	ImGui::PopID();
+}
+
 void GuiWidgets::DrawRGBColorPicker(const std::string& label, glm::vec3& values, float resetValue, float columnWidth)
 {
 	ImGuiIO& io = ImGui::GetIO();

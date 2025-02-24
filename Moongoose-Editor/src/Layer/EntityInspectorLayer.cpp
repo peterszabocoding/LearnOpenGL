@@ -138,6 +138,7 @@ void EntityInspectorLayer::onImGuiRender()
 		DisplayAddMeshComponentEntry("Mesh Component", selectedEntity);
 		DisplayAddBillboardComponentEntry("Billboard Component", selectedEntity);
 		DisplayAddAtmosphericsComponentEntry("Atmospherics Component", selectedEntity);
+		DisplayAddPostProcessingComponentEntry("Post Processing Volume Component", selectedEntity);
 		ImGui::EndPopup();
 	}
 
@@ -332,6 +333,26 @@ void EntityInspectorLayer::onImGuiRender()
 		}
 	}
 
+	// Post Processing Component
+	{
+		if (world->HasComponent<PostProcessingVolumeComponent>(selectedEntity))
+		{
+			auto& cPostProcessing = world->GetComponent<PostProcessingVolumeComponent>(selectedEntity);
+			ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+			if (ImGui::TreeNode("Post Processing Volume"))
+			{
+				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+
+				GuiWidgets::DrawIntControl("Steps", cPostProcessing.SSR_steps, 0, 100, 15, windowSize.x);
+				GuiWidgets::DrawFloatControl("Max Distance", cPostProcessing.SSR_maxDistance, 0.0f, 100.0f, 0.01f, 6.0f, windowSize.x);
+				GuiWidgets::DrawFloatControl("Resolution", cPostProcessing.SSR_resolution, 0.0f, 10.0f, 0.01f, 0.55f, windowSize.x);
+				GuiWidgets::DrawFloatControl("Tickness", cPostProcessing.SSR_thickness, 0.0f, 2.0f, 0.001f, 0.085f, windowSize.x);
+
+				ImGui::TreePop();
+			}
+		}
+	}
+
 	ImGui::End();
 }
 
@@ -438,6 +459,19 @@ void EntityInspectorLayer::DisplayAddAtmosphericsComponentEntry(const std::strin
 				m_WorldManager->GetLoadedWorld()->AddComponent(entityId, directionalLight);
 			}
 
+			ImGui::CloseCurrentPopup();
+		}
+	}
+}
+
+void EntityInspectorLayer::DisplayAddPostProcessingComponentEntry(const std::string& entryName, size_t entityId) const
+{
+	bool hasComponent = m_WorldManager->GetLoadedWorld()->HasComponent<PostProcessingVolumeComponent>(entityId);
+	if (!hasComponent)
+	{
+		if (ImGui::MenuItem(entryName.c_str()))
+		{
+			m_WorldManager->GetLoadedWorld()->AddComponent(entityId, PostProcessingVolumeComponent());
 			ImGui::CloseCurrentPopup();
 		}
 	}

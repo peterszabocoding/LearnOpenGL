@@ -22,6 +22,8 @@ public:
 
 	static void DrawFloatControl(const std::string& label, float& values, float min, float max, float steps = 0.1f, float resetValue = 0.0f, float columnWidth = 100.0f);
 
+	static void DrawIntControl(const std::string& label, int& values, int min, int max, int resetValue, float columnWidth);
+
 	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
 
 	static void DrawColorDragControl(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f);
