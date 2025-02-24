@@ -41,12 +41,12 @@ namespace Moongoose
 
 		for (nlohmann::json& jsonEntity : entities)
 		{
-			auto jTagComponent = jsonEntity["TagComponent"];
+			auto& jTagComponent = jsonEntity["TagComponent"];
 			if (jTagComponent.empty()) continue;
 
 			Entity entity = world->CreateEntity(jTagComponent["tag"]);
 
-			auto jIdComponent = jsonEntity["IDComponent"];
+			auto& jIdComponent = jsonEntity["IDComponent"];
 			if (!jIdComponent.empty())
 			{
 				IDComponent cID = world->GetComponent<IDComponent>(entity);
@@ -54,7 +54,7 @@ namespace Moongoose
 				cID.m_ID = UUID(id);
 			}
 
-			auto jTransformComponent = jsonEntity["TransformComponent"];
+			auto& jTransformComponent = jsonEntity["TransformComponent"];
 			if (!jTransformComponent.empty())
 			{
 				TransformComponent& cTransform = world->GetComponent<TransformComponent>(entity);
@@ -68,7 +68,7 @@ namespace Moongoose
 				                               jTransformComponent["scale"]["z"]);
 			}
 
-			auto jMeshComponent = jsonEntity["MeshComponent"];
+			auto& jMeshComponent = jsonEntity["MeshComponent"];
 			if (!jMeshComponent.empty())
 			{
 				MeshComponent cMesh;
@@ -77,23 +77,31 @@ namespace Moongoose
 				world->AddComponent<MeshComponent>(entity, cMesh);
 			}
 
-			auto jLightComponent = jsonEntity["LightComponent"];
+			auto& jLightComponent = jsonEntity["LightComponent"];
 			if (!jLightComponent.empty())
 			{
 				LightComponent cLight;
-				cLight.m_Color = glm::vec3(jLightComponent["color"]["r"], jLightComponent["color"]["g"],
-				                           jLightComponent["color"]["b"]);
+
+				cLight.m_Color = glm::vec3(
+					jLightComponent["color"]["r"], 
+					jLightComponent["color"]["g"],
+				    jLightComponent["color"]["b"]
+				);
+
 				cLight.m_Intensity = jLightComponent["intensity"];
 				cLight.m_Type = (LightType)jLightComponent["type"];
+
 				cLight.m_AttenuationRadius = jLightComponent.contains("attenuationRadius")
 					                             ? jLightComponent["attenuationRadius"]
 					                             : 10.0f;
+
 				cLight.m_AttenuationAngle = jLightComponent.contains("attenuationAngle")
 					                            ? jLightComponent["attenuationAngle"]
 					                            : 0.75f;
 				cLight.m_AmbientIntensity = jLightComponent.contains("ambientIntensity")
 					                            ? jLightComponent["ambientIntensity"]
 					                            : 0.15f;
+
 				cLight.m_ShadowType = jLightComponent.contains("shadowType")
 					                      ? jLightComponent["shadowType"]
 					                      : ShadowType::NONE;
@@ -102,6 +110,29 @@ namespace Moongoose
 					                               : ShadowMapResolution::MEDIUM;
 
 				world->AddComponent<LightComponent>(entity, cLight);
+			}
+
+			auto& jAtmosphericsComponent = jsonEntity["AtmosphericsComponent"];
+			if (!jAtmosphericsComponent.empty())
+			{
+				AtmosphericsComponent cAtmospherics;
+
+				cAtmospherics.time = jAtmosphericsComponent["time"];
+				cAtmospherics.m_SunIntensity = jAtmosphericsComponent["sun_intensity"];
+				cAtmospherics.m_SunAmbientIntensity = jAtmosphericsComponent["sun_ambientIntensity"];
+
+				cAtmospherics.m_SunColor = glm::vec3(
+					jAtmosphericsComponent["sun_color"]["r"],
+					jAtmosphericsComponent["sun_color"]["g"],
+					jAtmosphericsComponent["sun_color"]["b"]
+				);
+				cAtmospherics.m_SunDirection = glm::vec3(
+					jAtmosphericsComponent["sun_direction"]["x"],
+					jAtmosphericsComponent["sun_direction"]["y"],
+					jAtmosphericsComponent["sun_direction"]["z"]
+				);
+
+				world->AddComponent<AtmosphericsComponent>(entity, cAtmospherics);
 			}
 		}
 
@@ -190,6 +221,29 @@ namespace Moongoose
 				jLight["shadowResolution"] = cLight.m_ShadowMapResolution;
 
 				entityObj["LightComponent"] = jLight;
+			}
+
+			// AtmosphericsComponent
+			if (m_LoadedWorld->HasComponent<AtmosphericsComponent>(entity))
+			{
+				nlohmann::json jAtmospherics = nlohmann::json::object();
+				auto& cAtmospherics = m_LoadedWorld->GetComponent<AtmosphericsComponent>(entity);
+
+				jAtmospherics["time"] = cAtmospherics.time;
+				jAtmospherics["sun_direction"] = { 
+					{"x", cAtmospherics.m_SunDirection.x}, 
+					{"y", cAtmospherics.m_SunDirection.y}, 
+					{"z", cAtmospherics.m_SunDirection.z}
+				};
+				jAtmospherics["sun_color"] = {
+					{"r", cAtmospherics.m_SunColor.r},
+					{"g", cAtmospherics.m_SunColor.g},
+					{"b", cAtmospherics.m_SunColor.b}
+				};
+				jAtmospherics["sun_intensity"] = cAtmospherics.m_SunIntensity;
+				jAtmospherics["sun_ambientIntensity"] = cAtmospherics.m_SunAmbientIntensity;
+
+				entityObj["AtmosphericsComponent"] = jAtmospherics;
 			}
 
 			jsonEntityArray.push_back(entityObj);
