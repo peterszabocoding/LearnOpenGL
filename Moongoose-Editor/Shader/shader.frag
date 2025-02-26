@@ -19,14 +19,12 @@ in vec2 TexCoord;
 in vec3 Normal;
 in vec3 EyePosition;
 in mat3 TBN;
-in flat int EntityID;
 
 // ------------------------------------------------------------------
 // OUTPUT VARIABLES  ------------------------------------------------
 // ------------------------------------------------------------------
 
 layout(location = 0) out vec4 FragColor;
-layout(location = 1) out int oEntityID;
 
 // ------------------------------------------------------------------
 // STRUCTS  ---------------------------------------------------------
@@ -464,7 +462,6 @@ vec3 N;
 
 void main()
 {
-    oEntityID = EntityID;
 	shadowMapTextureSize = textureSize(ShadowMapTexture, 0);
 
     //vec4 color = Albedo * (CalcDirectionalLight() + CalcPointLights() + CalcSpotLights());

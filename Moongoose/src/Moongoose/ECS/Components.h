@@ -246,8 +246,10 @@ namespace Moongoose
 		AtmosphericsComponent() = default;
 	};
 
-	struct PostProcessingVolumeComponent : Component 
+	struct PostProcessingVolumeComponent : Component
 	{
+		float SSR_Intensity = 1.0f;
+		float SSR_Blur = 1.0f;
 		float SSR_maxDistance = 6.0f;
 		float SSR_resolution = 0.55f;
 		float SSR_thickness = 0.085f;

@@ -6,22 +6,17 @@
 
 namespace Moongoose
 {
-	void BoxBlurPass::Render(const RenderPassParams& renderPassParams)
+	void BoxBlurPass::Render(Ref<Framebuffer> targetBuffer, uint32_t source, char amount, float blurIntensity)
 	{
-		const auto data = static_cast<BoxBlurPassData*>(renderPassParams.additionalData);
+		targetBuffer->Bind();
+		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::POST_PROCESS_BOX_BLUR);
+		shader->Bind();
+		shader->BindTexture(0, source);
+		shader->SetFloat("blurIntensity", blurIntensity);
 
-		for (int i = 0; i < 2; i++)
-		{
-			data->targetBuffer->Bind();
+		for (int i = 0; i < amount; i++) RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 
-			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::POST_PROCESS_BOX_BLUR);
-			shader->Bind();
-			shader->BindTexture(0, data->colorTexture);
-
-			RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
-
-			shader->Unbind();
-			data->targetBuffer->Unbind();
-		}
+		shader->Unbind();
+		targetBuffer->Unbind();
 	}
 }

@@ -28,6 +28,8 @@ namespace Moongoose
 		uint32_t GetAttachment(int attachmentNumber) const;
 		uint32_t GetDepthAttachment() const;
 
+		int ReadPixel(const uint32_t attachmentIndex, const int x, const int y) const;
+
 		Framebuffer* GetFramebuffer() const;
 		const FramebufferSpecs& GetSpecs() const;
 

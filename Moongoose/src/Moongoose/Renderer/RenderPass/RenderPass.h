@@ -19,33 +19,14 @@ namespace Moongoose
 		void* additionalData;
 	};
 
-	class RenderPass
+	class GeometryPass
 	{
 	public:
-		virtual ~RenderPass()
-		{
-		};
-		virtual void Render(const RenderPassParams& renderPassParams) = 0;
-
-		virtual void Resize(const glm::uvec2& resolution)
-		{
-		}
+		~GeometryPass() = default;
+		void Render(Ref<GBuffer> gBuffer, const RenderPassParams& renderPassParams);
 	};
 
-	class GeometryPass : public RenderPass
-	{
-	public:
-		~GeometryPass() override = default;
-		virtual void Render(const RenderPassParams& renderPassParams) override;
-		virtual void Resize(const glm::uvec2& resolution) override;
-
-		[[nodiscard]] Ref<GBuffer> GetGBuffer() const { return m_GBuffer; }
-
-	private:
-		Ref<GBuffer> m_GBuffer;
-	};
-
-	class LightingPass : public RenderPass
+	class LightingPass
 	{
 	public:
 		struct LightingPassData
@@ -56,14 +37,11 @@ namespace Moongoose
 			std::vector<DirectionalLight>& directionalLights;
 			std::vector<SpotLight>& spotLights;
 			std::vector<PointLight>& pointLights;
-
-			Ref<Framebuffer> targetBuffer;
 		};
 
 	public:
-		~LightingPass() override = default;
-
-		virtual void Render(const RenderPassParams& renderPassParams) override;
+		~LightingPass() = default;
+		void Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams);
 
 	private:
 		static void AddDirectionalLight(
@@ -74,42 +52,32 @@ namespace Moongoose
 		static void AddPointLight(size_t index, const Ref<Shader>& shader, const PointLight& pointLight);
 	};
 
-	class SsrPass : public RenderPass
+	class PostProcessingSSRPass
 	{
 	public:
-		struct SsrParams
+		struct PostProcessingSSRParams
 		{
+			float intensity = 1.0f;
+			float blur = 1.0f;
 			float maxDistance = 6.0f;
 			float resolution = 0.55f;
-			uint32_t steps = 15;
 			float thickness = 0.085f;
+			uint32_t steps = 15;
 		};
 
-		struct SsrPassData
+		struct PostProcessingSSRPassData
 		{
 			Ref<GBuffer> gBuffer;
 			uint32_t renderTexture;
-			SsrParams ssrParams;
+			PostProcessingSSRParams ssrParams;
 		};
 
 	public:
-		~SsrPass() override
-		{
-		}
-
-		virtual void Render(const RenderPassParams& renderPassParams) override;
-		virtual void Resize(const glm::uvec2& resolution) override;
-
-		Ref<Framebuffer> GetFramebuffer() const { return framebuffer; }
-
-	private:
-		void InitFramebuffer(glm::uvec2 resolution);
-
-	private:
-		Ref<Framebuffer> framebuffer;
+		~PostProcessingSSRPass() = default;
+		void Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams);
 	};
 
-	class ShadowMapPass : public RenderPass
+	class ShadowMapPass
 	{
 	public:
 		struct ShadowMapPassData
@@ -120,10 +88,8 @@ namespace Moongoose
 		};
 
 	public:
-		~ShadowMapPass() override
-		{
-		};
-		virtual void Render(const RenderPassParams& renderPassParams) override;
+		~ShadowMapPass() = default;
+		void Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams);
 
 		Ref<Framebuffer> GetShadowBuffer() const { return m_ShadowBuffer; }
 		Ref<Framebuffer> GetPointShadowBuffer() const { return m_PointShadowBuffer; }
@@ -140,46 +106,45 @@ namespace Moongoose
 		Ref<Framebuffer> m_PointShadowBuffer;
 	};
 
-	class BillboardPass : public RenderPass
+	class BillboardPass
 	{
 	public:
 		struct BillboardPassData
 		{
-			Ref<Framebuffer> targetBuffer;
 			std::vector<BillboardCommand> billboardCommands;
 		};
 
 	public:
-		~BillboardPass() override = default;
-		virtual void Render(const RenderPassParams& renderPassParams) override;
+		~BillboardPass() = default;
+		void Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams);
 	};
 
-	class BoxBlurPass : public RenderPass
+	class BoxBlurPass
 	{
 	public:
-		struct BoxBlurPassData
-		{
-			Ref<Framebuffer> targetBuffer;
-			uint32_t colorTexture;
-		};
-
-	public:
-		~BoxBlurPass() override = default;
-		virtual void Render(const RenderPassParams& renderPassParams) override;
+		~BoxBlurPass() = default;
+		void Render(Ref<Framebuffer> targetBuffer, uint32_t source, char amount, float blurIntensity);
 	};
 
-	class SkyPass : public RenderPass
+	class PostProcessCombinePass
+	{
+	public:
+		~PostProcessCombinePass() = default;
+		void Render(const Ref<Framebuffer> targetBuffer, uint32_t baseTexture, uint32_t textureToBlend,
+		            float multiply);
+	};
+
+	class SkyPass
 	{
 	public:
 		struct SkyPassData
 		{
-			Ref<Framebuffer> targetBuffer;
 			float time;
 		};
 
 	public:
-		~SkyPass() override = default;
-		virtual void Render(const RenderPassParams& renderPassParams) override;
+		~SkyPass() = default;
+		void Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams);
 
 	private:
 		void Init();

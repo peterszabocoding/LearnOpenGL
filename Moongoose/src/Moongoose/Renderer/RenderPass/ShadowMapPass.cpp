@@ -5,7 +5,7 @@
 
 namespace Moongoose
 {
-	void ShadowMapPass::Render(const RenderPassParams& renderPassParams)
+	void ShadowMapPass::Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams)
 	{
 		const auto data = static_cast<ShadowMapPassData*>(renderPassParams.additionalData);
 

@@ -34,6 +34,7 @@ namespace Moongoose
 
 		static void AttachColorTexture(const uint32_t id, const int samples, const GLenum internalFormat,
 		                               const GLenum format, const uint32_t width, const uint32_t height,
+		                               bool useNearestFilter,
 		                               const int index)
 		{
 			bool multisampled = samples > 1;
@@ -45,8 +46,8 @@ namespace Moongoose
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, useNearestFilter ? GL_NEAREST : GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, useNearestFilter ? GL_NEAREST : GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -228,7 +229,7 @@ namespace Moongoose
 	int Framebuffer::ReadPixel(const uint32_t attachmentIndex, const int x, const int y) const
 	{
 		MG_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(),
-		               "attachmentIndex exeeded number of color attachments");
+		               "attachmentIndex exeeded number of color attachments")
 
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
 		int pixelData = -1;
@@ -274,6 +275,7 @@ namespace Moongoose
 					TextureFormatToGL(m_ColorAttachmentSpecs[i].TextureFormat),
 					m_Specs.width,
 					m_Specs.height,
+					m_Specs.useNearestFilter,
 					i);
 			}
 		}

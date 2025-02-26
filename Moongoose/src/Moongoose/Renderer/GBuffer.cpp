@@ -17,7 +17,9 @@ namespace Moongoose
 			FramebufferTextureFormat::RGBA16F, // View Position
 			FramebufferTextureFormat::RGBA16F, // Normal
 			FramebufferTextureFormat::RGBA8, // Roughness
-			FramebufferTextureFormat::DEPTH24
+			FramebufferTextureFormat::RED_INTEGER,
+			FramebufferTextureFormat::DEPTH24,
+
 		};
 
 		m_Framebuffer = FramebufferManager::CreateFramebuffer("GBuffer");
@@ -80,6 +82,17 @@ namespace Moongoose
 	uint32_t GBuffer::GetDepthAttachment() const
 	{
 		return m_Framebuffer->GetDepthAttachment();
+	}
+
+	int GBuffer::ReadPixel(const uint32_t attachmentIndex, const int x, const int y) const
+	{
+		MG_CORE_ASSERT(attachmentIndex < m_Framebuffer->GetColorAttachments().size(),
+		               "attachmentIndex exeeded number of color attachments")
+		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+		int pixelData = -1;
+		glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+
+		return pixelData;
 	}
 
 	Framebuffer* GBuffer::GetFramebuffer() const

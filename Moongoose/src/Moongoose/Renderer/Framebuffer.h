@@ -74,6 +74,7 @@ namespace Moongoose
 		bool hasShadowMapAttachment = false;
 		bool hasShadowMapCubeAttachment = false;
 		bool swapChainTarget = false;
+		bool useNearestFilter = false;
 
 		glm::vec4 clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 

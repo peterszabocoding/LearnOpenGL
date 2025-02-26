@@ -6,12 +6,12 @@
 
 namespace Moongoose
 {
-	void BillboardPass::Render(const RenderPassParams& renderPassParams)
+	void BillboardPass::Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams)
 	{
 		const auto data = static_cast<BillboardPassData*>(renderPassParams.additionalData);
 		if (data->billboardCommands.empty()) return;
 
-		data->targetBuffer->Bind();
+		targetBuffer->Bind();
 
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::BILLBOARD);
 		shader->Bind();
@@ -25,7 +25,7 @@ namespace Moongoose
 		for (auto [id, transform, texture, scale, tintColor] : data->billboardCommands)
 		{
 			shader->SetMat4("model", transform);
-			shader->UploadUniformInt("aEntityID", id);
+			shader->SetInt("aEntityID", id);
 			shader->SetFloat3("TintColor", tintColor);
 
 			texture->Bind(0);
@@ -35,5 +35,7 @@ namespace Moongoose
 
 		shader->DisableFeature(GlFeature::BLEND);
 		shader->Unbind();
+
+		targetBuffer->Unbind();
 	}
 }

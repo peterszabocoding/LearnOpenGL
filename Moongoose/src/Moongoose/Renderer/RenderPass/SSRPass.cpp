@@ -1,26 +1,24 @@
 #include "mgpch.h"
 #include "RenderPass.h"
-#include "Moongoose/Renderer/FramebufferManager.h"
 #include "Moongoose/Renderer/MeshPrimitives.h"
 #include "Moongoose/Renderer/ShaderManager.h"
-
 #include "Moongoose/Renderer/GBuffer.h"
 
 namespace Moongoose
 {
-	void SsrPass::Render(const RenderPassParams& renderPassParams)
+	void PostProcessingSSRPass::Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams)
 	{
-		const SsrPassData* data = static_cast<SsrPassData*>(renderPassParams.additionalData);
+		const PostProcessingSSRPassData* data = static_cast<PostProcessingSSRPassData*>(renderPassParams.
+			additionalData);
 		const auto resolution = renderPassParams.camera->GetResolution();
 		const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::POST_PROCESS_SSR);
 
-		if (!framebuffer) InitFramebuffer(resolution);
-
-		framebuffer->Bind();
-		RenderCommand::SetClearColor(framebuffer->GetSpecs().clearColor);
+		targetBuffer->Bind();
+		RenderCommand::SetClearColor(targetBuffer->GetSpecs().clearColor);
 		RenderCommand::Clear();
 
 		shader->Bind();
+		shader->DisableFeature(GlFeature::DEPTH_TEST);
 		shader->SetCamera(
 			renderPassParams.camera->GetCameraPosition(),
 			renderPassParams.camera->GetViewMatrix(),
@@ -35,30 +33,12 @@ namespace Moongoose
 		shader->SetFloat("maxDistance", data->ssrParams.maxDistance);
 		shader->SetFloat("resolution", data->ssrParams.resolution);
 		shader->SetFloat("thickness", data->ssrParams.thickness);
-		shader->UploadUniformInt("steps", data->ssrParams.steps);
+		shader->SetInt("steps", data->ssrParams.steps);
 
 		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 
+		shader->EnableFeature(GlFeature::DEPTH_TEST);
 		shader->Unbind();
-		framebuffer->Unbind();
-	}
-
-	void SsrPass::Resize(const glm::uvec2& resolution)
-	{
-		if (!framebuffer) return;
-		framebuffer->Resize(resolution.x, resolution.y);
-	}
-
-	void SsrPass::InitFramebuffer(const glm::uvec2 resolution)
-	{
-		FramebufferSpecs specs;
-		specs.width = resolution.x;
-		specs.height = resolution.y;
-		specs.attachments = {
-			FramebufferTextureFormat::RGBA8
-		};
-
-		framebuffer = FramebufferManager::CreateFramebuffer("SSRBuffer");
-		framebuffer->Configure(specs);
+		targetBuffer->Unbind();
 	}
 }

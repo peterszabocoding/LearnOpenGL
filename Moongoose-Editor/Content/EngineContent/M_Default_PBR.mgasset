@@ -1,13 +1,13 @@
 {
     "albedoColor": {
-        "b": 0.6117647290229797,
-        "g": 0.8941176533699036,
-        "r": 0.9764705896377563
+        "b": 0.9578059315681458,
+        "g": 0.9232751727104187,
+        "r": 0.8486888408660889
     },
     "id": "11109056700723690989",
     "metallicValue": 1.0,
     "name": "M_Default_PBR",
-    "roughnessValue": 0.15000000596046448,
+    "roughnessValue": 0.3499999940395355,
     "source": "Content\\EngineContent\\M_Default_PBR.mgasset",
     "type": "Material"
 }

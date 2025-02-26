@@ -53,6 +53,10 @@ public:
 		                                  "shader\\point_shadow_map.fs",
 		                                  "shader\\point_shadow_map.gs");
 
+		ShaderManager::AssignShaderToType(ShaderType::POST_PROCESS_COMBINE,
+			"shader\\post_processing.vs",
+			"shader\\post_processing_combine.fs", "");
+
 		ShaderManager::AssignShaderToType(ShaderType::POST_PROCESS_SSR,
 		                                  "shader\\post_processing.vs",
 		                                  "shader\\post_processing_ssr.fs", "");

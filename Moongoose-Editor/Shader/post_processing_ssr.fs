@@ -68,11 +68,6 @@ float perspectiveDepthToViewZ( const in float depth, const in float near, const 
 
 void main()
 {
-    //float maxDistance = 6;
-    //float resolution  = 0.55;
-    //float thickness   = 0.085;
-    //int   steps       = 15;
-
     int localSteps = steps;
 
     vec2 texSize = textureSize(gPositionTexture, 0).xy;
@@ -173,6 +168,7 @@ void main()
     float roughness = 1 - texture(gRoughnessTexture, texCoord).r;
     vec3 reflection = mix(vec3(0), texture(renderTexture, uv.xy).rgb, uv.b);
 
-    vec3 color = mix(renderPixelColor.rgb, mix(renderPixelColor.rgb, reflection, roughness), uv.a);
+    //vec3 color = mix(renderPixelColor.rgb, mix(renderPixelColor.rgb, reflection, roughness), uv.a);
+    vec3 color = mix(vec3(0), mix(vec3(0), reflection, roughness), uv.a);
     FragColor =  vec4(color, 1.0);
 }

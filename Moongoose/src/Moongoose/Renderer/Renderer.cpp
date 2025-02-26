@@ -2,6 +2,7 @@
 #include "Renderer.h"
 
 #include "FramebufferManager.h"
+#include "GBuffer.h"
 #include "Light.h"
 #include "MeshPrimitives.h"
 #include "RenderCommand.h"
@@ -14,14 +15,17 @@ namespace Moongoose
 	glm::uvec2 Renderer::m_Resolution;
 
 	Ref<Framebuffer> Renderer::m_RenderBuffer;
+	Ref<Framebuffer> Renderer::m_PostProcessingSSRBuffer;
+	Ref<GBuffer> Renderer::m_GBuffer;
 
-	SsrPass Renderer::m_SsrPass;
+	PostProcessingSSRPass Renderer::m_SsrPass;
 	LightingPass Renderer::m_LightingPass;
 	GeometryPass Renderer::m_GeometryPass;
 	ShadowMapPass Renderer::m_ShadowMapPass;
 	BillboardPass Renderer::m_BillboardPass;
 	BoxBlurPass Renderer::m_BoxBlurPass;
 	SkyPass Renderer::m_SkyPass;
+	PostProcessCombinePass Renderer::m_PostProcessCombinePass;
 
 	std::vector<DirectionalLight> Renderer::m_DirectionalLights;
 	std::vector<PointLight> Renderer::m_PointLights;
@@ -96,9 +100,9 @@ namespace Moongoose
 
 	int Renderer::ReadEntityId(const uint32_t x, const uint32_t y)
 	{
-		m_RenderBuffer->Bind();
-		const int entityId = m_RenderBuffer->ReadPixel(1, x, y);
-		m_RenderBuffer->Unbind();
+		m_GBuffer->Bind();
+		const int entityId = m_GBuffer->ReadPixel(4, x, y);
+		m_GBuffer->Unbind();
 		return entityId;
 	}
 
@@ -107,12 +111,23 @@ namespace Moongoose
 		if (newResolution == m_Resolution) return;
 		m_Resolution = newResolution;
 
-		m_GeometryPass.Resize(m_Resolution);
-		m_LightingPass.Resize(m_Resolution);
-		m_SsrPass.Resize(m_Resolution);
+		if (m_GBuffer) m_GBuffer->Resize(m_Resolution.x, m_Resolution.y);
+		if (m_RenderBuffer) m_RenderBuffer->Resize(m_Resolution.x, m_Resolution.y);
+		if (m_PostProcessingSSRBuffer) m_PostProcessingSSRBuffer->Resize(m_Resolution.x, m_Resolution.y);
+	}
 
-		if (m_RenderBuffer)
-			m_RenderBuffer->Resize(m_Resolution.x, m_Resolution.y);
+	void Renderer::CreateSSRBuffer()
+	{
+		FramebufferSpecs bufferSpecs;
+		bufferSpecs.width = m_Resolution.x;
+		bufferSpecs.height = m_Resolution.y;
+		bufferSpecs.attachments = {
+			FramebufferTextureFormat::RGBA8
+		};
+		bufferSpecs.useNearestFilter = true;
+
+		m_PostProcessingSSRBuffer = FramebufferManager::CreateFramebuffer("PostProcessingSSRBuffer");
+		m_PostProcessingSSRBuffer->Configure(bufferSpecs);
 	}
 
 	void Renderer::RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world)
@@ -128,12 +143,16 @@ namespace Moongoose
 			bufferSpecs.height = m_Resolution.y;
 			bufferSpecs.attachments = {
 				FramebufferTextureFormat::RGBA8,
-				FramebufferTextureFormat::RED_INTEGER,
 				FramebufferTextureFormat::DEPTH24STENCIL8
 			};
 
 			m_RenderBuffer = FramebufferManager::CreateFramebuffer("RenderBuffer");
 			m_RenderBuffer->Configure(bufferSpecs);
+		}
+
+		if (!m_GBuffer)
+		{
+			m_GBuffer = CreateRef<GBuffer>(GBuffer::GBufferSpecs({m_Resolution.x, m_Resolution.y}));
 		}
 
 		const auto transformComponentArray = world->GetComponentArray<TransformComponent>();
@@ -150,7 +169,21 @@ namespace Moongoose
 		renderPassParams.camera = camera;
 		renderPassParams.meshCommands = m_MeshRenderCmds;
 
-		m_GeometryPass.Render(renderPassParams);
+		// Clear entity ID buffer
+		m_GBuffer->GetFramebuffer()->Bind();
+		m_GBuffer->GetFramebuffer()->ClearAttachment(4, -1);
+		m_GBuffer->GetFramebuffer()->Unbind();
+
+		// Clear render buffer
+		m_RenderBuffer->Bind();
+		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().clearColor);
+		RenderCommand::Clear();
+		m_RenderBuffer->Unbind();
+
+		// Geometry Pass
+		{
+			m_GeometryPass.Render(m_GBuffer, renderPassParams);
+		}
 
 		// Shadow Map Pass
 		{
@@ -158,32 +191,22 @@ namespace Moongoose
 			RenderPassParams shadowMapRenderPassParams = renderPassParams;
 			shadowMapRenderPassParams.additionalData = &shadowMapPassData;
 
-			m_ShadowMapPass.Render(shadowMapRenderPassParams);
+			m_ShadowMapPass.Render(nullptr, shadowMapRenderPassParams);
 		}
-
-
-		m_RenderBuffer->Bind();
-		RenderCommand::SetClearColor(m_RenderBuffer->GetSpecs().clearColor);
-		RenderCommand::Clear();
-		m_RenderBuffer->ClearAttachment(1, -1);
-		m_RenderBuffer->Unbind();
 
 		// Sky Pass
 		{
 			auto skyComponents = world->GetComponentsByType<AtmosphericsComponent>();
-
 			if (!skyComponents.empty())
 			{
-				auto cAtmos = skyComponents[0];
+				auto& cAtmos = skyComponents[0];
 
-				SkyPass::SkyPassData skyPassData;
-				skyPassData.targetBuffer = m_RenderBuffer;
-				skyPassData.time = cAtmos.time;
-
+				SkyPass::SkyPassData skyPassData{cAtmos.time};
 				RenderPassParams skyPassRenderParams = renderPassParams;
+
 				skyPassRenderParams.additionalData = &skyPassData;
 
-				m_SkyPass.Render(skyPassRenderParams);
+				m_SkyPass.Render(m_RenderBuffer, skyPassRenderParams);
 			}
 		}
 
@@ -195,26 +218,24 @@ namespace Moongoose
 				m_ShadowMapPass.GetPointShadowBuffer(),
 				m_DirectionalLights,
 				m_SpotLights,
-				m_PointLights,
-				m_RenderBuffer
+				m_PointLights
 			};
 
 			RenderPassParams lightingPassRenderPassParams = renderPassParams;
 			lightingPassRenderPassParams.additionalData = &lightingPassData;
 
-			m_LightingPass.Render(lightingPassRenderPassParams);
+			m_LightingPass.Render(m_RenderBuffer, lightingPassRenderPassParams);
 		}
 
 		// Billboard Pass
 		{
 			BillboardPass::BillboardPassData billboardPassData;
-			billboardPassData.targetBuffer = m_RenderBuffer;
 			billboardPassData.billboardCommands = m_BillboardRenderCmds;
 
 			RenderPassParams billboardRenderPassParams = renderPassParams;
 			billboardRenderPassParams.additionalData = &billboardPassData;
 
-			m_BillboardPass.Render(billboardRenderPassParams);
+			m_BillboardPass.Render(m_RenderBuffer, billboardRenderPassParams);
 		}
 
 		// Screen Space Reflection Pass
@@ -223,11 +244,15 @@ namespace Moongoose
 
 			if (!postProcessComponent.empty())
 			{
-				SsrPass::SsrPassData ssrPassData;
-				ssrPassData.gBuffer = m_GeometryPass.GetGBuffer();
+				if (!m_PostProcessingSSRBuffer) CreateSSRBuffer();
+
+				PostProcessingSSRPass::PostProcessingSSRPassData ssrPassData;
+				ssrPassData.gBuffer = m_GBuffer;
 				ssrPassData.renderTexture = m_RenderBuffer->GetColorAttachments()[0];
 
-				auto params = SsrPass::SsrParams();
+				auto params = PostProcessingSSRPass::PostProcessingSSRParams();
+				params.intensity = postProcessComponent[0].SSR_Intensity;
+				params.blur = postProcessComponent[0].SSR_Blur;
 				params.maxDistance = postProcessComponent[0].SSR_maxDistance;
 				params.thickness = postProcessComponent[0].SSR_thickness;
 				params.resolution = postProcessComponent[0].SSR_resolution;
@@ -238,22 +263,17 @@ namespace Moongoose
 				RenderPassParams ssrRenderPassParams = renderPassParams;
 				ssrRenderPassParams.additionalData = &ssrPassData;
 
-				m_SsrPass.Render(ssrRenderPassParams);
+				m_SsrPass.Render(m_PostProcessingSSRBuffer, ssrRenderPassParams);
+				m_BoxBlurPass.Render(m_PostProcessingSSRBuffer, m_PostProcessingSSRBuffer->GetColorAttachments()[0], 1,
+				                     params.blur);
+
+				m_PostProcessCombinePass.Render(
+					m_RenderBuffer,
+					m_RenderBuffer->GetColorAttachments()[0],
+					m_PostProcessingSSRBuffer->GetColorAttachments()[0],
+					params.intensity);
 			}
 		}
-
-		/*
-		{
-			BoxBlurPass::BoxBlurPassData boxBlurPassData;
-			boxBlurPassData.targetBuffer = m_SsrPass.GetFramebuffer();
-			boxBlurPassData.colorTexture = m_SsrPass.GetFramebuffer()->GetColorAttachments()[0];
-
-			RenderPassParams boxBlurPassRenderParams = renderPassParams;
-			boxBlurPassRenderParams.additionalData = &boxBlurPassData;
-
-			m_BoxBlurPass.Render(boxBlurPassRenderParams);
-		}
-		*/
 
 		prevDrawCount = RenderCommand::GetDrawCallCount();
 		EndScene();

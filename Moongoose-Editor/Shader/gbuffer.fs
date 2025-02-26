@@ -8,6 +8,7 @@ in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
 in mat3 TBN;
+in flat int EntityID;
 
 in vec4 ViewPos;
 in vec4 WorldPos;
@@ -20,6 +21,7 @@ layout (location = 0) out vec4 gWorldPosition;
 layout (location = 1) out vec4 gViewPosition;
 layout (location = 2) out vec4 gNormal;
 layout (location = 3) out vec4 gRoughness;
+layout (location = 4) out int oEntityID;
 
 // ------------------------------------------------------------------
 // UNIFORMS ---------------------------------------------------------
@@ -54,6 +56,7 @@ vec3 CalcNormal()
 
 void main()
 {
+    oEntityID = EntityID;
     gWorldPosition= WorldPos;
     gViewPosition = ViewPos;
 

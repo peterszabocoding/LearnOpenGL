@@ -343,10 +343,16 @@ void EntityInspectorLayer::onImGuiRender()
 			{
 				ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 
+				GuiWidgets::DrawFloatControl("Intensity", cPostProcessing.SSR_Intensity, 0.0f, 10.0f, 0.01f, 1.0f,
+				                             windowSize.x);
+				GuiWidgets::DrawFloatControl("Blur", cPostProcessing.SSR_Blur, 0.0f, 10.0f, 0.01f, 1.0f, windowSize.x);
 				GuiWidgets::DrawIntControl("Steps", cPostProcessing.SSR_steps, 0, 100, 15, windowSize.x);
-				GuiWidgets::DrawFloatControl("Max Distance", cPostProcessing.SSR_maxDistance, 0.0f, 100.0f, 0.01f, 6.0f, windowSize.x);
-				GuiWidgets::DrawFloatControl("Resolution", cPostProcessing.SSR_resolution, 0.0f, 10.0f, 0.01f, 0.55f, windowSize.x);
-				GuiWidgets::DrawFloatControl("Tickness", cPostProcessing.SSR_thickness, 0.0f, 2.0f, 0.001f, 0.085f, windowSize.x);
+				GuiWidgets::DrawFloatControl("Max Distance", cPostProcessing.SSR_maxDistance, 0.0f, 100.0f, 0.01f, 6.0f,
+				                             windowSize.x);
+				GuiWidgets::DrawFloatControl("Resolution", cPostProcessing.SSR_resolution, 0.0f, 10.0f, 0.01f, 0.55f,
+				                             windowSize.x);
+				GuiWidgets::DrawFloatControl("Tickness", cPostProcessing.SSR_thickness, 0.0f, 2.0f, 0.001f, 0.085f,
+				                             windowSize.x);
 
 				ImGui::TreePop();
 			}

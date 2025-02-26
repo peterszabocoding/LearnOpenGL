@@ -7,7 +7,7 @@
 
 namespace Moongoose
 {
-	void SkyPass::Render(const RenderPassParams& renderPassParams)
+	void SkyPass::Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams)
 	{
 		SkyPassData* skyPassData = static_cast<SkyPassData*>(renderPassParams.additionalData);
 
@@ -44,7 +44,8 @@ namespace Moongoose
 
 		const Ref<Shader> bgShader = ShaderManager::GetShaderByType(ShaderType::ATMOSPHERE);
 
-		skyPassData->targetBuffer->Bind();
+		targetBuffer->Bind();
+
 		bgShader->Bind();
 		bgShader->BindTexture(0, m_SkyBuffer->GetColorAttachments()[0]);
 		bgShader->SetCamera(
@@ -54,7 +55,8 @@ namespace Moongoose
 		bgShader->DisableFeature(GlFeature::DEPTH_TEST);
 		RenderCommand::DrawIndexed(QuadMesh().GetSubmeshes()[0]->vertexArray);
 		bgShader->Unbind();
-		skyPassData->targetBuffer->Unbind();
+
+		targetBuffer->Unbind();
 	}
 
 	void SkyPass::Init()

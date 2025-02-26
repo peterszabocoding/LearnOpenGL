@@ -245,7 +245,7 @@ namespace Moongoose
 		return location;
 	}
 
-	void Shader::UploadUniformInt(const std::string& name, const int value)
+	void Shader::SetInt(const std::string& name, const int value)
 	{
 		glUniform1i(GetUniformLocation(name), value);
 	}

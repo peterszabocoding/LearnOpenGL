@@ -30,6 +30,7 @@ namespace Moongoose
 		BILLBOARD,
 		ATMOSPHERE,
 		GBUFFER,
+		POST_PROCESS_COMBINE,
 		POST_PROCESS_SSR,
 		POST_PROCESS_BOX_BLUR,
 	};
@@ -148,7 +149,7 @@ namespace Moongoose
 
 		[[nodiscard]] std::string GetShaderTypeString() const { return Utils::GetShaderTypeString(shaderType); }
 
-		void UploadUniformInt(const std::string& name, int value);
+		void SetInt(const std::string& name, int value);
 		void SetIntArray(const std::string& name, const int* values, uint32_t count);
 		void SetFloat(const std::string& name, float value);
 		void SetFloat2(const std::string& name, const glm::vec2& value);

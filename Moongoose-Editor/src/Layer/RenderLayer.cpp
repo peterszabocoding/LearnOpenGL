@@ -57,7 +57,7 @@ void RenderLayer::onImGuiRender()
 	ImGuizmo::BeginFrame();
 	ImGui::Begin("Render");
 
-	if (!m_WorldManager->IsWorldOpened())
+	if (!WorldManager::IsWorldOpened())
 	{
 		ImGui::End();
 		return;
@@ -79,7 +79,7 @@ void RenderLayer::onImGuiRender()
 
 	if (Renderer::GetRenderBuffer())
 	{
-		ImGui::Image((void*)Renderer::GetRenderBuffer()->GetColorAttachments()[0],
+		ImGui::Image(reinterpret_cast<void*>(Renderer::GetRenderBuffer()->GetColorAttachments()[0]),
 		             windowSize,
 		             ImVec2(0, 1),
 		             ImVec2(1, 0));
@@ -219,7 +219,7 @@ bool RenderLayer::onKeyPressed(KeyPressedEvent& event)
 
 	if (event.getKeyCode() == MG_KEY_ESCAPE)
 	{
-		m_WorldManager->GetLoadedWorld()->SetSelectedEntity(-1);
+		WorldManager::GetLoadedWorld()->SetSelectedEntity(-1);
 		return false;
 	}
 
@@ -230,10 +230,10 @@ bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 {
 	const bool entitySelectButtonsPressed = Input::IsMousePressed(MG_MOUSE_BUTTON_LEFT) && Input::IsKeyPressed(
 		MG_KEY_LEFT_SHIFT);
-	if (m_WorldManager->GetLoadedWorld() && IsMouseInWindow() && entitySelectButtonsPressed)
+	if (WorldManager::GetLoadedWorld() && IsMouseInWindow() && entitySelectButtonsPressed)
 	{
 		m_HoveredEntityId = Renderer::ReadEntityId(m_WindowMousePos.x, m_WindowMousePos.y);
-		m_WorldManager->GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
+		WorldManager::GetLoadedWorld()->SetSelectedEntity(m_HoveredEntityId);
 	}
 	return false;
 }
@@ -241,6 +241,7 @@ bool RenderLayer::onMouseButtonPressed(MousePressedEvent& event)
 bool RenderLayer::IsMouseInWindow() const
 {
 	const glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
-	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < (int)viewportSize.x &&
-		m_WindowMousePos.y < (int)viewportSize.y;
+	return m_WindowMousePos.x >= 0 && m_WindowMousePos.y >= 0 && m_WindowMousePos.x < static_cast<int>(viewportSize.x)
+		&&
+		m_WindowMousePos.y < static_cast<int>(viewportSize.y);
 }

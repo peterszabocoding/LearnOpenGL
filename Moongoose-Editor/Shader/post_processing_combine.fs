@@ -1,5 +1,5 @@
 // Credit:
-// https://lettier.github.io/3d-game-shaders-for-beginners/blur.html
+// https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 
 #version 450
 
@@ -7,7 +7,6 @@
 // INPUT VARIABLES --------------------------------------------------
 // ------------------------------------------------------------------
 
-in vec2 TexCoords;
 
 // ------------------------------------------------------------------
 // OUTPUT VARIABLES -------------------------------------------------
@@ -19,27 +18,22 @@ out vec4 FragColor;
 // UNIFORMS ---------------------------------------------------------
 // ------------------------------------------------------------------
 
-layout(binding = 0) uniform sampler2D colorTexture;
+layout(binding = 0) uniform sampler2D baseTexture;
+layout(binding = 1) uniform sampler2D postProcessingTexture;
 
-uniform float blurIntensity = 2.0;
+uniform float multiply = 1.0;
+
+// ------------------------------------------------------------------
+// FUNCTIONS --------------------------------------------------------
 // ------------------------------------------------------------------
 
 void main()
 {
-    vec2 parameters = vec2(blurIntensity, blurIntensity);
-    vec2 texSize  = textureSize(colorTexture, 0).xy;
+    vec2 texSize = textureSize(baseTexture, 0).xy;
+    vec2 texCoord = gl_FragCoord.xy / texSize; // == TexCoords
 
-    int size = int(parameters.x);
-    if (size <= 0) { FragColor = texture(colorTexture, TexCoords); return; }
+    vec4 baseColor = texture(baseTexture, texCoord);
+    vec4 postProcessingTexture = texture(postProcessingTexture, texCoord);
 
-    float separation = parameters.y;
-    separation = max(separation, 0);
-
-    for (int i = -size; i <= size; ++i) {
-        for (int j = -size; j <= size; ++j) {
-            FragColor += texture(colorTexture, (gl_FragCoord.xy + (vec2(i, j) * separation)) / texSize);
-        }
-    }
-
-    FragColor /= pow(size * 2 + 1, 2);
+    FragColor =  vec4(baseColor + (multiply * postProcessingTexture));
 }

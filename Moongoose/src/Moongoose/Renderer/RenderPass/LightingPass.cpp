@@ -7,11 +7,11 @@
 
 namespace Moongoose
 {
-	void LightingPass::Render(const RenderPassParams& renderPassParams)
+	void LightingPass::Render(Ref<Framebuffer> targetBuffer, RenderPassParams& renderPassParams)
 	{
 		const LightingPassData* data = static_cast<LightingPassData*>(renderPassParams.additionalData);
 
-		data->targetBuffer->Bind();
+		targetBuffer->Bind();
 
 		{
 			const Ref<Shader> shader = ShaderManager::GetShaderByType(ShaderType::STATIC);
@@ -28,10 +28,10 @@ namespace Moongoose
 				AddDirectionalLight(
 					light, shader, data->shadowMapBuffer);
 
-			shader->UploadUniformInt("pointLightCount", data->pointLights.size());
+			shader->SetInt("pointLightCount", data->pointLights.size());
 			for (size_t i = 0; i < data->pointLights.size(); i++) AddPointLight(i, shader, data->pointLights[i]);
 
-			shader->UploadUniformInt("spotLightCount", data->spotLights.size());
+			shader->SetInt("spotLightCount", data->spotLights.size());
 			for (size_t i = 0; i < data->spotLights.size(); i++) AddSpotLight(i, shader, data->spotLights[i]);
 
 			shader->Unbind();
@@ -48,12 +48,11 @@ namespace Moongoose
 				renderPassParams.camera->GetProjection());
 
 			shader->SetMat4("model", cmd.transform);
-			shader->UploadUniformInt("aEntityID", cmd.id);
 
-			shader->UploadUniformInt("material.useAlbedoTexture", cmd.material->m_Albedo != nullptr ? 1 : 0);
-			shader->UploadUniformInt("material.useMetallicTexture", cmd.material->m_Metallic != nullptr ? 1 : 0);
-			shader->UploadUniformInt("material.useRoughnessTexture", cmd.material->m_Roughness != nullptr ? 1 : 0);
-			shader->UploadUniformInt("material.useNormalMapTexture", cmd.material->m_Normal != nullptr ? 1 : 0);
+			shader->SetInt("material.useAlbedoTexture", cmd.material->m_Albedo != nullptr ? 1 : 0);
+			shader->SetInt("material.useMetallicTexture", cmd.material->m_Metallic != nullptr ? 1 : 0);
+			shader->SetInt("material.useRoughnessTexture", cmd.material->m_Roughness != nullptr ? 1 : 0);
+			shader->SetInt("material.useNormalMapTexture", cmd.material->m_Normal != nullptr ? 1 : 0);
 
 			shader->SetFloat3("material.albedo", cmd.material->m_AlbedoColor);
 			shader->SetFloat("material.roughness", cmd.material->m_RoughnessValue);
@@ -65,8 +64,7 @@ namespace Moongoose
 			shader->Unbind();
 		}
 
-
-		data->targetBuffer->Unbind();
+		targetBuffer->Unbind();
 	}
 
 	void LightingPass::AddDirectionalLight(

@@ -40,11 +40,12 @@ namespace Moongoose
 		static void RenderWorld(const Ref<PerspectiveCamera>& camera, const Ref<World>& world);
 
 		static unsigned int GetDrawCount() { return prevDrawCount; }
-		static Ref<Framebuffer> GetRenderBuffer() { return m_SsrPass.GetFramebuffer(); }
+		static Ref<Framebuffer> GetRenderBuffer() { return m_RenderBuffer; }
 		static int ReadEntityId(uint32_t x, uint32_t y);
 
 	private:
 		static void SetResolution(glm::uvec2 newResolution);
+		static void CreateSSRBuffer();
 		static void ProcessMeshComponent(const Entity entity, const TransformComponent& cTransform,
 		                                 const Ref<World>& world);
 		static void ProcessLightComponent(Entity entity, const TransformComponent& cTransform, const Ref<World>& world);
@@ -66,14 +67,17 @@ namespace Moongoose
 
 		static unsigned int prevDrawCount;
 
+		static Ref<GBuffer> m_GBuffer;
 		static Ref<Framebuffer> m_RenderBuffer;
+		static Ref<Framebuffer> m_PostProcessingSSRBuffer;
 
-		static SsrPass m_SsrPass;
+		static PostProcessingSSRPass m_SsrPass;
 		static LightingPass m_LightingPass;
 		static GeometryPass m_GeometryPass;
 		static ShadowMapPass m_ShadowMapPass;
 		static BillboardPass m_BillboardPass;
 		static BoxBlurPass m_BoxBlurPass;
 		static SkyPass m_SkyPass;
+		static PostProcessCombinePass m_PostProcessCombinePass;
 	};
 }
