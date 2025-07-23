@@ -1,0 +1,13 @@
+{
+    "albedoColor": {
+        "b": 1.0,
+        "g": 1.0,
+        "r": 1.0
+    },
+    "id": "11109056703758690989",
+    "metallicValue": 0.0,
+    "name": "M_Default_Mirror",
+    "roughnessValue": 0.15000000596046448,
+    "source": "Content\\EngineContent\\M_Default_Mirror.mgasset",
+    "type": "Material"
+}

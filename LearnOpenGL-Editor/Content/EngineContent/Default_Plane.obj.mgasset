@@ -1,0 +1,12 @@
+{
+    "id": "14136211866202430725",
+    "materials": [
+        [
+            "12295842333264798360",
+            "Material 0"
+        ]
+    ],
+    "name": "Default_Plane.obj",
+    "source": "Content\\EngineContent\\Default_Plane.obj",
+    "type": "Mesh"
+}

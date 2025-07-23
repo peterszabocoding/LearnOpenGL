@@ -1,4 +1,4 @@
-workspace "Moongoose"
+workspace "LearnOpenGL"
 	architecture "x64"
 
 	configurations
@@ -11,23 +11,23 @@ workspace "Moongoose"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
-IncludeDir["GLFW"]		=	"Moongoose/vendor/GLFW/include"
-IncludeDir["Glad"]		=	"Moongoose/vendor/Glad/include"
-IncludeDir["ImGui"]		=	"Moongoose/vendor/imgui"
-IncludeDir["GLM"]		=	"Moongoose/vendor/glm"
-IncludeDir["ASSIMP"]	=	"Moongoose/vendor/ASSIMP/include"
-IncludeDir["stb"]		=	"Moongoose/vendor/stb/include"
-IncludeDir["json"] 		= 	"Moongoose/vendor/json/include"
-IncludeDir["ImGuizmo"] 	= 	"Moongoose-Editor/vendor/ImGuizmo"
+IncludeDir["GLFW"]		=	"LearnOpenGL/vendor/GLFW/include"
+IncludeDir["Glad"]		=	"LearnOpenGL/vendor/Glad/include"
+IncludeDir["ImGui"]		=	"LearnOpenGL/vendor/imgui"
+IncludeDir["GLM"]		=	"LearnOpenGL/vendor/glm"
+IncludeDir["ASSIMP"]	=	"LearnOpenGL/vendor/ASSIMP/include"
+IncludeDir["stb"]		=	"LearnOpenGL/vendor/stb/include"
+IncludeDir["json"] 		= 	"LearnOpenGL/vendor/json/include"
+IncludeDir["ImGuizmo"] 	= 	"LearnOpenGL-Editor/vendor/ImGuizmo"
 
 group "Dependencies"
-	include "Moongoose/vendor/GLFW"
-	include "Moongoose/vendor/Glad"
-	include "Moongoose/vendor/imgui"
+	include "LearnOpenGL/vendor/GLFW"
+	include "LearnOpenGL/vendor/Glad"
+	include "LearnOpenGL/vendor/imgui"
 
 group "Engine"
-	project "Moongoose"
-		location "Moongoose"
+	project "LearnOpenGL"
+		location "LearnOpenGL"
 		kind "StaticLib"
 		language "C++"
 		cppdialect "C++17"
@@ -36,8 +36,8 @@ group "Engine"
 		targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 		objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-		pchheader "mgpch.h"
-		pchsource "%{prj.name}/src/mgpch.cpp"
+		pchheader "pch.h"
+		pchsource "%{prj.name}/src/pch.cpp"
 
 		files
 		{
@@ -106,8 +106,8 @@ group "Engine"
 			buildoptions "/MD"
 			optimize "On"
 
-	project "Moongoose-Editor"
-		location "Moongoose-Editor"
+	project "LearnOpenGL-Editor"
+		location "LearnOpenGL-Editor"
 		kind "ConsoleApp"
 		language "C++"
 		cppdialect "C++17"
@@ -121,16 +121,16 @@ group "Engine"
 			"%{prj.name}/src/**.h",
 			"%{prj.name}/src/**.cpp",
 
-			"Moongoose-Editor/vendor/ImGuizmo/ImGuizmo.h",
-			"Moongoose-Editor/vendor/ImGuizmo/ImGuizmo.cpp"
+			"LearnOpenGL-Editor/vendor/ImGuizmo/ImGuizmo.h",
+			"LearnOpenGL-Editor/vendor/ImGuizmo/ImGuizmo.cpp"
 		}
 
 		includedirs
 		{
-			"Moongoose/src",
-			"Moongoose/vendor",
-			"Moongoose-Editor/src",
-			"Moongoose/vendor/spdlog/include",
+			"LearnOpenGL/src",
+			"LearnOpenGL/vendor",
+			"LearnOpenGL-Editor/src",
+			"LearnOpenGL/vendor/spdlog/include",
 			"%{IncludeDir.GLM}",
 			"%{IncludeDir.Glad}",
 			"%{IncludeDir.ImGui}",
@@ -139,7 +139,7 @@ group "Engine"
 
 		links
 		{
-			"Moongoose"
+			"LearnOpenGL"
 		}
 
 		filter "system:windows"
